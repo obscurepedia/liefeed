@@ -1,0 +1,77 @@
+<!-- templates/home.html -->
+{% extends "base.html" %}
+
+{% block content %}
+{% if posts %}
+    {% set featured = posts[0] %}
+
+    <!-- 🔁 Combined Featured + Trending Section -->
+    <div class="top-section">
+        <div class="equal-height-wrapper">
+
+            <!-- LEFT: Featured Post -->
+            <div class="featured-wrapper">
+                <div class="featured-post">
+                    <a href="/post/{{ featured.slug }}">
+                        <img class="featured-image" src="{{ featured.image }}" alt="{{ featured.title }}">
+                    </a>
+                    <div class="featured-details">
+                        <h1 class="featured-title"><a href="/post/{{ featured.slug }}">{{ featured.title }}</a></h1>
+                        <p class="post-meta">
+                            {{ featured.created_at[:10] }}
+                            <span class="category-tag">
+                                <a href="/category/{{ featured.category|lower }}">{{ featured.category }}</a>
+                            </span>
+                        </p>
+                        <p class="featured-snippet">
+                            {{ featured.content[:250]|replace('**', '')|replace('###', '') }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: Trending Section -->
+            <aside class="trending-sidebar">
+                <h3 class="trending-heading">🔥 Trending</h3>
+                <ul class="trending-list">
+                    {% for post in trending %}
+                    <li class="trending-item">
+                        <a href="/post/{{ post.slug }}">{{ post.title }}</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </aside>
+
+        </div>
+    </div>
+
+    <!-- 🧱 Grid for Remaining Posts -->
+    <div class="grid-container">
+        {% for post in posts[1:] %}
+            <div class="post-card">
+                {% if post.image %}
+                    <a href="/post/{{ post.slug }}">
+                        <img src="{{ post.image }}" alt="{{ post.title }}" class="post-image">
+                    </a>
+                {% endif %}
+                <div class="post-details">
+                    <h2 class="post-title">
+                        <a href="/post/{{ post.slug }}">{{ post.title }}</a>
+                    </h2>
+                    <p class="post-meta">
+                        {{ post.created_at[:10] }}
+                        <span class="category-tag">
+                            <a href="/category/{{ post.category|lower }}">{{ post.category }}</a>
+                        </span>
+                    </p>
+                    <p class="post-snippet">
+                        {{ post.content[:150]|replace('**', '')|replace('###', '') }}
+                    </p>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <p class="no-posts">No posts available yet. Come back soon for more lies!</p>
+{% endif %}
+{% endblock %}

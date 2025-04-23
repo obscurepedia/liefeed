@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="page-title" style="text-align: center;">Meet the Minds Behind the Madness</h1>
+<div class="grid-container">
+    {% for member in members %}
+    <div class="post-card" id="{{ member.slug }}">
+        <a href="/team/{{ member.slug }}">
+            <img src="{{ member.photo }}" alt="{{ member.name }}" class="post-image" style="border-radius: 50%; width: 120px; height: 120px; object-fit: cover; margin: 0 auto; display: block;">
+        </a>
+        <div class="post-details" style="text-align: center;">
+            <h2 class="post-title" style="margin-top: 1rem;">
+                <a href="/team/{{ member.slug }}">{{ member.name }}</a>
+            </h2>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

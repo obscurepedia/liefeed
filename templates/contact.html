@@ -1,0 +1,17 @@
+<!-- templates/contact.html -->
+{% extends "base.html" %}
+{% block content %}
+<h1>Contact Us</h1>
+<form method="post" action="/contact" class="contact-form">
+  <label for="name">Name:</label>
+  <input type="text" name="name" required>
+
+  <label for="email">Email:</label>
+  <input type="email" name="email" required>
+
+  <label for="message">Message:</label>
+  <textarea name="message" rows="5" required></textarea>
+
+  <button type="submit">Send</button>
+</form>
+{% endblock %}

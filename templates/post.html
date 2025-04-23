@@ -1,0 +1,73 @@
+<!-- templates/post.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<article class="post-detail">
+    <h2 class="post-title">{{ post.title|striptags }}</h2>
+    <p class="meta">
+        {{ post.created_at[:10] }}
+        <span class="category-tag">
+            <a href="/category/{{ post.category|lower }}">{{ post.category }}</a>
+        </span>
+        |
+        Written by <a href="/team/{{ post.author_slug }}">{{ post.author }}</a>
+    </p>
+
+    {% if post.image %}
+    <div class="post-image-wrapper" style="text-align: center; margin: 1em 0;">
+        <img src="{{ post.image }}" alt="{{ post.title|striptags }}" style="max-width: 700px; width: 100%; border-radius: 8px;">
+    </div>
+    {% endif %}
+
+    <div class="post-body">
+        <div class="content" style="font-size: 1.15rem; line-height: 1.8;">
+            {{ post.content | markdown }}
+        </div>
+    </div>
+</article>
+
+{% if post.quote %}
+<hr style="margin: 3rem 0 1.5rem;">
+<p class="bot-quote" style="text-align: center; font-style: italic; font-size: 1.1rem; color: #444;">
+    “{{ post.quote }}” – {{ post.author }}
+</p>
+<hr style="margin: 2rem auto; width: 100%; border: none; border-top: 1px solid #ccc;">
+{% endif %}
+
+
+{% if more_by_author %}
+
+<div class="grid-container">
+    {% for p in more_by_author %}
+    <div class="post-card">
+        <a href="/post/{{ p.slug }}">
+            {% if p.image %}
+            <img src="{{ p.image }}" alt="{{ p.title }}" class="post-image">
+            {% endif %}
+        </a>
+        <div class="post-details">
+            <h2 class="post-title">
+                <a href="/post/{{ p.slug }}">{{ p.title }}</a>
+            </h2>
+            <p class="post-meta">
+                {{ p.created_at[:10] }} |
+                <a href="/category/{{ p.category|lower }}">{{ p.category }}</a>
+            </p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div style="display: flex; justify-content: center; margin: 2rem 0 4rem;">
+    <a href="/team/{{ post.author_slug }}" class="view-more-button">
+        View all posts by {{ post.author }}
+    </a>
+</div>
+{% endif %}
+
+{% if post.source %}
+<p class="source-note" style="margin-top: 2em; font-size: 0.9em; color: #888;">
+    Originally inspired by <a href="{{ post.source }}" target="_blank" style="color: #888;">this article</a>.
+</p>
+{% endif %}
+{% endblock %}

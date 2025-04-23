@@ -1,0 +1,38 @@
+<!-- templates/base.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LieFeed - Satirical News</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter&family=Rubik:wght@500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <a href="/" class="logo-link">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="LieFeed logo" class="logo-img">
+        </a>
+        <nav class="main-nav">
+            <a href="/">Home</a>
+            {% for cat in menu_categories %}
+                <a href="/category/{{ cat | lower }}">{{ cat }}</a>
+            {% endfor %}
+        </nav>
+    </header>
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+    <footer>
+        <p>&copy; {{ current_year }} LieFeed. All facts are fictional.</p>
+        <p>Newsroom powered by Python. Content powered by imagination.</p>
+        <p>
+            <a href="/team">Meet the Team</a> |
+            <a href="/about">About</a> |
+            <a href="/privacy">Privacy</a> |
+            <a href="/terms">Terms</a> |
+            <a href="/contact">Contact</a>
+        </p>
+    </footer>
+</body>
+</html>
