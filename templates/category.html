@@ -18,7 +18,7 @@
                         <a href="/post/{{ post.slug }}">{{ post.title }}</a>
                     </h2>
                     <p class="post-meta">
-                        {{ post.created_at[:10] }}
+                        {{ post.created_at.strftime('%Y-%m-%d') }}
                         <span class="category-tag">
                             <a href="/category/{{ post.category|lower }}">{{ post.category }}</a>
                         </span>
