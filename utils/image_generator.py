@@ -36,6 +36,7 @@ def generate_image_from_prompt(prompt, output_filename):
 
         local_path = f"temp_{output_filename}"
         image.save(local_path)
+        os.makedirs(os.path.dirname(local_path), exist_ok=True)   # <— add this
         print(f"✅ Image saved temporarily at: {local_path}")
 
         apply_watermark(local_path)

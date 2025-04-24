@@ -91,11 +91,12 @@ def generate_and_save_post(category=None, max_fetch_attempts=5):
             prompt = generate_image_prompt(satirical_headline, satire)
             short_slug = slugify(satirical_headline)[:80]
             image_filename = f"{short_slug}.png"
-            image_path = os.path.join(IMAGE_DIR, image_filename)
-            image_url = f"/static/images/{image_filename}"
 
-            success = generate_image_from_prompt(prompt, image_path)
-            if not success or not os.path.exists(image_path):
+            # ✅ Upload image and get S3 URL
+            image_url = generate_image_from_prompt(prompt, image_filename)
+
+            # ⛔️ Stop if image generation or upload failed
+            if not image_url:
                 print("🚫 Image generation failed. Trying next article...")
                 continue
 
@@ -116,11 +117,12 @@ def generate_and_save_post(category=None, max_fetch_attempts=5):
             })
 
             print(f"✅ Article saved: {satirical_headline} (by {writer['name']})")
-            return  # Done!
+            return  # Done with one post
 
         fetch_attempts += 1
 
     print("❌ Failed to generate any valid articles after multiple attempts.")
+
 
 
 openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
