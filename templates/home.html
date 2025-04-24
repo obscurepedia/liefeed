@@ -18,7 +18,7 @@
                     <div class="featured-details">
                         <h1 class="featured-title"><a href="/post/{{ featured.slug }}">{{ featured.title }}</a></h1>
                         <p class="post-meta">
-                            {{ featured.created_at[:10] }}
+                            {{ featured.created_at.strftime('%Y-%m-%d') }}
                             <span class="category-tag">
                                 <a href="/category/{{ featured.category|lower }}">{{ featured.category }}</a>
                             </span>
