@@ -2,7 +2,7 @@
 
 import os
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 
 from utils.ai_writer import rewrite_as_satire, generate_satirical_headline
 from utils.news_fetcher import fetch_google_news
@@ -107,7 +107,7 @@ def generate_and_save_post(category=None, max_fetch_attempts=5):
                 "slug": slugify(satirical_headline),
                 "content": satire.strip(),
                 "category": category.capitalize(),
-                "created_at": datetime.utcnow().isoformat(),
+                "created_at": datetime.now(timezone.utc),
                 "source": article["link"],
                 "image": image_url,
                 "author": writer["name"],

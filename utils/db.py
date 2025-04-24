@@ -21,7 +21,7 @@ def init_db():
             slug TEXT UNIQUE NOT NULL,
             content TEXT NOT NULL,
             category TEXT NOT NULL,
-            created_at TEXT NOT NULL,
+            created_at TIMESTAMP NOT NULL,
             source TEXT,
             image TEXT,
             author TEXT,
