@@ -2,15 +2,16 @@
 
 import os
 import re
-import random
-import sqlite3
 from datetime import datetime
+
 from utils.ai_writer import rewrite_as_satire, generate_satirical_headline
 from utils.news_fetcher import fetch_google_news
 from utils.image_prompt_generator import generate_image_prompt
 from utils.image_generator import generate_image_from_prompt
-from utils.db import insert_post
-from utils.ai_team import get_random_writer  # ✅ Import AI team writer
+from utils.db import insert_post, get_connection
+from utils.ai_team import get_random_writer
+from openai import OpenAI
+
 
 IMAGE_DIR = "static/images"
 os.makedirs(IMAGE_DIR, exist_ok=True)
@@ -29,7 +30,7 @@ def slugify(text, max_words=4, max_chars=60):
 
 
 def is_duplicate(source_link):
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT COUNT(*) FROM posts WHERE source = ?", (source_link,))
     result = cursor.fetchone()[0]
@@ -121,7 +122,7 @@ def generate_and_save_post(category=None, max_fetch_attempts=5):
 
     print("❌ Failed to generate any valid articles after multiple attempts.")
 
-from openai import OpenAI
+
 openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 def generate_author_quote(writer_name, article_title):
