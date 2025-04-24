@@ -91,6 +91,10 @@ def generate_and_save_post(category=None, max_fetch_attempts=5):
             prompt = generate_image_prompt(satirical_headline, satire)
             short_slug = slugify(satirical_headline)[:80]
             image_filename = f"{short_slug}.png"
+            if not image_filename or not image_filename.endswith(".png"):
+                print("🚫 Invalid image filename. Skipping article.")
+                continue
+
 
             # ✅ Upload image and get S3 URL
             image_url = generate_image_from_prompt(prompt, image_filename)
