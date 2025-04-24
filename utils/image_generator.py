@@ -40,15 +40,18 @@ def generate_image_from_prompt(prompt, output_filename):
 
         apply_watermark(local_path)
 
-        # Upload to S3
-        s3_key = f"{output_filename}"
-        s3_client.upload_file(local_path, S3_BUCKET_NAME, s3_key, ExtraArgs={'ContentType': 'image/png', 'ACL': 'public-read'})
+        # Upload to S3 (no ACL needed since your bucket is already public)
+        s3_key = output_filename
+        s3_client.upload_file(
+            local_path,
+            S3_BUCKET_NAME,
+            s3_key,
+            ExtraArgs={'ContentType': 'image/png'}  # ✅ remove ACL
+        )
         print(f"✅ Uploaded to S3: {s3_key}")
 
-        # Cleanup local file
         os.remove(local_path)
 
-        # Return the public URL
         return f"https://{S3_BUCKET_NAME}.s3.{AWS_REGION}.amazonaws.com/{s3_key}"
 
     except Exception as e:
