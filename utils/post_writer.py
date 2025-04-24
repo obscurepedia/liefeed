@@ -32,7 +32,7 @@ def slugify(text, max_words=4, max_chars=60):
 def is_duplicate(source_link):
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT COUNT(*) FROM posts WHERE source = ?", (source_link,))
+    cursor.execute("SELECT COUNT(*) FROM posts WHERE source = %s", (source_link,))
     result = cursor.fetchone()[0]
     conn.close()
     return result > 0
