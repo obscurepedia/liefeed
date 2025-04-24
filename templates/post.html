@@ -5,7 +5,7 @@
 <article class="post-detail">
     <h2 class="post-title">{{ post.title|striptags }}</h2>
     <p class="meta">
-        {{ post.created_at[:10] }}
+        {{ post.created_at.strftime('%Y-%m-%d') }}
         <span class="category-tag">
             <a href="/category/{{ post.category|lower }}">{{ post.category }}</a>
         </span>
@@ -50,7 +50,7 @@
                 <a href="/post/{{ p.slug }}">{{ p.title }}</a>
             </h2>
             <p class="post-meta">
-                {{ p.created_at[:10] }} |
+                {{ p.created_at.strftime('%Y-%m-%d') }}
                 <a href="/category/{{ p.category|lower }}">{{ p.category }}</a>
             </p>
         </div>
