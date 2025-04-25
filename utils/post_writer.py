@@ -10,6 +10,7 @@ from utils.image_prompt_generator import generate_image_prompt
 from utils.image_generator import generate_image_from_prompt
 from utils.db import insert_post, get_connection
 from utils.ai_team import get_random_writer
+from utils.facebook_poster import post_article_to_facebook
 from openai import OpenAI
 
 
@@ -119,6 +120,18 @@ def generate_and_save_post(category=None, max_fetch_attempts=5):
                 "author_slug": writer["slug"],
                 "quote": generate_author_quote(writer["name"], satirical_headline)
             })
+
+
+            teaser = satire.strip().split("\n")[0][:200]  # Get first line as teaser
+            post_url = f"https://liefeed.com/post/{slugify(satirical_headline)}"
+
+            post_article_to_facebook(
+            headline=satirical_headline,
+            teaser=teaser,
+            image_url=image_url,
+            article_url=post_url
+            )
+
 
             print(f"✅ Article saved: {satirical_headline} (by {writer['name']})")
             return  # Done with one post
