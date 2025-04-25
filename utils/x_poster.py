@@ -1,24 +1,30 @@
-# utils/x_poster.py
-
 import os
-from requests_oauthlib import OAuth1Session
+import requests
+from requests_oauthlib import OAuth1
 
-API_KEY = os.getenv("X_API_KEY")
-API_SECRET = os.getenv("X_API_SECRET")
-ACCESS_TOKEN = os.getenv("X_ACCESS_TOKEN")
-ACCESS_SECRET = os.getenv("X_ACCESS_TOKEN_SECRET")
+# Load credentials from environment variables
+api_key = os.getenv("X_API_KEY")
+api_secret = os.getenv("X_API_SECRET")
+access_token = os.getenv("X_ACCESS_TOKEN")
+access_token_secret = os.getenv("X_ACCESS_TOKEN_SECRET")
+
+auth = OAuth1(api_key, api_secret, access_token, access_token_secret)
 
 def post_article_to_x(headline, teaser, article_url):
-    tweet_text = f"📰 {headline}\n\n{teaser[:200]}...\n\nRead more: {article_url}"
+    tweet_text = f"📰 {headline}\n\n{teaser.strip()}...\n\n📖 Read more: {article_url}"
 
-    twitter = OAuth1Session(API_KEY, API_SECRET, ACCESS_TOKEN, ACCESS_SECRET)
+    # Twitter character limit
+    if len(tweet_text) > 280:
+        tweet_text = tweet_text[:275] + "..."
 
-    response = twitter.post(
-        "https://api.twitter.com/2/tweets",
-        json={"text": tweet_text}
+    url = "https://api.twitter.com/2/tweets"
+    response = requests.post(
+        url,
+        json={"text": tweet_text},
+        auth=auth
     )
 
     if response.status_code == 201 or response.status_code == 200:
-        print("✅ Tweet posted successfully.")
+        print("✅ Tweet posted successfully!")
     else:
         print(f"❌ Failed to post tweet: {response.status_code} - {response.text}")
