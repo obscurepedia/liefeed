@@ -1,6 +1,20 @@
 <!-- templates/post.html -->
 {% extends "base.html" %}
 
+{% block head %}
+    {{ super() }}
+    <meta property="og:title" content="{{ post.title }}">
+    <meta property="og:description" content="{{ post.content[:150]|replace('**', '')|replace('###', '') }}">
+    <meta property="og:image" content="{{ post.image }}">
+    <meta property="og:url" content="https://liefeed.com/post/{{ post.slug }}">
+    <meta property="og:type" content="article">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ post.title }}">
+    <meta name="twitter:description" content="{{ post.content[:150]|replace('**', '')|replace('###', '') }}">
+    <meta name="twitter:image" content="{{ post.image }}">
+{% endblock %}
+
 {% block content %}
 <article class="post-detail">
     <h2 class="post-title">{{ post.title|striptags }}</h2>
@@ -33,7 +47,6 @@
 </p>
 <hr style="margin: 2rem auto; width: 100%; border: none; border-top: 1px solid #ccc;">
 {% endif %}
-
 
 {% if more_by_author %}
 
