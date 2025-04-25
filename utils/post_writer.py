@@ -135,7 +135,8 @@ def generate_and_save_post(max_fetch_attempts=5):
                 print(f"✅ Article saved: {satirical_headline} (by {writer['name']})")
 
                 # Update category index only if post was successful
-                get_next_category((current_index + i) % len(CATEGORIES))
+                _, updated_index = get_next_category((current_index + i) % len(CATEGORIES))
+                print(f"✅ Updated next category index to {updated_index}")
                 return
 
             fetch_attempts += 1
