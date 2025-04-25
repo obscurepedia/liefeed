@@ -15,6 +15,7 @@ def post_article_to_facebook(headline, teaser, image_url, article_url):
     payload = {
         "url": image_url,
         "caption": message,
+        "published": "true",
         "access_token": PAGE_ACCESS_TOKEN,
     }
 
