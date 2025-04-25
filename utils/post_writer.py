@@ -11,6 +11,7 @@ from utils.image_generator import generate_image_from_prompt
 from utils.db import insert_post, get_connection
 from utils.ai_team import get_random_writer
 from utils.facebook_poster import post_article_to_facebook
+from utils.x_poster import post_article_to_x
 from openai import OpenAI
 
 IMAGE_DIR = "static/images"
@@ -123,6 +124,13 @@ def generate_and_save_post(max_fetch_attempts=5):
                     image_url=image_url,
                     article_url=post_url
                 )
+
+                post_article_to_x(
+                    headline=satirical_headline,
+                    teaser=teaser,
+                    article_url=post_url
+)
+
 
                 print(f"✅ Article saved: {satirical_headline} (by {writer['name']})")
 
