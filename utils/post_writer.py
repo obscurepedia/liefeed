@@ -35,31 +35,43 @@ def is_duplicate(source_link):
     conn.close()
     return result > 0
 
-def get_next_category(current_index):
-    next_index = (current_index + 1) % len(CATEGORIES)
+def get_next_category():
+    if not os.path.exists(CATEGORY_INDEX_FILE):
+        index = 0
+    else:
+        with open(CATEGORY_INDEX_FILE, "r") as f:
+            index = int(f.read().strip())
+
+    new_index = (index + 1) % len(CATEGORIES)
+
     with open(CATEGORY_INDEX_FILE, "w") as f:
-        f.write(str(next_index))
-    return CATEGORIES[next_index], next_index
+        f.write(str(new_index))
+
+    return CATEGORIES[new_index], new_index
+
 
 def get_saved_category_index():
     if not os.path.exists(CATEGORY_INDEX_FILE):
-        with open(CATEGORY_INDEX_FILE, "w") as f:
-            f.write("0")
         return 0
     with open(CATEGORY_INDEX_FILE, "r") as f:
         return int(f.read().strip())
+
+def save_category_index(index):
+    with open(CATEGORY_INDEX_FILE, "w") as f:
+        f.write(str(index))
+
 
 def generate_and_save_post(max_fetch_attempts=5):
     current_index = get_saved_category_index()
 
     for i in range(len(CATEGORIES)):
         category = CATEGORIES[(current_index + i) % len(CATEGORIES)]
-        print(f"\U0001f501 Starting generation loop for category: {category}")
+        print(f"🔁 Starting generation loop for category: {category}")
 
         fetch_attempts = 0
 
         while fetch_attempts < max_fetch_attempts:
-            print(f"\U0001f50d Attempt {fetch_attempts + 1}: Fetching news for category: {category}")
+            print(f"🔍 Attempt {fetch_attempts + 1}: Fetching news for category: {category}")
             articles = fetch_google_news(category, 5)
 
             if not articles:
@@ -80,24 +92,24 @@ def generate_and_save_post(max_fetch_attempts=5):
 
                 satire = rewrite_as_satire(cleaned_title, article["summary"])
                 if not satire:
-                    print("\U0001f4a5 AI generation failed.")
+                    print("💥 AI generation failed.")
                     continue
 
                 satirical_headline = generate_satirical_headline(cleaned_title, article["summary"])
                 if not satirical_headline:
-                    print("\U0001f4a5 Failed to generate satirical headline.")
+                    print("💥 Failed to generate satirical headline.")
                     continue
 
                 prompt = generate_image_prompt(satirical_headline, satire)
                 short_slug = slugify(satirical_headline)[:80]
                 image_filename = f"{short_slug}.png"
                 if not image_filename or not image_filename.endswith(".png"):
-                    print("\u274c Invalid image filename. Skipping article.")
+                    print("🚫 Invalid image filename. Skipping article.")
                     continue
 
                 image_url = generate_image_from_prompt(prompt, image_filename)
                 if not image_url:
-                    print("\u274c Image generation failed. Trying next article...")
+                    print("🚫 Image generation failed. Trying next article...")
                     continue
 
                 writer = get_random_writer()
@@ -129,13 +141,13 @@ def generate_and_save_post(max_fetch_attempts=5):
                     headline=satirical_headline,
                     teaser=teaser,
                     article_url=post_url
-)
-
+                )
 
                 print(f"✅ Article saved: {satirical_headline} (by {writer['name']})")
 
-                # Update category index only if post was successful
-                _, updated_index = get_next_category((current_index + i) % len(CATEGORIES))
+                # ✅ Update the index only after a successful post
+                updated_index = (current_index + i + 1) % len(CATEGORIES)
+                save_category_index(updated_index)
                 print(f"✅ Updated next category index to {updated_index}")
                 return
 
@@ -144,6 +156,7 @@ def generate_and_save_post(max_fetch_attempts=5):
         print(f"❌ No valid articles found for category: {category}")
 
     print("❌ Failed to generate any valid articles after trying all categories.")
+
 
 openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
