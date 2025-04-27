@@ -3,7 +3,7 @@
 import os
 from huggingface_hub import InferenceClient
 from dotenv import load_dotenv
-from PIL import Image
+from PIL import Image, ImageDraw, ImageOps
 from io import BytesIO
 import boto3
 
@@ -26,7 +26,20 @@ s3_client = boto3.client(
     region_name=AWS_REGION
 )
 
-def generate_image_from_prompt(prompt, output_filename):
+CATEGORY_COLORS = {
+    "World": (0, 123, 255),       # Blue
+    "Tech": (40, 167, 69),        # Green
+    "Business": (255, 193, 7),    # Yellow
+    "Politics": (220, 53, 69),    # Red
+    "Health": (23, 162, 184),     # Cyan
+    "Entertainment": (255, 87, 34), # Orange
+    "Sports": (96, 125, 139),     # Grayish Blue
+    "Science": (156, 39, 176)     # Purple
+}
+
+
+
+def generate_image_from_prompt(prompt, output_filename, category="General"):
     try:
         print("🎨 Generating image with Hugging Face...")
         image = client.text_to_image(prompt, guidance_scale=7.5, height=768, width=768)
@@ -40,6 +53,7 @@ def generate_image_from_prompt(prompt, output_filename):
         print(f"✅ Image saved temporarily at: {local_path}")
 
         apply_watermark(local_path)
+        apply_colored_border(local_path, category)
 
         # Upload to S3 (no ACL needed since your bucket is already public)
         s3_key = output_filename
@@ -86,3 +100,36 @@ def apply_watermark(image_path, watermark_path="static/watermark.png", position=
         print("✅ Watermark applied.")
     except Exception as e:
         print(f"❌ Failed to apply watermark: {e}")
+
+
+
+def apply_colored_border(image_path, category, border_size=12, corner_radius=30):
+    try:
+        base_image = Image.open(image_path).convert("RGB")
+        color = CATEGORY_COLORS.get(category.capitalize(), (0, 0, 0))  # default black
+
+        # Create base with colored background
+        new_width = base_image.width + 2 * border_size
+        new_height = base_image.height + 2 * border_size
+        bordered_image = Image.new("RGB", (new_width, new_height), color)
+        bordered_image.paste(base_image, (border_size, border_size))
+
+        # Create rounded mask
+        mask = Image.new('L', bordered_image.size, 0)
+        draw = ImageDraw.Draw(mask)
+        draw.rounded_rectangle(
+            [(0, 0), (new_width, new_height)],
+            radius=corner_radius,
+            fill=255
+        )
+
+        # Apply rounded mask
+        final_image = ImageOps.fit(bordered_image, mask.size)
+        final_image.putalpha(mask)
+
+        # Save back as PNG to preserve transparency
+        final_image.save(image_path, "PNG")
+        print(f"✅ Colored rounded border applied for category: {category}")
+
+    except Exception as e:
+        print(f"❌ Failed to apply colored border: {e}")

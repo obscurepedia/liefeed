@@ -109,7 +109,7 @@ def generate_and_save_post(max_fetch_attempts=5):
                     print("🚫 Invalid image filename. Skipping article.")
                     continue
 
-                image_url = generate_image_from_prompt(prompt, image_filename)
+                image_url = generate_image_from_prompt(prompt, image_filename, category)
                 if not image_url:
                     print("🚫 Image generation failed. Trying next article...")
                     continue
