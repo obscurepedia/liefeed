@@ -42,3 +42,28 @@ def post_image_to_facebook(caption, image_url):
         print("📢 Post ID:", response.json().get("id"))
     except Exception as e:
         print("🚫 Failed to post meme image to Facebook:", e)
+
+def post_video_to_facebook(caption, video_path):
+    """
+    Posts a video (for Reels) to the Facebook page.
+    """
+    video_upload_url = f"https://graph-video.facebook.com/v19.0/{PAGE_ID}/videos"
+
+    if not PAGE_ACCESS_TOKEN or not PAGE_ID:
+        raise ValueError("Facebook PAGE_ACCESS_TOKEN or PAGE_ID not set properly.")
+
+    with open(video_path, 'rb') as video_file:
+        files = {
+            'source': video_file
+        }
+        data = {
+            'access_token': PAGE_ACCESS_TOKEN,
+            'description': caption
+        }
+        try:
+            response = requests.post(video_upload_url, files=files, data=data)
+            response.raise_for_status()
+            print("✅ Video Reel posted successfully!")
+            print("📢 Post ID:", response.json().get("id"))
+        except Exception as e:
+            print("🚫 Failed to post video Reel to Facebook:", e)

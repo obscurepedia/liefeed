@@ -1,11 +1,12 @@
 import os
 import random
-from utils.db import get_connection, insert_post
+
+from utils.meme_reel_creator import create_meme_reel_ffmpeg
+from utils.db import get_connection
 from utils.image_prompt_generator import generate_image_prompt
 from utils.image_generator import generate_image_from_prompt
-from utils.facebook_poster import post_image_to_facebook  # You will add this
+from utils.facebook_poster import post_image_to_facebook
 from openai import OpenAI
-from utils.ai_team import get_random_writer
 from datetime import datetime, timezone
 
 openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -22,7 +23,6 @@ def fetch_random_post():
 
     return random.choice(posts)  # Pick randomly from last 10 posts
 
-
 def generate_meme_caption(title, content):
     prompt = f"""
 Rewrite the following satirical article into a single hilarious punchline suitable for a meme image.
@@ -35,7 +35,6 @@ Rules:
 - No hashtags, no links, no references to LieFeed
 - Keep it universal and surreal
 """
-
     response = openai_client.chat.completions.create(
         model="gpt-4",
         messages=[
@@ -47,8 +46,16 @@ Rules:
     )
     return response.choices[0].message.content.strip()
 
-
-
+def insert_meme(caption, image_url):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO memes (caption, image_url, created_at)
+        VALUES (%s, %s, %s)
+    """, (caption, image_url, datetime.now(timezone.utc)))
+    conn.commit()
+    cursor.close()
+    conn.close()
 
 def generate_and_post_meme():
     post = fetch_random_post()
@@ -69,23 +76,22 @@ def generate_and_post_meme():
             post_image_to_facebook(caption=meme_caption, image_url=image_url)
             print(f"✅ Meme posted successfully: {meme_caption}")
 
-            # Save meme into the database
-            writer = get_random_writer()
+            # Save meme into the memes table
+            insert_meme(meme_caption, image_url)
+            print("✅ Meme saved to database (memes table).")
 
-            insert_post({
-                "title": meme_caption,
-                "slug": f"meme-{timestamp}",
-                "content": meme_caption,
-                "category": "Meme",
-                "created_at": datetime.now(timezone.utc),
-                "source": None,
-                "image": image_url,
-                "author": writer["name"],
-                "author_slug": writer["slug"],
-                "quote": None
-            })
-
-            print("✅ Meme saved to database.")
+            # ✅ After posting, randomly decide whether to create a Reel
+            if random.random() < 0.2:  # 20% chance
+                reel_filename = f"reel_{timestamp}.mp4"
+                create_meme_reel_ffmpeg(
+                    image_path=image_filename,
+                    caption=meme_caption,
+                    audio_path="static/funny_music.mp3",
+                    output_path=reel_filename
+                )
+                print(f"✅ Reel created and saved: {reel_filename}")
+            else:
+                print("ℹ️ No Reel created for this meme (random skip).")
 
         else:
             print("❌ Failed to generate meme image.")
