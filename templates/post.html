@@ -40,6 +40,19 @@
     </div>
 </article>
 
+<div class="social-share-buttons" style="text-align: center; margin: 1.5em 0;">
+    <a href="https://www.facebook.com/sharer/sharer.php?u=https://liefeed.com/post/{{ post.slug }}" target="_blank" rel="noopener noreferrer">
+        Share on Facebook
+    </a> |
+    <a href="https://twitter.com/intent/tweet?url=https://liefeed.com/post/{{ post.slug }}&text={{ post.title }}" target="_blank" rel="noopener noreferrer">
+        Share on Twitter
+    </a> |
+    <a href="https://www.linkedin.com/shareArticle?mini=true&url=https://liefeed.com/post/{{ post.slug }}&title={{ post.title }}" target="_blank" rel="noopener noreferrer">
+        Share on LinkedIn
+    </a>
+</div>
+
+
 {% if post.quote %}
 <hr style="margin: 3rem 0 1.5rem;">
 <p class="bot-quote" style="text-align: center; font-style: italic; font-size: 1.1rem; color: #444;">
