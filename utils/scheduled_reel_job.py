@@ -1,7 +1,12 @@
+import sys
 import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from datetime import datetime
 from utils.db import get_connection
 from utils.facebook_poster import post_video_to_facebook
+
+
 
 def fetch_pending_reel():
     """
