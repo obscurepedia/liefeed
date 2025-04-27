@@ -37,30 +37,27 @@ def is_duplicate(source_link):
     conn.close()
     return result > 0
 
-def get_next_category():
-    if not os.path.exists(CATEGORY_INDEX_FILE):
-        index = 0
-    else:
-        with open(CATEGORY_INDEX_FILE, "r") as f:
-            index = int(f.read().strip())
-
-    new_index = (index + 1) % len(CATEGORIES)
-
-    with open(CATEGORY_INDEX_FILE, "w") as f:
-        f.write(str(new_index))
-
-    return CATEGORIES[new_index], new_index
-
-
 def get_saved_category_index():
-    if not os.path.exists(CATEGORY_INDEX_FILE):
-        return 0
-    with open(CATEGORY_INDEX_FILE, "r") as f:
-        return int(f.read().strip())
+    conn = get_connection()
+    cur  = conn.cursor()
+    cur.execute("SELECT setting_value FROM site_settings WHERE setting_key='last_category_index'")
+    row = cur.fetchone()
+    cur.close()
+    conn.close()
+    return int(row[0] or 0)
 
 def save_category_index(index):
-    with open(CATEGORY_INDEX_FILE, "w") as f:
-        f.write(str(index))
+    conn = get_connection()
+    cur  = conn.cursor()
+    cur.execute("""
+      UPDATE site_settings
+        SET setting_value = %s
+      WHERE setting_key = 'last_category_index'
+    """, (str(index),))
+    conn.commit()
+    cur.close()
+    conn.close()
+
 
 
 def generate_and_save_post(max_fetch_attempts=5):
