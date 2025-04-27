@@ -14,11 +14,13 @@ from utils.facebook_poster import post_article_to_facebook
 from utils.x_poster import post_article_to_x
 from openai import OpenAI
 
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+CATEGORY_INDEX_FILE = os.path.join(THIS_DIR, "last_category.txt")
+
 IMAGE_DIR = "static/images"
 os.makedirs(IMAGE_DIR, exist_ok=True)
 
 CATEGORIES = ["world", "tech", "business", "politics", "health", "entertainment", "sports", "science"]
-CATEGORY_INDEX_FILE = "last_category.txt"
 
 def slugify(text, max_words=4, max_chars=60):
     text = re.sub(r'[^\w\s-]', '', text).lower()
