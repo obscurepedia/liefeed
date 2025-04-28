@@ -1,30 +1,57 @@
+# utils/x_poster.py
+
 import os
 import requests
 from requests_oauthlib import OAuth1
 
-# Load credentials from environment variables
+# Load X (Twitter) API credentials from environment variables
 api_key = os.getenv("X_API_KEY")
 api_secret = os.getenv("X_API_SECRET")
 access_token = os.getenv("X_ACCESS_TOKEN")
 access_token_secret = os.getenv("X_ACCESS_TOKEN_SECRET")
 
-auth = OAuth1(api_key, api_secret, access_token, access_token_secret)
+# OAuth1 authentication setup
+auth = OAuth1(
+    api_key,
+    api_secret,
+    access_token,
+    access_token_secret
+)
 
-def post_article_to_x(headline, teaser, article_url):
-    tweet_text = f"📰 {headline}\n\n{teaser.strip()}...\n\n📖 Read more: {article_url}"
+def upload_image_to_x(image_path):
+    """Upload an image to X and return the media_id."""
+    media_upload_url = "https://upload.twitter.com/1.1/media/upload.json"
+    with open(image_path, "rb") as file:
+        files = {"media": file}
+        response = requests.post(media_upload_url, auth=auth, files=files)
 
-    # Twitter character limit
-    if len(tweet_text) > 280:
-        tweet_text = tweet_text[:275] + "..."
-
-    url = "https://api.twitter.com/2/tweets"
-    response = requests.post(
-        url,
-        json={"text": tweet_text},
-        auth=auth
-    )
-
-    if response.status_code == 201 or response.status_code == 200:
-        print("✅ Tweet posted successfully!")
+    if response.status_code == 200:
+        media_id = response.json()["media_id_string"]
+        print(f"✅ Uploaded image to X. Media ID: {media_id}")
+        return media_id
     else:
-        print(f"❌ Failed to post tweet: {response.status_code} - {response.text}")
+        print(f"❌ Failed to upload image to X: {response.status_code} - {response.text}")
+        return None
+
+def post_article_to_x(headline, teaser, article_url, image_path=None):
+    """Post a tweet with text and optional image."""
+    try:
+        tweet_text = f"{headline}\n\n{teaser}\n\n{article_url}"
+
+        payload = {"text": tweet_text}
+
+        if image_path:
+            media_id = upload_image_to_x(image_path)
+            if media_id:
+                payload["media"] = {"media_ids": [media_id]}
+
+        tweet_url = "https://api.twitter.com/2/tweets"
+        response = requests.post(tweet_url, json=payload, auth=auth)
+
+        if response.status_code == 201:
+            print("✅ Tweet posted successfully!")
+        else:
+            print(f"❌ Failed to post Tweet: {response.status_code} - {response.text}")
+
+    except Exception as e:
+        print(f"❌ Exception while posting to X: {e}")

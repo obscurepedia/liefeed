@@ -136,11 +136,15 @@ def generate_and_save_post(max_fetch_attempts=5):
                     article_url=post_url
                 )
 
+                image_path = os.path.join(IMAGE_DIR, image_filename)
+
                 post_article_to_x(
                     headline=satirical_headline,
                     teaser=teaser,
-                    article_url=post_url
+                    article_url=post_url,
+                    image_path=image_path  # <-- correct local path to image
                 )
+
 
                 print(f"✅ Article saved: {satirical_headline} (by {writer['name']})")
 
