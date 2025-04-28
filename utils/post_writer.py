@@ -20,7 +20,7 @@ CATEGORY_INDEX_FILE = os.path.join(THIS_DIR, "last_category.txt")
 IMAGE_DIR = "static/images"
 os.makedirs(IMAGE_DIR, exist_ok=True)
 
-CATEGORIES = ["world", "tech", "business", "politics", "health", "entertainment", "sports", "science"]
+CATEGORIES = ["tech", "business", "entertainment", "sports", "science", "weird", "lifestyle", "travel", "food"]
 
 def slugify(text, max_words=4, max_chars=60):
     text = re.sub(r'[^\w\s-]', '', text).lower()
