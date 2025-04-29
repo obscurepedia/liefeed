@@ -18,12 +18,17 @@ auth = OAuth1(
     access_token_secret
 )
 
-def upload_image_to_x(image_path):
-    """Upload an image to X and return the media_id."""
+def upload_image_to_x(image_url):
+    """Upload an image from a URL to X and return the media_id."""
     media_upload_url = "https://upload.twitter.com/1.1/media/upload.json"
-    with open(image_path, "rb") as file:
-        files = {"media": file}
-        response = requests.post(media_upload_url, auth=auth, files=files)
+    
+    response = requests.get(image_url)
+    if response.status_code != 200:
+        print(f"❌ Failed to download image from S3: {response.status_code}")
+        return None
+    
+    files = {"media": response.content}
+    response = requests.post(media_upload_url, auth=auth, files={"media": ("image.png", response.content)})
 
     if response.status_code == 200:
         media_id = response.json()["media_id_string"]
@@ -33,7 +38,8 @@ def upload_image_to_x(image_path):
         print(f"❌ Failed to upload image to X: {response.status_code} - {response.text}")
         return None
 
-def post_article_to_x(headline, teaser, article_url, image_path=None):
+
+def post_article_to_x(headline, teaser, article_url, image_url=None):
     """Post a tweet with text and optional image."""
     try:
         tweet_text = f"{headline}\n\n{teaser}\n\n{article_url}"
@@ -41,7 +47,7 @@ def post_article_to_x(headline, teaser, article_url, image_path=None):
         payload = {"text": tweet_text}
 
         if image_path:
-            media_id = upload_image_to_x(image_path)
+            media_id = upload_image_to_x(image_url)
             if media_id:
                 payload["media"] = {"media_ids": [media_id]}
 

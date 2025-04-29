@@ -142,7 +142,7 @@ def generate_and_save_post(max_fetch_attempts=5):
                     headline=satirical_headline,
                     teaser=teaser,
                     article_url=post_url,
-                    image_path=image_path  # <-- correct local path to image
+                    image_url=image_url  # <-- correct local path to image
                 )
 
 
