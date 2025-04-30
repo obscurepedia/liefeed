@@ -46,7 +46,8 @@ def post_article_to_x(headline, teaser, article_url, image_url=None):
 
         payload = {"text": tweet_text}
 
-        if image_path:
+        # use the correct variable name here
+        if image_url:
             media_id = upload_image_to_x(image_url)
             if media_id:
                 payload["media"] = {"media_ids": [media_id]}
