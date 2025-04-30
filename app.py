@@ -111,19 +111,3 @@ def inject_categories():
     posts = fetch_all_posts()
     categories = sorted(set(p["category"] for p in posts))
     return dict(menu_categories=categories)
-
-# SCHEDULER
-class Config:
-    SCHEDULER_API_ENABLED = True
-
-app.config.from_object(Config())
-scheduler = APScheduler()
-scheduler.init_app(app)
-
-@scheduler.task('interval', id='generate_article_job', hours=6)
-def generate_article_job():
-    print("Generating new article...")
-    generate_and_save_post()
-    print("Article added.")
-
-scheduler.start()
