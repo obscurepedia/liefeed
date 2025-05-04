@@ -1,8 +1,6 @@
-# utils/ai_writer.py
-
-import requests
 import os
 import re
+import requests
 from config.config import PERPLEXITY_API_KEY
 from openai import OpenAI
 from dotenv import load_dotenv
@@ -17,6 +15,7 @@ HEADERS = {
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 openai_client = OpenAI(api_key=OPENAI_API_KEY)
+
 
 def rewrite_as_satire(headline, summary):
     prompt = f"""
@@ -49,7 +48,7 @@ Summary: {summary}
         response = requests.post(API_URL, headers=HEADERS, json=payload)
         response.raise_for_status()
         raw = response.json()['choices'][0]['message']['content'].strip()
-        cleaned = re.sub(r'\[\d+(?:\]\[\d+)*\]', '', raw)  # Remove [1][2] style refs
+        cleaned = re.sub(r'\[\d+(?:\]\[\d+)*\]', '', raw)
         return cleaned.strip()
     except Exception as e:
         print(f"Error calling Perplexity API: {e}")
@@ -72,7 +71,7 @@ The following headline is too long. Rewrite it to be shorter and punchier (under
 
     try:
         response = openai_client.chat.completions.create(
-            model="gpt-4",  # or "gpt-3.5-turbo"
+            model="gpt-4",
             messages=[
                 {"role": "system", "content": "You are a satirical headline editor."},
                 {"role": "user", "content": prompt}
@@ -103,7 +102,6 @@ Summary: {summary}
 Return only the headline text.
 """
 
-    # Try Perplexity first
     for attempt in range(retries + 1):
         try:
             payload = {
@@ -124,7 +122,6 @@ Return only the headline text.
 
     print("⚠️ Falling back to OpenAI...")
 
-    # Try OpenAI
     try:
         response = openai_client.chat.completions.create(
             model="gpt-4",
@@ -147,6 +144,7 @@ Return only the headline text.
 
     print("❌ Failed to generate a suitable headline.")
     return None
+
 
 def generate_fomo_caption(headline, teaser):
     prompt = f"""
@@ -174,72 +172,68 @@ Teaser: {teaser}
         return response.json()['choices'][0]['message']['content'].strip()
     except Exception as e:
         print(f"❌ Error generating FOMO caption: {e}")
-        return f"{headline}\n\n{teaser}"  # fallback
+        return f"{headline}\n\n{teaser}"
 
-import requests
-import os
-import re
-
-API_URL = "https://api.perplexity.ai/chat/completions"
-HEADERS = {
-    "Authorization": f"Bearer {os.getenv('PERPLEXITY_API_KEY')}",
-    "Content-Type": "application/json"
-}
-
-import requests
-import os
-import re
-
-API_URL = "https://api.perplexity.ai/chat/completions"
-HEADERS = {
-    "Authorization": f"Bearer {os.getenv('PERPLEXITY_API_KEY')}",
-    "Content-Type": "application/json"
-}
 
 def generate_social_elements(headline, teaser):
     prompt = f"""
 You are a viral copywriter for a satirical Facebook page called LieFeed.
 
-Given this headline and teaser:
-Headline: "{headline}"
-Teaser: "{teaser}"
+Generate 4 elements for a Facebook post:
+1. FOMO-driven caption (outrageous, funny, makes people click)
+2. One-line curiosity teaser
+3. Comment prompt question
+4. Witty first comment line (to include with the article link)
 
-Generate the following 4 things:
-1. A short FOMO-style caption (under 220 characters)
-2. A one-line curiosity hook to make users open the comments
-3. A question that encourages people to comment
-4. A witty or sarcastic line to be used in the first comment with the link
+Do not use markdown, bullets, or numbers in the output. Return only plain text.
 
-The tone should be absurd, sarcastic, slightly unhinged, and optimized for engagement. Don't mention 'link in comments'.
+Headline: {headline}
+Teaser: {teaser}
 """
 
     try:
-        payload = {
+        resp = requests.post(API_URL, headers=HEADERS, json={
             "model": "sonar",
             "messages": [
                 {"role": "system", "content": "You're a viral Facebook copywriter for a satire brand."},
                 {"role": "user", "content": prompt}
             ]
-        }
+        })
+        resp.raise_for_status()
+        content = resp.json()["choices"][0]["message"]["content"]
 
-        response = requests.post(API_URL, headers=HEADERS, json=payload)
-        response.raise_for_status()
-        content = response.json()['choices'][0]['message']['content']
-        print("🧠 Perplexity raw output:\n", content)
+        # ---- Improved extraction logic ----
+        def extract(label, fallback_label=None):
+            patterns = [
+                rf"{label}[:\-\s]+(.+?)(?:\n|$)",
+                rf"{label}\n(.+?)(?:\n|$)",
+                rf"{label}\s*\"(.+?)\""
+            ]
+            if fallback_label:
+                patterns.append(rf"{fallback_label}[:\-\s]+(.+?)(?:\n|$)")
+            for pat in patterns:
+                match = re.search(pat, content, re.IGNORECASE | re.DOTALL)
+                if match:
+                    return match.group(1).strip()
+            return ""
 
-        # More robust regex pattern matching for markdown or colon-delimited lists
-        def extract_element(label, text):
-            match = re.search(rf"{label}.*?(?::|\n|\*\*)(.*)", text, re.IGNORECASE)
-            return match.group(1).strip() if match else ""
+        def clean(t):
+            return re.sub(r"[*_\"`]", "", t).strip()
 
-        fomo_caption = extract_element(r"1[\.\)]?\s*(FOMO.*caption|Short FOMO-style Caption)", content)
-        teaser_line = extract_element(r"2[\.\)]?\s*(Curiosity Hook|One[-\s]line.*hook)", content)
-        engagement_question = extract_element(r"3[\.\)]?\s*(Question.*comments|Engaging Question)", content)
-        comment_line = extract_element(r"4[\.\)]?\s*(Witty.*comment|First Comment Line)", content)
+        fomo_caption        = clean(extract("FOMO-driven caption", "FOMO caption"))
+        teaser_line         = clean(extract("One-line curiosity teaser", "Curiosity Hook"))
+        engagement_question = clean(extract("Comment prompt question", "Prompt question"))
+        comment_line        = clean(extract("Witty first comment line", "Witty comment"))
+
+        # ✅ Debug logs
+        print("\n🔍 Extracted Social Elements:")
+        print("FOMO Caption:", fomo_caption or "[EMPTY]")
+        print("Teaser Line:", teaser_line or "[EMPTY]")
+        print("Engagement Question:", engagement_question or "[EMPTY]")
+        print("Comment Line:", comment_line or "[EMPTY]")
 
         return fomo_caption, teaser_line, engagement_question, comment_line
 
     except Exception as e:
-        print(f"❌ Failed to generate social content: {e}")
+        print("❌ Failed to generate social content:", e)
         return headline, "", "", ""
-

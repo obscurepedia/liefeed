@@ -140,19 +140,24 @@ def generate_and_save_post(max_fetch_attempts=5):
                 caption_for_post = f"{fomo_caption}\n\n{teaser_line}\n\n{engagement_question}"
                 comment_for_link = f"🔗 {post_url}\n{comment_line}"
 
+                # ✅ Debug: Print captions being used
+                print("📄 Facebook caption preview:\n", caption_for_post)
+                print("📄 Twitter headline/teaser preview:\n", satirical_headline, teaser_line)
+
+                # ✅ Facebook post
                 post_image_and_comment(
                     image_url=image_url,
                     caption=caption_for_post,
                     first_comment=comment_for_link
                 )
 
-                image_path = os.path.join(IMAGE_DIR, image_filename)
-
+                # ✅ X (Twitter) post
                 post_article_to_x(
-                    headline=fomo_caption,
-                    teaser="",
+                    headline=satirical_headline,
+                    teaser=teaser_line,
                     article_url=post_url,
-                    image_url=image_url
+                    image_url=image_url,
+                    category=category.capitalize()
                 )
 
                 print(f"✅ Article saved: {satirical_headline} (by {writer['name']})")
@@ -167,6 +172,7 @@ def generate_and_save_post(max_fetch_attempts=5):
         print(f"❌ No valid articles found for category: {category}")
 
     print("❌ Failed to generate any valid articles after trying all categories.")
+
 
 
 

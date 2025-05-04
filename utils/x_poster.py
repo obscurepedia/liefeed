@@ -53,17 +53,21 @@ def post_article_to_x(headline, teaser, article_url, image_url=None, category=No
             "Food": "#FoodNews #Satire"
         }
 
-        # Get tags (default to #Satire if no match)
         tags = hashtags.get(category, "#Satire")
 
-        # Construct tweet content with dynamic parts
-        parts = [headline.strip()]
-        if teaser:
-            parts.append(teaser.strip())
-        parts.append(article_url.strip())
-        parts.append(tags)
-
-        tweet_text = "\n\n".join(parts)
+        # Use headline as-is if it's already a complete tweet
+        if teaser == "" and article_url == "":
+            tweet_text = headline.strip()
+        else:
+            parts = []
+            if headline:
+                parts.append(headline.strip())
+            if teaser:
+                parts.append(teaser.strip())
+            if article_url:
+                parts.append(article_url.strip())
+            parts.append(tags)
+            tweet_text = "\n\n".join(parts)
 
         # Trim to 280 characters if needed
         if len(tweet_text) > 280:
@@ -78,6 +82,8 @@ def post_article_to_x(headline, teaser, article_url, image_url=None, category=No
             if media_id:
                 payload["media"] = {"media_ids": [media_id]}
 
+        print("📤 Final tweet text:", tweet_text)
+
         # Post the tweet
         tweet_url = "https://api.twitter.com/2/tweets"
         response = requests.post(tweet_url, json=payload, auth=auth)
@@ -89,3 +95,4 @@ def post_article_to_x(headline, teaser, article_url, image_url=None, category=No
 
     except Exception as e:
         print(f"❌ Exception while posting to X: {e}")
+

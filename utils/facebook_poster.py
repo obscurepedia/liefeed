@@ -46,37 +46,34 @@ def post_image_to_facebook(caption, image_url):
     except Exception as e:
         print("🚫 Failed to post meme image to Facebook:", e)
 
-import time
-import requests
-
-import requests
-import time
 
 def post_image_and_comment(image_url, caption, first_comment):
-    """Posts an image with a FOMO caption, then queues the first comment (e.g., article URL + witty line)."""
+    """Posts an image with a FOMO caption, then queues the first comment (article link + witty line)."""
     photo_upload_url = f"https://graph.facebook.com/v19.0/{PAGE_ID}/photos"
 
     payload = {
         "url": image_url,
-        "caption": caption,
+        "caption": caption,              # 'message' shows in feed
         "access_token": PAGE_ACCESS_TOKEN
     }
 
     try:
         response = requests.post(photo_upload_url, data=payload)
         response.raise_for_status()
-        post_id = response.json().get("post_id") or response.json().get("id")
+
+        # 🔑 prefer the pure photo ID for commenting
+        post_id = response.json().get("id") or response.json().get("post_id")
         print("✅ Image post published.")
-        print("📢 Post ID:", post_id)
+        print("📢 Photo object ID for comments:", post_id)
 
         if post_id:
-            # Queue the comment instead of posting it immediately
             queue_facebook_comment(post_id, first_comment)
         else:
-            print("⚠️ No post ID returned; cannot queue comment.")
+            print("⚠️ No ID returned; cannot queue comment.")
 
     except Exception as e:
         print(f"🚫 Failed to post image or queue comment: {e}")
+
 
 
 
