@@ -186,6 +186,16 @@ HEADERS = {
     "Content-Type": "application/json"
 }
 
+import requests
+import os
+import re
+
+API_URL = "https://api.perplexity.ai/chat/completions"
+HEADERS = {
+    "Authorization": f"Bearer {os.getenv('PERPLEXITY_API_KEY')}",
+    "Content-Type": "application/json"
+}
+
 def generate_social_elements(headline, teaser):
     prompt = f"""
 You are a viral copywriter for a satirical Facebook page called LieFeed.
@@ -217,19 +227,17 @@ The tone should be absurd, sarcastic, slightly unhinged, and optimized for engag
         content = response.json()['choices'][0]['message']['content']
         print("🧠 Perplexity raw output:\n", content)
 
-        # Robust extraction using flexible labels
-        def extract_social_elements(content):
-            try:
-                fomo_caption = re.search(r"(?i)(1\.|\*+)?\s*FOMO.*?:\s*(.+)", content).group(2).strip()
-                teaser_line = re.search(r"(?i)(2\.|\*+)?\s*(Curiosity Hook|One-line).*?:\s*(.+)", content).group(3).strip()
-                engagement_question = re.search(r"(?i)(3\.|\*+)?\s*(Comment Prompt|Question).*?:\s*(.+)", content).group(3).strip()
-                comment_line = re.search(r"(?i)(4\.|\*+)?\s*(First Comment Line|Witty).*?:\s*(.+)", content).group(3).strip()
-                return fomo_caption, teaser_line, engagement_question, comment_line
-            except Exception as e:
-                print("❌ Failed to parse Perplexity output:", e)
-                return "", "", "", ""
+        # More robust regex pattern matching for markdown or colon-delimited lists
+        def extract_element(label, text):
+            match = re.search(rf"{label}.*?(?::|\n|\*\*)(.*)", text, re.IGNORECASE)
+            return match.group(1).strip() if match else ""
 
-        return extract_social_elements(content)
+        fomo_caption = extract_element(r"1[\.\)]?\s*(FOMO.*caption|Short FOMO-style Caption)", content)
+        teaser_line = extract_element(r"2[\.\)]?\s*(Curiosity Hook|One[-\s]line.*hook)", content)
+        engagement_question = extract_element(r"3[\.\)]?\s*(Question.*comments|Engaging Question)", content)
+        comment_line = extract_element(r"4[\.\)]?\s*(Witty.*comment|First Comment Line)", content)
+
+        return fomo_caption, teaser_line, engagement_question, comment_line
 
     except Exception as e:
         print(f"❌ Failed to generate social content: {e}")
