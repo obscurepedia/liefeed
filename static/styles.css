@@ -415,3 +415,57 @@ footer {
 }
 </style>
 
+.quiz-container {
+    max-width: 600px;
+    margin: 40px auto;
+    text-align: center;
+}
+
+.quiz-headline {
+    font-size: 1.5rem;
+    margin: 30px 0;
+    font-style: italic;
+}
+
+.quiz-button {
+    padding: 12px 30px;
+    margin: 10px;
+    font-size: 1rem;
+    cursor: pointer;
+    border: none;
+    border-radius: 6px;
+    background-color: #222;
+    color: white;
+    transition: background-color 0.2s ease;
+}
+
+.quiz-button:hover {
+    background-color: #444;
+}
+
+.quiz-input {
+    padding: 10px;
+    font-size: 1rem;
+    width: 100%;
+    max-width: 300px;
+    margin: 10px auto;
+    display: block;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.disclaimer {
+    font-size: 0.9rem;
+    margin-top: 15px;
+    color: #666;
+}
+
+.quiz-container h1 {
+    margin-bottom: 20px;
+}
+
+.quiz-container p {
+    font-size: 1.2rem;
+    margin: 15px 0;
+}
+

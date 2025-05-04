@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="quiz-container">
+    <h1>Your Results</h1>
+    <p>You scored <strong>{{ score }}</strong> out of <strong>{{ total }}</strong>.</p>
+
+    {% if score == total %}
+        <p>🎉 Perfect! You might be part AI... or part journalist.</p>
+    {% elif score >= total * 0.7 %}
+        <p>👏 Not bad! You’ve got a sharp eye for satire.</p>
+    {% elif score >= total * 0.4 %}
+        <p>😅 You're halfway there. Maybe read LieFeed more often?</p>
+    {% else %}
+        <p>😬 Yikes. Either the news is too weird... or you are.</p>
+    {% endif %}
+
+    <a href="/" class="quiz-button">Back to LieFeed</a>
+</div>
+{% endblock %}

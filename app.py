@@ -108,3 +108,7 @@ def inject_categories():
     posts = fetch_all_posts()
     categories = sorted(set(p["category"] for p in posts))
     return dict(menu_categories=categories)
+
+
+from utils.quiz_routes import quiz_bp
+app.register_blueprint(quiz_bp)

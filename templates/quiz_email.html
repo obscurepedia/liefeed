@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="quiz-container">
+    <h1>See Your Results</h1>
+    <p>You're one step away from finding out how well you did!</p>
+    <p>Enter your email below to reveal your quiz score and get our best satire delivered straight to your inbox.</p>
+
+    <form method="POST">
+        <input type="email" name="email" placeholder="you@example.com" required class="quiz-input">
+        <button type="submit" class="quiz-button">Show My Results</button>
+    </form>
+
+    <p class="disclaimer">No spam, just fake news that feels real.</p>
+</div>
+{% endblock %}

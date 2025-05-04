@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="quiz-container">
+    <h1>Question {{ index }} of {{ total }}</h1>
+    <p class="quiz-headline">{{ question.headline }}</p>
+
+    <form method="POST">
+        <button type="submit" name="answer" value="real" class="quiz-button">Real</button>
+        <button type="submit" name="answer" value="fake" class="quiz-button">Fake</button>
+    </form>
+</div>
+{% endblock %}

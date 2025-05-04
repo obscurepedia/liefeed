@@ -126,7 +126,8 @@ def generate_and_save_post(max_fetch_attempts=5):
                     "image": image_url,
                     "author": writer["name"],
                     "author_slug": writer["slug"],
-                    "quote": generate_author_quote(writer["name"], satirical_headline)
+                    "quote": generate_author_quote(writer["name"], satirical_headline),
+                    "source_headline": cleaned_title
                 })
 
                 teaser = satire.strip().split("\n")[0][:200]

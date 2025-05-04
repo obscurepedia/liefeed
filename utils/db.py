@@ -26,7 +26,8 @@ def init_db():
             image TEXT,
             author TEXT,
             author_slug TEXT,
-            quote TEXT
+            quote TEXT,
+            source_headline TEXT  -- ✅ Add this line
         )
     """)
     conn.commit()
@@ -37,8 +38,8 @@ def insert_post(post):
     c = conn.cursor()
     try:
         c.execute("""
-            INSERT INTO posts (title, slug, content, category, created_at, source, image, author, author_slug, quote)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO posts (title, slug, content, category, created_at, source, image, author, author_slug, quote, source_headline)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (slug) DO NOTHING
         """, (
             post['title'],
@@ -50,7 +51,8 @@ def insert_post(post):
             post.get('image'),
             post.get('author'),
             post.get('author_slug'),
-            post.get('quote')
+            post.get('quote').
+            post.get('source_headline')  # ✅ new field
         ))
         conn.commit()
     except Exception as e:
@@ -112,5 +114,6 @@ def row_to_dict(row):
         "image": row[7],
         "author": row[8],
         "author_slug": row[9],
-        "quote": row[10]
+        "quote": row[10],
+        "source_headline": row[11]  # ✅ added
     }
