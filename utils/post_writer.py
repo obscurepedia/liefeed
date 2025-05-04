@@ -10,9 +10,11 @@ from utils.image_prompt_generator import generate_image_prompt
 from utils.image_generator import generate_image_from_prompt
 from utils.db import insert_post, get_connection
 from utils.ai_team import get_random_writer
-from utils.facebook_poster import post_article_to_facebook
 from utils.x_poster import post_article_to_x
+from utils.ai_writer import generate_fomo_caption
 from openai import OpenAI
+from utils.x_poster import post_article_to_x
+from utils.facebook_poster import post_image_to_facebook
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 CATEGORY_INDEX_FILE = os.path.join(THIS_DIR, "last_category.txt")
@@ -129,18 +131,20 @@ def generate_and_save_post(max_fetch_attempts=5):
                 teaser = satire.strip().split("\n")[0][:200]
                 post_url = f"https://liefeed.com/post/{slugify(satirical_headline)}"
 
-                post_article_to_facebook(
-                    headline=satirical_headline,
-                    teaser=teaser,
-                    image_url=image_url,
-                    article_url=post_url
+                fomo_caption = generate_fomo_caption(satirical_headline, teaser)
+
+                combined_caption = f"{fomo_caption}\n\n🔗 {post_url}"
+
+                post_image_to_facebook(
+                    caption=combined_caption,
+                    image_url=image_url
                 )
 
                 image_path = os.path.join(IMAGE_DIR, image_filename)
 
                 post_article_to_x(
-                    headline=satirical_headline,
-                    teaser=teaser,
+                    headline=fomo_caption,
+                    teaser="",
                     article_url=post_url,
                     image_url=image_url  # <-- correct local path to image
                 )

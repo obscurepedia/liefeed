@@ -147,3 +147,31 @@ Return only the headline text.
 
     print("❌ Failed to generate a suitable headline.")
     return None
+
+def generate_fomo_caption(headline, teaser):
+    prompt = f"""
+You are a viral social media copywriter for a satire news site called LieFeed.
+
+Write a scroll-stopping caption for Facebook or Twitter, using FOMO tactics and absurd humor. 
+The tone should be outrageous, slightly unhinged, and designed to make users *desperate* to click.
+Use emojis if appropriate. Keep it under 280 characters.
+
+Headline: {headline}
+Teaser: {teaser}
+"""
+
+    payload = {
+        "model": "sonar",
+        "messages": [
+            {"role": "system", "content": "You are a viral satire copywriter."},
+            {"role": "user", "content": prompt}
+        ]
+    }
+
+    try:
+        response = requests.post(API_URL, headers=HEADERS, json=payload)
+        response.raise_for_status()
+        return response.json()['choices'][0]['message']['content'].strip()
+    except Exception as e:
+        print(f"❌ Error generating FOMO caption: {e}")
+        return f"{headline}\n\n{teaser}"  # fallback

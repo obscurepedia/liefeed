@@ -1,5 +1,3 @@
-# utils/x_poster.py
-
 import os
 import requests
 from requests_oauthlib import OAuth1
@@ -39,19 +37,48 @@ def upload_image_to_x(image_url):
         return None
 
 
-def post_article_to_x(headline, teaser, article_url, image_url=None):
-    """Post a tweet with text and optional image."""
+def post_article_to_x(headline, teaser, article_url, image_url=None, category=None):
+    """Post a tweet with text and optional image, with automatic hashtags based on category."""
     try:
-        tweet_text = f"{headline}\n\n{teaser}\n\n{article_url}"
+        # Define hashtags per category
+        hashtags = {
+            "Science": "#Science #WeirdNews",
+            "Tech": "#TechNews #Satire",
+            "Business": "#BusinessSatire #Economy",
+            "Entertainment": "#Entertainment #Satire",
+            "Sports": "#SportsSatire",
+            "Weird": "#WeirdNews #Satire",
+            "Lifestyle": "#Lifestyle #SatiricalNews",
+            "Travel": "#TravelNews #Satire",
+            "Food": "#FoodNews #Satire"
+        }
+
+        # Get tags (default to #Satire if no match)
+        tags = hashtags.get(category, "#Satire")
+
+        # Construct tweet content with dynamic parts
+        parts = [headline.strip()]
+        if teaser:
+            parts.append(teaser.strip())
+        parts.append(article_url.strip())
+        parts.append(tags)
+
+        tweet_text = "\n\n".join(parts)
+
+        # Trim to 280 characters if needed
+        if len(tweet_text) > 280:
+            print(f"⚠️ Tweet too long ({len(tweet_text)} characters). Trimming...")
+            tweet_text = tweet_text[:277] + "…"
 
         payload = {"text": tweet_text}
 
-        # use the correct variable name here
+        # Attach media if provided
         if image_url:
             media_id = upload_image_to_x(image_url)
             if media_id:
                 payload["media"] = {"media_ids": [media_id]}
 
+        # Post the tweet
         tweet_url = "https://api.twitter.com/2/tweets"
         response = requests.post(tweet_url, json=payload, auth=auth)
 
