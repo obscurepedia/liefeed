@@ -175,3 +175,63 @@ Teaser: {teaser}
     except Exception as e:
         print(f"❌ Error generating FOMO caption: {e}")
         return f"{headline}\n\n{teaser}"  # fallback
+
+import requests
+import os
+import re
+
+API_URL = "https://api.perplexity.ai/chat/completions"
+HEADERS = {
+    "Authorization": f"Bearer {os.getenv('PERPLEXITY_API_KEY')}",
+    "Content-Type": "application/json"
+}
+
+def generate_social_elements(headline, teaser):
+    prompt = f"""
+You are a viral copywriter for a satirical Facebook page called LieFeed.
+
+Given this headline and teaser:
+Headline: "{headline}"
+Teaser: "{teaser}"
+
+Generate the following 4 things:
+1. A short FOMO-style caption (under 220 characters)
+2. A one-line curiosity hook to make users open the comments
+3. A question that encourages people to comment
+4. A witty or sarcastic line to be used in the first comment with the link
+
+The tone should be absurd, sarcastic, slightly unhinged, and optimized for engagement. Don't mention 'link in comments'.
+"""
+
+    try:
+        payload = {
+            "model": "sonar",
+            "messages": [
+                {"role": "system", "content": "You're a viral Facebook copywriter for a satire brand."},
+                {"role": "user", "content": prompt}
+            ]
+        }
+
+        response = requests.post(API_URL, headers=HEADERS, json=payload)
+        response.raise_for_status()
+        content = response.json()['choices'][0]['message']['content']
+        print("🧠 Perplexity raw output:\n", content)
+
+        # Robust extraction using flexible labels
+        def extract_social_elements(content):
+            try:
+                fomo_caption = re.search(r"(?i)(1\.|\*+)?\s*FOMO.*?:\s*(.+)", content).group(2).strip()
+                teaser_line = re.search(r"(?i)(2\.|\*+)?\s*(Curiosity Hook|One-line).*?:\s*(.+)", content).group(3).strip()
+                engagement_question = re.search(r"(?i)(3\.|\*+)?\s*(Comment Prompt|Question).*?:\s*(.+)", content).group(3).strip()
+                comment_line = re.search(r"(?i)(4\.|\*+)?\s*(First Comment Line|Witty).*?:\s*(.+)", content).group(3).strip()
+                return fomo_caption, teaser_line, engagement_question, comment_line
+            except Exception as e:
+                print("❌ Failed to parse Perplexity output:", e)
+                return "", "", "", ""
+
+        return extract_social_elements(content)
+
+    except Exception as e:
+        print(f"❌ Failed to generate social content: {e}")
+        return headline, "", "", ""
+

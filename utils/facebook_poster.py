@@ -1,5 +1,8 @@
 import os
 import requests
+import time
+import json
+from datetime import datetime
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -43,6 +46,40 @@ def post_image_to_facebook(caption, image_url):
     except Exception as e:
         print("🚫 Failed to post meme image to Facebook:", e)
 
+import time
+import requests
+
+import requests
+import time
+
+def post_image_and_comment(image_url, caption, first_comment):
+    """Posts an image with a FOMO caption, then queues the first comment (e.g., article URL + witty line)."""
+    photo_upload_url = f"https://graph.facebook.com/v19.0/{PAGE_ID}/photos"
+
+    payload = {
+        "url": image_url,
+        "caption": caption,
+        "access_token": PAGE_ACCESS_TOKEN
+    }
+
+    try:
+        response = requests.post(photo_upload_url, data=payload)
+        response.raise_for_status()
+        post_id = response.json().get("post_id") or response.json().get("id")
+        print("✅ Image post published.")
+        print("📢 Post ID:", post_id)
+
+        if post_id:
+            # Queue the comment instead of posting it immediately
+            queue_facebook_comment(post_id, first_comment)
+        else:
+            print("⚠️ No post ID returned; cannot queue comment.")
+
+    except Exception as e:
+        print(f"🚫 Failed to post image or queue comment: {e}")
+
+
+
 def post_video_to_facebook(caption, video_path):
     """
     Posts a video (for Reels) to the Facebook page.
@@ -67,3 +104,23 @@ def post_video_to_facebook(caption, video_path):
             print("📢 Post ID:", response.json().get("id"))
         except Exception as e:
             print("🚫 Failed to post video Reel to Facebook:", e)
+
+
+
+def queue_facebook_comment(post_id, comment_text, queue_file="data/fb_comment_queue.json"):
+    try:
+        with open(queue_file, "r", encoding="utf-8") as f:
+            queue = json.load(f)
+    except FileNotFoundError:
+        queue = []
+
+    queue.append({
+        "post_id": post_id,
+        "comment": comment_text,
+        "added": datetime.utcnow().isoformat()
+    })
+
+    with open(queue_file, "w", encoding="utf-8") as f:
+        json.dump(queue, f, indent=2)
+
+    print(f"🕒 Queued comment for post {post_id}")

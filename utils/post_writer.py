@@ -4,7 +4,7 @@ import os
 import re
 from datetime import datetime, timezone
 
-from utils.ai_writer import rewrite_as_satire, generate_satirical_headline
+from utils.ai_writer import rewrite_as_satire, generate_satirical_headline, generate_social_elements
 from utils.news_fetcher import fetch_google_news
 from utils.image_prompt_generator import generate_image_prompt
 from utils.image_generator import generate_image_from_prompt
@@ -15,6 +15,7 @@ from utils.ai_writer import generate_fomo_caption
 from openai import OpenAI
 from utils.x_poster import post_article_to_x
 from utils.facebook_poster import post_image_to_facebook
+from utils.facebook_poster import post_image_and_comment
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 CATEGORY_INDEX_FILE = os.path.join(THIS_DIR, "last_category.txt")
@@ -105,12 +106,12 @@ def generate_and_save_post(max_fetch_attempts=5):
                 short_slug = slugify(satirical_headline)[:80]
                 image_filename = f"{short_slug}.png"
                 if not image_filename or not image_filename.endswith(".png"):
-                    print("🚫 Invalid image filename. Skipping article.")
+                    print("❌ Invalid image filename. Skipping article.")
                     continue
 
                 image_url = generate_image_from_prompt(prompt, image_filename, category)
                 if not image_url:
-                    print("🚫 Image generation failed. Trying next article...")
+                    print("❌ Image generation failed. Trying next article...")
                     continue
 
                 writer = get_random_writer()
@@ -131,13 +132,18 @@ def generate_and_save_post(max_fetch_attempts=5):
                 teaser = satire.strip().split("\n")[0][:200]
                 post_url = f"https://liefeed.com/post/{slugify(satirical_headline)}"
 
-                fomo_caption = generate_fomo_caption(satirical_headline, teaser)
+                fomo_caption, teaser_line, engagement_question, comment_line = generate_social_elements(
+                    satirical_headline,
+                    teaser
+                )
 
-                combined_caption = f"{fomo_caption}\n\n🔗 {post_url}"
+                caption_for_post = f"{fomo_caption}\n\n{teaser_line}\n\n{engagement_question}"
+                comment_for_link = f"🔗 {post_url}\n{comment_line}"
 
-                post_image_to_facebook(
-                    caption=combined_caption,
-                    image_url=image_url
+                post_image_and_comment(
+                    image_url=image_url,
+                    caption=caption_for_post,
+                    first_comment=comment_for_link
                 )
 
                 image_path = os.path.join(IMAGE_DIR, image_filename)
@@ -146,13 +152,11 @@ def generate_and_save_post(max_fetch_attempts=5):
                     headline=fomo_caption,
                     teaser="",
                     article_url=post_url,
-                    image_url=image_url  # <-- correct local path to image
+                    image_url=image_url
                 )
-
 
                 print(f"✅ Article saved: {satirical_headline} (by {writer['name']})")
 
-                # ✅ Update the index only after a successful post
                 updated_index = (current_index + i + 1) % len(CATEGORIES)
                 save_category_index(updated_index)
                 print(f"✅ Updated next category index to {updated_index}")
@@ -163,6 +167,7 @@ def generate_and_save_post(max_fetch_attempts=5):
         print(f"❌ No valid articles found for category: {category}")
 
     print("❌ Failed to generate any valid articles after trying all categories.")
+
 
 
 openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
