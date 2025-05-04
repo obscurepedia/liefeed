@@ -19,7 +19,7 @@ def markdown_filter(text):
 def home():
     posts = fetch_all_posts()
     featured_post = posts[0] if posts else None
-    recent_posts = posts[1:26] if len(posts) > 1 else []
+    recent_posts = posts[1:25] if len(posts) > 1 else []
     trending_posts = get_random_posts(limit=5)
 
     return render_template(
