@@ -1,5 +1,9 @@
-def generate_newsletter_html(posts):
-    # posts = list of dicts with "title" and "slug"
+from utils.token import generate_unsubscribe_token
+
+def generate_newsletter_html(posts, recipient_email):
+    token = generate_unsubscribe_token(recipient_email)
+    unsubscribe_url = f"https://liefeed.com/unsubscribe/{token}"
+
     html = """
     <html>
     <body style="font-family: Arial, sans-serif; padding: 20px;">
@@ -11,10 +15,13 @@ def generate_newsletter_html(posts):
         url = f"https://liefeed.com/{post['slug']}"
         html += f'<li><a href="{url}">{post["title"]}</a></li>'
 
-    html += """
+    html += f"""
         </ul>
         <hr>
-        <p style="font-size: 12px; color: #666;">You received this because you subscribed to LieFeed. <a href='https://liefeed.com/unsubscribe'>Unsubscribe</a></p>
+        <p style="font-size: 12px; color: #666;">
+            You received this because you subscribed to LieFeed.
+            <a href="{unsubscribe_url}">Unsubscribe</a>
+        </p>
     </body>
     </html>
     """

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            font-family: 'Georgia', serif;
+            background-color: #fef6e4;  /* Soft parchment tone */
+            color: #333;
+            padding: 80px;
+            text-align: center;
+            border: 12px double #b28d5a;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 50px;
+            color: #8B4513;
+            margin-bottom: 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .subheading {
+            font-size: 22px;
+            margin: 10px 0 40px;
+            color: #666;
+        }
+
+        h2 {
+            font-size: 36px;
+            margin: 20px 0;
+            color: #000;
+        }
+
+        .quiz-title {
+            font-style: italic;
+            font-size: 24px;
+            margin: 10px 0 30px;
+        }
+
+        .score {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .date {
+            font-size: 18px;
+            color: #555;
+            margin-top: 40px;
+        }
+
+        .seal {
+            position: absolute;
+            bottom: 50px;
+            right: 50px;
+            font-size: 16px;
+            color: #999;
+            border: 2px solid #b28d5a;
+            padding: 10px 20px;
+            border-radius: 10px;
+            text-transform: uppercase;
+        }
+
+        .watermark {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            width: 120px;
+            opacity: 0.2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Certificate of Awesomeness</h1>
+    <p class="subheading">This is to proudly certify that</p>
+
+    <h2>{{ name }}</h2>
+
+    <p>has successfully completed the quiz:</p>
+    <div class="quiz-title">“{{ quiz_title }}”</div>
+
+    <p class="score">with a score of <strong>{{ score }}</strong> 🎉</p>
+
+    <p class="date">Date: {{ date }}</p>
+
+    <div class="seal">Verified Real(ish)</div>
+
+    <img src="{{ url_for('static', filename='images/watermark.png') }}" class="watermark" alt="Watermark">
+</body>
+</html>

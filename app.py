@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, abort
+from flask import Flask, render_template, request, abort, flash
 from markupsafe import Markup
 import markdown
 import random
@@ -7,14 +7,20 @@ import os
 from utils.db import fetch_all_posts, fetch_post_by_slug, fetch_posts_by_category
 from utils.ai_team import ai_team
 from utils.email_sender import send_email
+from flask import Blueprint, redirect
+from utils.token import decode_unsubscribe_token
+from utils.db import unsubscribe_email  # we'll add this below
+from utils.email_sender import send_email
+
 
 from dotenv import load_dotenv
 load_dotenv()
 
 
-
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY")
+
+unsubscribe_bp = Blueprint("unsubscribe", __name__)
 
 @app.template_filter('markdown')
 def markdown_filter(text):
@@ -79,20 +85,38 @@ def about():
 @app.route("/contact", methods=["GET", "POST"])
 def contact():
     if request.method == "POST":
-        name = request.form["name"]
-        email = request.form["email"]
-        message = request.form["message"]
-        # TODO: Save or email message
-        print(f"New contact form submission: {name} - {email} - {message}")
+        name = request.form.get("name")
+        email = request.form.get("email")
+        message = request.form.get("message")
+
+        subject = f"📩 New Contact Form Message from {name}"
+        html_body = f"""
+        <p><strong>Name:</strong> {name}</p>
+        <p><strong>Email:</strong> {email}</p>
+        <p><strong>Message:</strong></p>
+        <p>{message}</p>
+        """
+
+        
+        admin_email = os.getenv("CONTACT_RECEIVER_EMAIL", "editor@liefeed.com")
+
+        send_email(
+            recipient=admin_email,
+            subject=subject,
+            html_body=html_body
+        )
+
+        flash("✅ Your message has been sent. We'll get back to you soon!", "success")
+        return redirect(url_for("contact"))
+
     return render_template("contact.html")
+
 
 @app.route("/team")
 def team():
-    from utils.ai_team import ai_team
     return render_template("team.html", members=ai_team)
 
-from utils.ai_team import ai_team
-from utils.db import fetch_all_posts
+
 
 @app.route("/team/<slug>")
 def author_profile(slug):
@@ -107,6 +131,20 @@ def author_profile(slug):
 def get_random_posts(limit=5):
     posts = fetch_all_posts()
     return random.sample(posts, min(limit, len(posts)))
+
+
+
+@unsubscribe_bp.route("/unsubscribe/<token>")
+def unsubscribe(token):
+    email = decode_unsubscribe_token(token)
+    if not email:
+        return render_template("unsubscribe_invalid.html")
+
+    success = unsubscribe_email(email)
+    if success:
+        return render_template("unsubscribe_success.html", email=email)
+    else:
+        return render_template("unsubscribe_invalid.html")
 
 
 @app.context_processor
@@ -132,3 +170,4 @@ def test_email():
 
 from utils.quiz_routes import quiz_bp
 app.register_blueprint(quiz_bp)
+app.register_blueprint(unsubscribe_bp)

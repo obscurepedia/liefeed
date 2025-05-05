@@ -1,17 +1,23 @@
-<!-- templates/contact.html -->
 {% extends "base.html" %}
 {% block content %}
 <h1>Contact Us</h1>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% for category, message in messages %}
+    <div class="flash {{ category }}">{{ message }}</div>
+  {% endfor %}
+{% endwith %}
+
 <form method="post" action="/contact" class="contact-form">
   <label for="name">Name:</label>
-  <input type="text" name="name" required>
+  <input type="text" name="name" required class="quiz-input">
 
   <label for="email">Email:</label>
-  <input type="email" name="email" required>
+  <input type="email" name="email" required class="quiz-input">
 
   <label for="message">Message:</label>
-  <textarea name="message" rows="5" required></textarea>
+  <textarea name="message" rows="5" required class="quiz-input"></textarea>
 
-  <button type="submit">Send</button>
+  <button type="submit" class="quiz-button">Send</button>
 </form>
 {% endblock %}

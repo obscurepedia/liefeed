@@ -5,6 +5,9 @@
     <h1>Your Results</h1>
     <p>You scored <strong>{{ score }}</strong> out of <strong>{{ total }}</strong>.</p>
 
+    <p>🎓 Your personalized certificate has been emailed to you.  
+    <br>Check your inbox (and maybe your spam folder)!</p>
+
     {% if score == total %}
         <p>🎉 Perfect! You might be part AI... or part journalist.</p>
     {% elif score >= total * 0.7 %}
@@ -14,6 +17,28 @@
     {% else %}
         <p>😬 Yikes. Either the news is too weird... or you are.</p>
     {% endif %}
+
+    <div class="share-section">
+        <h3>📣 Share Your Score</h3>
+        <p>Think your friends can beat your score?</p>
+    
+        <a class="quiz-button" target="_blank"
+           href="https://twitter.com/intent/tweet?text=I+just+scored+{{ score }}+out+of+{{ total }}+on+the+%23LieFeed+Fake+News+Quiz.+Can+you+beat+me%3F+Take+it+here+👉+https%3A%2F%2Fliefeed.com%2Fquiz%2Fstart">
+            Share on X (Twitter)
+        </a>
+    
+        <a class="quiz-button" target="_blank"
+           href="https://www.facebook.com/sharer/sharer.php?u=https://liefeed.com/quiz/start">
+            Share on Facebook
+        </a>
+    
+        <br><br>
+        <h3>✉️ Forward to a Friend</h3>
+        <p>Know someone who’d love this quiz?</p>
+        <a href="mailto:?subject=Try%20the%20LieFeed%20Fake%20News%20Quiz&body=Hey!%20Try%20this%20fake+vs+real+news+quiz+on+LieFeed%20%E2%80%94%20it%E2%80%99s+short,+funny,+and+weirdly+hard.%20Take+it+here:+https://liefeed.com/quiz/start" class="quiz-button">
+            Send via Email
+        </a>
+    </div>
 
     <a href="/" class="quiz-button">Back to LieFeed</a>
 </div>

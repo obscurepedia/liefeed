@@ -125,6 +125,28 @@ def save_subscriber(email, name=""):
     finally:
         conn.close()
 
+def unsubscribe_email(email):
+    conn = get_connection()
+    c = conn.cursor()
+    c.execute("UPDATE subscribers SET subscribed = FALSE WHERE email = %s", (email,))
+    conn.commit()
+    success = c.rowcount > 0
+    conn.close()
+    return success
+
+
+def fetch_top_posts(limit=5):
+    conn = get_connection()
+    c = conn.cursor()
+    c.execute("""
+        SELECT title, slug
+        FROM posts
+        ORDER BY created_at DESC
+        LIMIT %s
+    """, (limit,))
+    rows = c.fetchall()
+    conn.close()
+    return [{"title": row[0], "slug": row[1]} for row in rows]
 
 
 def row_to_dict(row):
