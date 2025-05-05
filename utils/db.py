@@ -51,7 +51,7 @@ def insert_post(post):
             post.get('image'),
             post.get('author'),
             post.get('author_slug'),
-            post.get('quote').
+            post.get('quote'),
             post.get('source_headline')  # ✅ new field
         ))
         conn.commit()
