@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, abort
 from markupsafe import Markup
 import markdown
 import random
+import os
 
 from utils.db import fetch_all_posts, fetch_post_by_slug, fetch_posts_by_category
 from utils.ai_team import ai_team
