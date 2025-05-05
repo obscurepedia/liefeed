@@ -1,6 +1,8 @@
 from flask import Blueprint, render_template, request, session, redirect, url_for
 import random
 from utils.db import fetch_all_posts  # or use your Post model if needed
+from utils.db import save_subscriber  # Add this at the top of your file
+
 
 quiz_bp = Blueprint("quiz", __name__)
 
@@ -43,13 +45,16 @@ def quiz_question():
     question = quiz_data[index]
     return render_template("quiz_question.html", index=index + 1, question=question, total=len(quiz_data))
 
+
 @quiz_bp.route("/quiz/email", methods=["GET", "POST"])
 def quiz_email_capture():
     if request.method == "POST":
         email = request.form.get("email")
-        # TODO: Save email to DB or external service
+        name = ""  # You can expand this later if needed
+        save_subscriber(email, name)  # ✅ Save to DB
         return redirect(url_for("quiz.quiz_results"))
     return render_template("quiz_email.html")
+
 
 @quiz_bp.route("/quiz/results")
 def quiz_results():

@@ -5,6 +5,7 @@ import random
 
 from utils.db import fetch_all_posts, fetch_post_by_slug, fetch_posts_by_category
 from utils.ai_team import ai_team
+from utils.email_sender import send_email
 
 
 
@@ -108,6 +109,20 @@ def inject_categories():
     posts = fetch_all_posts()
     categories = sorted(set(p["category"] for p in posts))
     return dict(menu_categories=categories)
+
+
+
+@app.route("/test-email")
+def test_email():
+    recipient = "your@email.com"
+    subject = "Welcome to LieFeed!"
+    html_body = "<h1>Your Daily Dose of Satire Awaits</h1><p>Thanks for subscribing!</p>"
+
+    result = send_email(recipient, subject, html_body)
+    if result:
+        return "✅ Email sent successfully"
+    else:
+        return "❌ Failed to send email"
 
 
 from utils.quiz_routes import quiz_bp

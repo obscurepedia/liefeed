@@ -102,6 +102,31 @@ def fetch_posts_by_author(author_slug, exclude_slug=None, limit=6):
     conn.close()
     return [row_to_dict(row) for row in rows]
 
+def fetch_all_subscriber_emails():
+    conn = get_connection()
+    c = conn.cursor()
+    c.execute("SELECT email FROM subscribers WHERE is_active = TRUE")
+    rows = c.fetchall()
+    conn.close()
+    return [row[0] for row in rows]  # return just the list of emails
+
+def save_subscriber(email, name=""):
+    conn = get_connection()
+    c = conn.cursor()
+    try:
+        c.execute("""
+            INSERT INTO subscribers (email, name)
+            VALUES (%s, %s)
+            ON CONFLICT (email) DO NOTHING
+        """, (email, name))
+        conn.commit()
+    except Exception as e:
+        print("Subscriber insert error:", e)
+    finally:
+        conn.close()
+
+
+
 def row_to_dict(row):
     return {
         "id": row[0],
