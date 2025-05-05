@@ -82,97 +82,106 @@ def generate_and_save_post(max_fetch_attempts=5):
                 continue
 
             for article in articles:
-                if is_duplicate(article["link"]):
-                    continue
+                try:
+                    if is_duplicate(article["link"]):
+                        continue
 
-                title_no_source = article["title"].split(" - ")[0].strip()
-                cleaned_title = title_no_source
-                if ":" in title_no_source:
-                    prefix, remainder = title_no_source.split(":", 1)
-                    if prefix.strip().lower() == category.lower():
-                        cleaned_title = remainder.strip()
+                    title_no_source = article["title"].split(" - ")[0].strip()
+                    cleaned_title = title_no_source
+                    if ":" in title_no_source:
+                        prefix, remainder = title_no_source.split(":", 1)
+                        if prefix.strip().lower() == category.lower():
+                            cleaned_title = remainder.strip()
 
-                satire = rewrite_as_satire(cleaned_title, article["summary"])
-                if not satire:
-                    print("💥 AI generation failed.")
-                    continue
+                    satire = rewrite_as_satire(cleaned_title, article["summary"])
+                    if not satire:
+                        print("💥 AI generation failed.")
+                        continue
 
-                satirical_headline = generate_satirical_headline(cleaned_title, article["summary"])
-                if not satirical_headline:
-                    print("💥 Failed to generate satirical headline.")
-                    continue
+                    satirical_headline = generate_satirical_headline(cleaned_title, article["summary"])
+                    if not satirical_headline:
+                        print("💥 Failed to generate satirical headline.")
+                        continue
 
-                prompt = generate_image_prompt(satirical_headline, satire)
-                short_slug = slugify(satirical_headline)[:80]
-                image_filename = f"{short_slug}.png"
-                if not image_filename or not image_filename.endswith(".png"):
-                    print("❌ Invalid image filename. Skipping article.")
-                    continue
+                    prompt = generate_image_prompt(satirical_headline, satire)
+                    short_slug = slugify(satirical_headline)[:80]
+                    image_filename = f"{short_slug}.png"
+                    if not image_filename or not image_filename.endswith(".png"):
+                        print("❌ Invalid image filename. Skipping article.")
+                        continue
 
-                image_url = generate_image_from_prompt(prompt, image_filename, category)
-                if not image_url:
-                    print("❌ Image generation failed. Trying next article...")
-                    continue
+                    image_url = generate_image_from_prompt(prompt, image_filename, category)
+                    if not image_url:
+                        print("❌ Image generation failed. Trying next article...")
+                        continue
 
-                writer = get_random_writer()
+                    writer = get_random_writer()
 
-                insert_post({
-                    "title": satirical_headline,
-                    "slug": slugify(satirical_headline),
-                    "content": satire.strip(),
-                    "category": category.capitalize(),
-                    "created_at": datetime.now(timezone.utc),
-                    "source": article["link"],
-                    "image": image_url,
-                    "author": writer["name"],
-                    "author_slug": writer["slug"],
-                    "quote": generate_author_quote(writer["name"], satirical_headline),
-                    "source_headline": cleaned_title
-                })
+                    post_data = {
+                        "title": satirical_headline,
+                        "slug": slugify(satirical_headline),
+                        "content": satire.strip(),
+                        "category": category.capitalize(),
+                        "created_at": datetime.now(timezone.utc),
+                        "source": article["link"],
+                        "image": image_url,
+                        "author": writer["name"],
+                        "author_slug": writer["slug"],
+                        "quote": generate_author_quote(writer["name"], satirical_headline),
+                        "source_headline": cleaned_title
+                    }
 
-                teaser = satire.strip().split("\n")[0][:200]
-                post_url = f"https://liefeed.com/post/{slugify(satirical_headline)}"
+                    insert_post(post_data)  # Fail here? Abort everything
 
-                fomo_caption, teaser_line, engagement_question, comment_line = generate_social_elements(
-                    satirical_headline,
-                    teaser
-                )
+                    teaser = satire.strip().split("\n")[0][:200]
+                    post_url = f"https://liefeed.com/post/{slugify(satirical_headline)}"
 
-                caption_for_post = f"{fomo_caption}\n\n{teaser_line}\n\n{engagement_question}"
-                comment_for_link = f"🔗 {post_url}\n{comment_line}"
+                    fomo_caption, teaser_line, engagement_question, comment_line = generate_social_elements(
+                        satirical_headline,
+                        teaser
+                    )
 
-                # ✅ Debug: Print captions being used
-                print("📄 Facebook caption preview:\n", caption_for_post)
-                print("📄 Twitter headline/teaser preview:\n", satirical_headline, teaser_line)
+                    caption_for_post = f"{fomo_caption}\n\n{teaser_line}\n\n{engagement_question}"
+                    comment_for_link = f"🔗 {post_url}\n{comment_line}"
 
-                # ✅ Facebook post
-                post_image_and_comment(
-                    image_url=image_url,
-                    caption=caption_for_post,
-                    first_comment=comment_for_link
-                )
+                    # ✅ Debug: Print captions being used
+                    print("📄 Facebook caption preview:\n", caption_for_post)
+                    print("📄 Twitter headline/teaser preview:\n", satirical_headline, teaser_line)
 
-                # ✅ X (Twitter) post
-                post_article_to_x(
-                    headline=satirical_headline,
-                    teaser=teaser_line,
-                    article_url=post_url,
-                    image_url=image_url,
-                    category=category.capitalize()
-                )
+                    # ✅ Facebook post
+                    post_image_and_comment(
+                        image_url=image_url,
+                        caption=caption_for_post,
+                        first_comment=comment_for_link
+                    )
 
-                print(f"✅ Article saved: {satirical_headline} (by {writer['name']})")
+                    # ✅ X (Twitter) post
+                    post_article_to_x(
+                        headline=satirical_headline,
+                        teaser=teaser_line,
+                        article_url=post_url,
+                        image_url=image_url,
+                        category=category.capitalize()
+                    )
 
-                updated_index = (current_index + i + 1) % len(CATEGORIES)
-                save_category_index(updated_index)
-                print(f"✅ Updated next category index to {updated_index}")
-                return
+                    print(f"✅ Article saved: {satirical_headline} (by {writer['name']})")
+
+                    updated_index = (current_index + i + 1) % len(CATEGORIES)
+                    save_category_index(updated_index)
+                    print(f"✅ Updated next category index to {updated_index}")
+                    return
+
+                except Exception as e:
+                    print(f"❌ Error encountered during article generation: {e}")
+                    print("⚠️ Aborting current article and skipping to the next one.")
+                    return  # Optionally stop completely here, or continue to next article
 
             fetch_attempts += 1
 
         print(f"❌ No valid articles found for category: {category}")
 
     print("❌ Failed to generate any valid articles after trying all categories.")
+
 
 
 
