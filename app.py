@@ -8,7 +8,7 @@ from utils.db import fetch_all_posts, fetch_post_by_slug, fetch_posts_by_categor
 from utils.ai_team import ai_team
 from utils.email_sender import send_email
 from flask import Blueprint, redirect
-from utils.token import decode_unsubscribe_token
+from utils.token_utils import decode_unsubscribe_token
 from utils.db import unsubscribe_email  # we'll add this below
 from utils.email_sender import send_email
 

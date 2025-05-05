@@ -139,14 +139,24 @@ def fetch_top_posts(limit=5):
     conn = get_connection()
     c = conn.cursor()
     c.execute("""
-        SELECT title, slug
+        SELECT title, slug, content, image
         FROM posts
         ORDER BY created_at DESC
         LIMIT %s
     """, (limit,))
     rows = c.fetchall()
     conn.close()
-    return [{"title": row[0], "slug": row[1]} for row in rows]
+    return [
+        {
+            "title": row[0],
+            "slug": row[1],
+            "content": row[2],
+            "image": row[3]
+        }
+        for row in rows
+    ]
+
+
 
 
 def row_to_dict(row):
