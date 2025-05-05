@@ -7,9 +7,13 @@ from utils.db import fetch_all_posts, fetch_post_by_slug, fetch_posts_by_categor
 from utils.ai_team import ai_team
 from utils.email_sender import send_email
 
+from dotenv import load_dotenv
+load_dotenv()
+
 
 
 app = Flask(__name__)
+app.secret_key = os.environ.get("SECRET_KEY")
 
 @app.template_filter('markdown')
 def markdown_filter(text):
