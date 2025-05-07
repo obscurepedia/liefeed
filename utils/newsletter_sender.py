@@ -42,7 +42,7 @@ def generate_perplexity_response(prompt):
 def clean_markdown(text):
     text = text.replace("**", "").replace("*", "").strip()
 
-    # Remove leading AI-style intros (case-insensitive)
+    # Remove leading AI-style intros
     intro_patterns = [
         r"^sure[!.,]?\s*here('s| is)?( a)? satirical one-liner.*?:\s*",
         r"^here('s| is)?( a)? satirical one-liner.*?:\s*",
@@ -51,14 +51,18 @@ def clean_markdown(text):
     for pattern in intro_patterns:
         text = re.sub(pattern, "", text, flags=re.IGNORECASE)
 
-    # Remove leading quote indicators like > or -
+    # Remove lead-in like "Today's fake news:"
+    text = re.sub(r"^(today[’'`s]* fake news[.:]*)\s*", "", text, flags=re.IGNORECASE)
+
+    # Remove markdown quote indicators
     text = re.sub(r"^[>\-–—]\s*", "", text)
 
     # Remove surrounding quotes
     text = text.strip('“”"\'')
 
-    # Trim anything after a markdown-style link
+    # Trim anything after markdown-style link brackets
     return text.split("[")[0].strip()
+
 
 
 def format_as_paragraphs(text):
