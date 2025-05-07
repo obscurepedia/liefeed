@@ -209,6 +209,5 @@ def test_email():
 
 
 from utils.quiz.quiz_routes import quiz_bp
-from routes.inbox_routes import inbox_bp
 app.register_blueprint(quiz_bp)
 app.register_blueprint(unsubscribe_bp)
