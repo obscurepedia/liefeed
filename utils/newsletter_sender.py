@@ -37,7 +37,20 @@ def generate_perplexity_response(prompt):
         return "This week's satire is missing. But hey, that's probably fake too."
 
 def clean_markdown(text):
-    return text.replace("**", "").replace("*", "").split("[")[0].strip()
+    text = text.replace("**", "").replace("*", "")
+    # Remove common AI-generated intros
+    for prefix in [
+        "Sure, here's a satirical one-liner",
+        "Here’s a satirical one-liner",
+        "Sure, here is",
+        "Here is",
+        "Satirical one-liner:",
+        "Response:"
+    ]:
+        if text.lower().startswith(prefix.lower()):
+            text = text[len(prefix):].lstrip(":").strip()
+    # Trim anything after a link or bracket
+    return text.split("[")[0].strip()
 
 def format_as_paragraphs(text):
     text = text.replace("**", "").replace("*", "")
@@ -45,6 +58,7 @@ def format_as_paragraphs(text):
         f"<p style='line-height: 1.8; font-size: 16px; color: #333; margin-bottom: 15px;'>{para.strip()}</p>"
         for para in text.split('\n') if para.strip()
     )
+
 
 def send_newsletter():
     posts = fetch_top_posts(limit=5)
