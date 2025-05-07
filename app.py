@@ -4,13 +4,13 @@ import markdown
 import random
 import os
 
-from utils.db import fetch_all_posts, fetch_post_by_slug, fetch_posts_by_category
-from utils.ai_team import ai_team
-from utils.email_sender import send_email
+from utils.database.db import fetch_all_posts, fetch_post_by_slug, fetch_posts_by_category
+from utils.ai.ai_team import ai_team
+from utils.email.email_sender import send_email
 from flask import Blueprint, redirect
-from utils.token_utils import decode_unsubscribe_token
-from utils.db import unsubscribe_email  # we'll add this below
-from utils.email_sender import send_email
+from utils.database.token_utils import decode_unsubscribe_token
+from utils.database.db import unsubscribe_email  # we'll add this below
+from utils.email.email_sender import send_email
 
 
 from dotenv import load_dotenv
@@ -168,6 +168,6 @@ def test_email():
         return "❌ Failed to send email"
 
 
-from utils.quiz_routes import quiz_bp
+from utils.quiz.quiz_routes import quiz_bp
 app.register_blueprint(quiz_bp)
 app.register_blueprint(unsubscribe_bp)

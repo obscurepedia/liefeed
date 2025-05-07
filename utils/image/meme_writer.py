@@ -1,11 +1,11 @@
 import os
 import random
 
-from utils.meme_reel_creator import create_meme_reel_ffmpeg
-from utils.db import get_connection
-from utils.image_prompt_generator import generate_image_prompt
-from utils.image_generator import generate_image_from_prompt
-from utils.facebook_poster import post_image_to_facebook
+from utils.image.meme_reel_creator import create_meme_reel_ffmpeg
+from utils.database.db import get_connection
+from utils.image.image_prompt_generator import generate_image_prompt
+from utils.image.image_generator import generate_image_from_prompt
+from utils.social.facebook_poster import post_image_to_facebook
 from openai import OpenAI
 from datetime import datetime, timezone
 

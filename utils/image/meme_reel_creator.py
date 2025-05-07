@@ -1,7 +1,7 @@
 import subprocess
 from datetime import datetime
 import os
-from utils.db import get_connection  # ✅ New import
+from utils.database.db import get_connection  # ✅ New import
 
 def save_reel_to_database(caption, video_path):
     """

@@ -1,8 +1,8 @@
 from flask import Blueprint, render_template, request, session, redirect, url_for
 import random
-from utils.db import fetch_all_posts, save_subscriber
-from utils.certificate import generate_certificate
-from utils.email_sender import send_certificate_email_with_attachment
+from utils.database.db import fetch_all_posts, save_subscriber
+from utils.email.certificate import generate_certificate
+from utils.email.email_sender import send_certificate_email_with_attachment
 
 quiz_bp = Blueprint("quiz", __name__)
 

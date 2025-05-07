@@ -4,18 +4,18 @@ import os
 import re
 from datetime import datetime, timezone
 
-from utils.ai_writer import rewrite_as_satire, generate_satirical_headline, generate_social_elements
-from utils.news_fetcher import fetch_google_news
-from utils.image_prompt_generator import generate_image_prompt
-from utils.image_generator import generate_image_from_prompt
-from utils.db import insert_post, get_connection
-from utils.ai_team import get_random_writer
-from utils.x_poster import post_article_to_x
-from utils.ai_writer import generate_fomo_caption
+from utils.ai.ai_writer import rewrite_as_satire, generate_satirical_headline, generate_social_elements
+from utils.ai.news_fetcher import fetch_google_news
+from utils.image.image_prompt_generator import generate_image_prompt
+from utils.image.image_generator import generate_image_from_prompt
+from utils.database.db import insert_post, get_connection
+from utils.ai.ai_team import get_random_writer
+from utils.social.x_poster import post_article_to_x
+from utils.ai.ai_writer import generate_fomo_caption
 from openai import OpenAI
-from utils.x_poster import post_article_to_x
-from utils.facebook_poster import post_image_to_facebook
-from utils.facebook_poster import post_image_and_comment
+from utils.social.x_poster import post_article_to_x
+from utils.social.facebook_poster import post_image_to_facebook
+from utils.social.facebook_poster import post_image_and_comment
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 CATEGORY_INDEX_FILE = os.path.join(THIS_DIR, "last_category.txt")

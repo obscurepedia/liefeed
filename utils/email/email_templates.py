@@ -1,4 +1,4 @@
-from utils.token_utils import generate_unsubscribe_token
+from utils.database.token_utils import generate_unsubscribe_token
 
 def generate_newsletter_html(posts, recipient_email, satirical_spin):
     token = generate_unsubscribe_token(recipient_email)

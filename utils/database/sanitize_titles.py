@@ -2,7 +2,7 @@
 
 import sqlite3
 import re
-from utils.db import DB_PATH
+from utils.database.db import DB_PATH
 
 def clean_markdown(text):
     if not text:

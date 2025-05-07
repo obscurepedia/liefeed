@@ -2,7 +2,7 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from utils.db import get_connection
+from utils.database.db import get_connection
 
 def fetch_recent_posts(limit=20):
     conn = get_connection()

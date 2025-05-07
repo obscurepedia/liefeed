@@ -5,10 +5,10 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import requests
 import random
-from utils.db import fetch_top_posts
-from utils.email_templates import generate_newsletter_html
-from utils.email_sender import send_email
-from utils.db import fetch_all_subscriber_emails
+from utils.database.db import fetch_top_posts
+from utils.email.email_templates import generate_newsletter_html
+from utils.email.email_sender import send_email
+from utils.database.db import fetch_all_subscriber_emails
 from dotenv import load_dotenv
 
 

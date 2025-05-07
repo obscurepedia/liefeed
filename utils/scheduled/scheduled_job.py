@@ -5,8 +5,8 @@ import time
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from utils.post_writer import generate_and_save_post
-from post_facebook_comments import post_queued_comments
+from utils.ai.post_writer import generate_and_save_post
+from utils.social.post_facebook_comments import post_queued_comments
 
 if __name__ == "__main__":
     delay_minutes = random.randint(0, 30)
