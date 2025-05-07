@@ -142,7 +142,8 @@ def generate_and_save_post(max_fetch_attempts=5):
                     )
 
                     caption_for_post = f"{fomo_caption}\n\n{teaser_line}\n\n{engagement_question}"
-                    comment_for_link = f"🔗 {post_url}\n{comment_line}"
+                    cleaned_comment = comment_line.replace("[link]", "").replace("[LINK]", "").strip()
+                    comment_for_link = f"{cleaned_comment}\n🔗 {post_url}"
 
                     # ✅ Debug: Print captions being used
                     print("📄 Facebook caption preview:\n", caption_for_post)

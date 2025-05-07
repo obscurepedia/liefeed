@@ -183,7 +183,7 @@ Generate 4 elements for a Facebook post:
 1. FOMO-driven caption (outrageous, funny, makes people click)
 2. One-line curiosity teaser
 3. Comment prompt question
-4. Witty first comment line (to include with the article link)
+4. Very short witty line that pairs well with a link posted *below* it. Do not include [link], URL, or placeholder text.
 
 Do not use markdown, bullets, or numbers in the output. Return only plain text.
 
