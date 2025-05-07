@@ -1,5 +1,6 @@
 import os
 import sys
+import re
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import requests
@@ -36,21 +37,29 @@ def generate_perplexity_response(prompt):
         print("❌ Perplexity API Error:", response.text)
         return "This week's satire is missing. But hey, that's probably fake too."
 
+
+
 def clean_markdown(text):
-    text = text.replace("**", "").replace("*", "")
-    # Remove common AI-generated intros
-    for prefix in [
-        "Sure, here's a satirical one-liner",
-        "Here’s a satirical one-liner",
-        "Sure, here is",
-        "Here is",
-        "Satirical one-liner:",
-        "Response:"
-    ]:
-        if text.lower().startswith(prefix.lower()):
-            text = text[len(prefix):].lstrip(":").strip()
-    # Trim anything after a link or bracket
+    text = text.replace("**", "").replace("*", "").strip()
+
+    # Remove leading AI-style intros (case-insensitive)
+    intro_patterns = [
+        r"^sure[!.,]?\s*here('s| is)?( a)? satirical one-liner.*?:\s*",
+        r"^here('s| is)?( a)? satirical one-liner.*?:\s*",
+        r"^response:\s*",
+    ]
+    for pattern in intro_patterns:
+        text = re.sub(pattern, "", text, flags=re.IGNORECASE)
+
+    # Remove leading quote indicators like > or -
+    text = re.sub(r"^[>\-–—]\s*", "", text)
+
+    # Remove surrounding quotes
+    text = text.strip('“”"\'')
+
+    # Trim anything after a markdown-style link
     return text.split("[")[0].strip()
+
 
 def format_as_paragraphs(text):
     text = text.replace("**", "").replace("*", "")
