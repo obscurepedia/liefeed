@@ -1,16 +1,17 @@
-from flask import Flask, render_template, request, abort, flash
+from flask import Flask, render_template, request, abort, flash, redirect, url_for, Blueprint
 from markupsafe import Markup
 import markdown
 import random
 import os
+import boto3
 
 from utils.database.db import fetch_all_posts, fetch_post_by_slug, fetch_posts_by_category
 from utils.ai.ai_team import ai_team
 from utils.email.email_sender import send_email
-from flask import Blueprint, redirect
 from utils.database.token_utils import decode_unsubscribe_token
 from utils.database.db import unsubscribe_email  # we'll add this below
 from utils.email.email_sender import send_email
+from utils.email.email_reader import fetch_parsed_emails, fetch_email_by_key
 
 
 from dotenv import load_dotenv
@@ -147,6 +148,45 @@ def unsubscribe(token):
         return render_template("unsubscribe_invalid.html")
 
 
+@app.route("/inbox")
+def inbox():
+    emails = fetch_parsed_emails(limit=10)
+    return render_template("inbox_list.html", emails=emails)
+
+@app.route("/inbox/view/<path:s3_key>")
+def view_email(s3_key):
+    email_data = fetch_email_by_key(s3_key)
+    return render_template("view_email.html", email=email_data)
+
+
+
+@app.route("/inbox/reply/<path:recipient>/<path:subject>", methods=["POST"])
+def send_reply(recipient, subject):
+    body = request.form.get("body")
+
+    ses = boto3.client(
+        "ses",
+        region_name=os.getenv("AWS_REGION"),
+        aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+        aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+    )
+
+    response = ses.send_email(
+        Source="you@liefeed.com",  # Replace with your verified SES sender
+        Destination={"ToAddresses": [recipient]},
+        Message={
+            "Subject": {"Data": "Re: " + subject},
+            "Body": {
+                "Text": {"Data": body}
+            }
+        }
+    )
+
+    flash("✅ Reply sent to " + recipient)
+    return redirect(url_for("inbox"))
+
+
+
 @app.context_processor
 def inject_categories():
     posts = fetch_all_posts()
@@ -169,5 +209,6 @@ def test_email():
 
 
 from utils.quiz.quiz_routes import quiz_bp
+from routes.inbox_routes import inbox_bp
 app.register_blueprint(quiz_bp)
 app.register_blueprint(unsubscribe_bp)

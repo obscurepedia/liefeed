@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>📥 Inbox</h1>
+
+<ul>
+  {% for email in emails %}
+    <li style="margin-bottom: 20px;">
+      <strong>From:</strong> {{ email.from }}<br>
+      <strong>Subject:</strong>
+      <a href="{{ url_for('view_email', s3_key=email.s3_key) }}">
+        {{ email.subject }}
+      </a><br>
+
+      <pre>{{ email.body[:250] }}...</pre>
+    </li>
+  {% endfor %}
+</ul>
+{% endblock %}
