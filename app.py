@@ -1,9 +1,12 @@
 from flask import Flask, render_template, request, abort, flash, redirect, url_for, Blueprint, session, abort
 from markupsafe import Markup
+from urllib.parse import unquote
+
 import markdown
 import random
 import os
 import boto3
+
 
 from utils.database.db import fetch_all_posts, fetch_post_by_slug, fetch_posts_by_category
 from utils.ai.ai_team import ai_team
@@ -218,6 +221,26 @@ def send_reply(recipient, subject):
 
     return redirect(url_for("inbox"))
 
+
+
+@app.route("/inbox/delete/<path:s3_key>", methods=["POST"])
+def delete_email(s3_key):
+    s3_key = unquote(s3_key)  # Decode any special characters
+
+    s3 = boto3.client(
+        "s3",
+        region_name=os.getenv("AWS_REGION"),
+        aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+        aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY")
+    )
+
+    try:
+        s3.delete_object(Bucket=os.getenv("INBOUND_BUCKET_NAME"), Key=s3_key)
+        flash("🗑️ Email deleted successfully")
+    except Exception as e:
+        flash(f"❌ Failed to delete email: {e}")
+
+    return redirect(url_for("inbox"))
 
 
 

@@ -10,7 +10,7 @@
 
     {% block head %}{% endblock %}
 
-<!-- Google tag (gtag.js) -->
+    <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-98W6V55RSD"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
@@ -32,6 +32,20 @@
         </nav>
     </header>
     <main>
+
+        <!-- ✅ Flash messages -->
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <ul style="list-style: none; padding: 10px 0;">
+              {% for message in messages %}
+                <li style="margin-bottom: 10px; padding: 12px; background-color: #f5f5f5; border-left: 4px solid #007bff;">
+                  {{ message }}
+                </li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+
         {% block content %}{% endblock %}
     </main>
     <footer>

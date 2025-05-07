@@ -15,5 +15,13 @@
   <button type="submit">Send Reply</button>
 </form>
 
+<hr>
+<form method="POST" action="{{ url_for('delete_email', s3_key=email.s3_key|urlencode) }}" onsubmit="return confirm('Are you sure you want to delete this email?');">
+  <button type="submit" style="background-color: #d9534f; color: white; border: none; padding: 10px 20px; border-radius: 5px;">
+    🗑️ Delete Email
+  </button>
+</form>
+
+
 
 {% endblock %}
