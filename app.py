@@ -182,9 +182,10 @@ def inbox():
 
 @app.route("/inbox/view/<path:s3_key>")
 def view_email(s3_key):
-    inbox_protected()
     email_data = fetch_email_by_key(s3_key)
+    email_data["s3_key"] = s3_key  # ✅ Add this if it's not already there
     return render_template("view_email.html", email=email_data)
+
 
 
 from urllib.parse import unquote
