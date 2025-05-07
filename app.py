@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, abort, flash, redirect, url_for, Blueprint
+from flask import Flask, render_template, request, abort, flash, redirect, url_for, Blueprint, session, abort
 from markupsafe import Markup
 import markdown
 import random
@@ -148,21 +148,51 @@ def unsubscribe(token):
         return render_template("unsubscribe_invalid.html")
 
 
+
+
+@app.route("/inbox/login", methods=["GET", "POST"])
+def inbox_login():
+    if request.method == "POST":
+        if request.form.get("password") == os.getenv("INBOX_ADMIN_PASSWORD"):
+            session["inbox_auth"] = True
+            return redirect(url_for("inbox"))
+        else:
+            return "❌ Incorrect password", 403
+    return '''
+        <form method="post">
+            <input type="password" name="password" placeholder="Enter password" required>
+            <button type="submit">Login</button>
+        </form>
+    '''
+
+
+def inbox_protected():
+    if not session.get("inbox_auth"):
+        abort(401)
+
+
 @app.route("/inbox")
 def inbox():
+    inbox_protected()
     emails = fetch_parsed_emails(limit=10)
     return render_template("inbox_list.html", emails=emails)
 
 @app.route("/inbox/view/<path:s3_key>")
 def view_email(s3_key):
+    inbox_protected()
     email_data = fetch_email_by_key(s3_key)
     return render_template("view_email.html", email=email_data)
 
 
+from urllib.parse import unquote
 
 @app.route("/inbox/reply/<path:recipient>/<path:subject>", methods=["POST"])
 def send_reply(recipient, subject):
     body = request.form.get("body")
+
+    # Decode URL-encoded recipient and subject (e.g., %40 = @)
+    recipient = unquote(recipient)
+    subject = unquote(subject)
 
     ses = boto3.client(
         "ses",
@@ -171,19 +201,23 @@ def send_reply(recipient, subject):
         aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
     )
 
-    response = ses.send_email(
-        Source="you@liefeed.com",  # Replace with your verified SES sender
-        Destination={"ToAddresses": [recipient]},
-        Message={
-            "Subject": {"Data": "Re: " + subject},
-            "Body": {
-                "Text": {"Data": body}
+    try:
+        response = ses.send_email(
+            Source="you@liefeed.com",  # Replace with your verified SES address
+            Destination={"ToAddresses": [recipient]},
+            Message={
+                "Subject": {"Data": "Re: " + subject},
+                "Body": {
+                    "Text": {"Data": body}
+                }
             }
-        }
-    )
+        )
+        flash(f"✅ Reply sent to {recipient}")
+    except Exception as e:
+        flash(f"❌ Failed to send email: {e}")
 
-    flash("✅ Reply sent to " + recipient)
     return redirect(url_for("inbox"))
+
 
 
 
