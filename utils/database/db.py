@@ -110,20 +110,24 @@ def fetch_all_subscriber_emails():
     conn.close()
     return [row[0] for row in rows]  # return just the list of emails
 
-def save_subscriber(email, name=""):
+def save_subscriber(email, name="", quiz_score=None, quiz_total=None):
     conn = get_connection()
     c = conn.cursor()
     try:
         c.execute("""
-            INSERT INTO subscribers (email, name)
-            VALUES (%s, %s)
-            ON CONFLICT (email) DO NOTHING
-        """, (email, name))
+            INSERT INTO subscribers (email, name, quiz_score, quiz_total)
+            VALUES (%s, %s, %s, %s)
+            ON CONFLICT (email) DO UPDATE
+            SET name = EXCLUDED.name,
+                quiz_score = EXCLUDED.quiz_score,
+                quiz_total = EXCLUDED.quiz_total
+        """, (email, name, quiz_score, quiz_total))
         conn.commit()
     except Exception as e:
         print("Subscriber insert error:", e)
     finally:
         conn.close()
+
 
 def unsubscribe_email(email):
     conn = get_connection()

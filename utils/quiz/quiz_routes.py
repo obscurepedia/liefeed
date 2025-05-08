@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, session, redirect, url_for
+from flask import Blueprint, render_template, request, session, redirect, url_for, current_app
 import random
 from utils.database.db import fetch_all_posts, save_subscriber
 from utils.email.certificate import generate_certificate
@@ -52,9 +52,9 @@ def quiz_email_capture():
         name = request.form.get("name", "").strip() or "Quiz Taker"
         session["email"] = email
         session["name"] = name
-        save_subscriber(email, name)
         return redirect(url_for("quiz.quiz_results"))
     return render_template("quiz_email.html")
+
 
 @quiz_bp.route("/quiz/results", methods=["GET"])
 def quiz_results():
@@ -65,12 +65,16 @@ def quiz_results():
     correct = 0
 
     for i, user_answer in enumerate(user_answers):
-        actual = quiz_data[i]["is_real"]
-        if (user_answer == "real" and actual) or (user_answer == "fake" and not actual):
-            correct += 1
+        if i < len(quiz_data):  # Prevent index error
+            actual = quiz_data[i]["is_real"]
+            if (user_answer == "real" and actual) or (user_answer == "fake" and not actual):
+                correct += 1
 
-    # Generate and email certificate
+    # Save subscriber with score
     if email:
+        save_subscriber(email=email, name=name, quiz_score=correct, quiz_total=len(quiz_data))
+
+        # Generate and email certificate
         pdf_path = generate_certificate(name, "Real or Fake News Quiz", correct)
 
         html_body = f"""
@@ -94,5 +98,21 @@ def quiz_results():
             pdf_path=pdf_path
         )
 
-    return render_template("quiz_results.html", score=correct, total=len(quiz_data), name=name)
+    return render_template(
+        "quiz_results.html",
+        score=correct,
+        total=len(quiz_data),
+        name=name,
+        pixel_id=current_app.config['FACEBOOK_PIXEL_ID']
+    )
+
+
+
+@quiz_bp.route('/quiz-start')
+def quiz_landing():
+    return render_template(
+        "quiz_landing.html",
+        pixel_id=current_app.config['FACEBOOK_PIXEL_ID']
+    )
+
 

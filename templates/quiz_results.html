@@ -42,4 +42,11 @@
 
     <a href="/" class="quiz-button">Back to LieFeed</a>
 </div>
+
+<script>
+    if (typeof fbq !== 'undefined') {
+      fbq('trackCustom', 'CompleteQuiz');
+    }
+  </script>
+  
 {% endblock %}
