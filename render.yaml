@@ -1,30 +1,92 @@
+envVarGroups:
+  - name: shared-env
+    envVars:
+      - key: PERPLEXITY_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: HUGGINGFACE_API_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: AWS_REGION
+        value: us-east-1
+      - key: S3_BUCKET_NAME
+        value: liefeed-images
+      - key: SES_SENDER
+        value: newsletter@liefeed.com
+      - key: FACEBOOK_PAGE_ID
+        value: "588785644323565"
+      - key: FACEBOOK_PAGE_TOKEN
+        sync: false
+      - key: X_API_KEY
+        sync: false
+      - key: X_API_SECRET
+        sync: false
+      - key: X_BEARER_TOKEN
+        sync: false
+      - key: X_ACCESS_TOKEN
+        sync: false
+      - key: X_ACCESS_TOKEN_SECRET
+        sync: false
+      - key: SECRET_KEY
+        sync: false
+      - key: CONTACT_RECEIVER_EMAIL
+        value: editor@liefeed.com
+      - key: INBOUND_BUCKET_NAME
+        value: liefeed-inbound-emails
+      - key: INBOX_ADMIN_PASSWORD
+        sync: false
+
 services:
   - type: web
     name: liefeed
     env: python
-    plan: free
+    plan: starter
     buildCommand: |
       apt-get update && \
       apt-get install -y libpango-1.0-0 libgdk-pixbuf2.0-0 libcairo2 libffi-dev && \
       pip install -r requirements.txt
     startCommand: gunicorn app:app
     autoDeploy: true
+    fromGroup: shared-env
 
-cronJobs:
-  - name: post-to-facebook
-    schedule: "0 */6 * * *"  # Every 6 hours
-    command: python -m utils.scheduled.scheduled_job
+  - type: cron
+    name: post-to-facebook
+    runtime: python
+    plan: starter
+    schedule: "0 */6 * * *"
+    buildCommand: ""
+    startCommand: python -m utils.scheduled.scheduled_job
+    fromGroup: shared-env
 
-  - name: send-newsletter
-    schedule: "0 10 * * 1,3,5"  # 10 AM UTC on Mon, Wed, Fri
-    command: python -m utils.email.newsletter_sender
+  - type: cron
+    name: send-newsletter
+    runtime: python
+    plan: starter
+    schedule: "0 10 * * 1,3,5"
+    buildCommand: ""
+    startCommand: python -m utils.email.newsletter_sender
+    fromGroup: shared-env
 
-  - name: post-meme
-    schedule: "0 */12 * * *"  # Every 12 hours
-    command: python -m utils.scheduled.scheduled_meme_job
+  - type: cron
+    name: post-meme
+    runtime: python
+    plan: starter
+    schedule: "0 */12 * * *"
+    buildCommand: ""
+    startCommand: python -m utils.scheduled.scheduled_meme_job
+    fromGroup: shared-env
 
-  - name: post-reel
-    schedule: "0 12 * * 1,3,5"  # 12 PM UTC on Mon, Wed, Fri
-    command: python -m utils.scheduled.scheduled_reel_job
-
-#test update
+  - type: cron
+    name: post-reel
+    runtime: python
+    plan: starter
+    schedule: "0 12 * * 1,3,5"
+    buildCommand: ""
+    startCommand: python -m utils.scheduled.scheduled_reel_job
+    fromGroup: shared-env
