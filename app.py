@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, abort, flash, redirect, url_f
 from markupsafe import Markup
 from urllib.parse import unquote
 
+
 import markdown
 import random
 import os
@@ -188,7 +189,7 @@ def view_email(s3_key):
 
 
 
-from urllib.parse import unquote
+
 
 @app.route("/inbox/reply/<path:recipient>/<path:subject>", methods=["POST"])
 def send_reply(recipient, subject):
