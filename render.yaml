@@ -9,3 +9,20 @@ services:
       pip install -r requirements.txt
     startCommand: gunicorn app:app
     autoDeploy: true
+
+cronJobs:
+  - name: post-to-facebook
+    schedule: "0 */6 * * *"  # Every 6 hours
+    command: python -m utils.scheduled.scheduled_job
+
+  - name: send-newsletter
+    schedule: "0 10 * * 1,3,5"  # 10 AM UTC on Mon, Wed, Fri
+    command: python -m utils.email.newsletter_sender
+
+  - name: post-meme
+    schedule: "0 */12 * * *"  # Every 12 hours
+    command: python -m utils.scheduled.scheduled_meme_job
+
+  - name: post-reel
+    schedule: "0 12 * * 1,3,5"  # 12 PM UTC on Mon, Wed, Fri
+    command: python -m utils.scheduled.scheduled_reel_job
