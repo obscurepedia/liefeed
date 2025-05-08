@@ -1,34 +1,39 @@
-# Use the official lightweight Python image
+# Use an official Python image
 FROM python:3.11-slim
 
-# Prevents prompts during apt installs
-ENV DEBIAN_FRONTEND=noninteractive
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    libpango-1.0-0 \
-    libgdk-pixbuf2.0-0 \
-    libcairo2 \
-    libffi-dev \
-    libxml2 \
-    libxslt1.1 \
-    shared-mime-info \
-    curl \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
-# Set working directory
+# Set work directory
 WORKDIR /app
 
-# Copy files
+# Install system dependencies (including WeasyPrint and PostgreSQL headers)
+RUN apt-get update && \
+    apt-get install -y \
+        build-essential \
+        libpq-dev \
+        libpango-1.0-0 \
+        libgdk-pixbuf2.0-0 \
+        libcairo2 \
+        libffi-dev \
+        libxml2 \
+        libxslt1.1 \
+        libjpeg-dev \
+        libz-dev \
+        curl \
+        fonts-liberation \
+        fonts-freefont-ttf && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Copy project files
 COPY . .
 
 # Install Python dependencies
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
-# Expose the port your app runs on
+# Expose port (Render uses port 10000 internally)
 EXPOSE 10000
 
-# Start the app
-CMD ["gunicorn", "-b", "0.0.0.0:10000", "app:app"]
+# Run the application
+CMD ["gunicorn", "--bind", "0.0.0.0:10000", "app:app"]
