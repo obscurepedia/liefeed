@@ -48,6 +48,7 @@ services:
     env: python
     plan: starter
     buildCommand: |
+      export DEBIAN_FRONTEND=noninteractive && \
       apt-get update && \
       apt-get install -y libpango-1.0-0 libgdk-pixbuf2.0-0 libcairo2 libffi-dev && \
       pip install -r requirements.txt
@@ -61,10 +62,7 @@ services:
     runtime: python
     plan: starter
     schedule: "0 */6 * * *"
-    buildCommand: |
-      apt-get update && \
-      apt-get install -y libpango-1.0-0 libgdk-pixbuf2.0-0 libcairo2 libffi-dev && \
-      pip install -r requirements.txt
+    buildCommand: pip install -r requirements.txt
     startCommand: python -m utils.scheduled.scheduled_job
     envVars:
       - fromGroup: shared-env
@@ -74,10 +72,7 @@ services:
     runtime: python
     plan: starter
     schedule: "0 10 * * 1,3,5"
-    buildCommand: |
-      apt-get update && \
-      apt-get install -y libpango-1.0-0 libgdk-pixbuf2.0-0 libcairo2 libffi-dev && \
-      pip install -r requirements.txt
+    buildCommand: pip install -r requirements.txt
     startCommand: python -m utils.email.newsletter_sender
     envVars:
       - fromGroup: shared-env
@@ -87,10 +82,7 @@ services:
     runtime: python
     plan: starter
     schedule: "0 */12 * * *"
-    buildCommand: |
-      apt-get update && \
-      apt-get install -y libpango-1.0-0 libgdk-pixbuf2.0-0 libcairo2 libffi-dev && \
-      pip install -r requirements.txt
+    buildCommand: pip install -r requirements.txt
     startCommand: python -m utils.scheduled.scheduled_meme_job
     envVars:
       - fromGroup: shared-env
@@ -100,10 +92,7 @@ services:
     runtime: python
     plan: starter
     schedule: "0 12 * * 1,3,5"
-    buildCommand: |
-      apt-get update && \
-      apt-get install -y libpango-1.0-0 libgdk-pixbuf2.0-0 libcairo2 libffi-dev && \
-      pip install -r requirements.txt
+    buildCommand: pip install -r requirements.txt
     startCommand: python -m utils.scheduled.scheduled_reel_job
     envVars:
       - fromGroup: shared-env
