@@ -36,5 +36,11 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 # Expose port (Render uses port 10000 internally)
 EXPOSE 10000
 
-# Run the application
-CMD ["gunicorn", "--bind", "0.0.0.0:10000", "app:app"]
+# Dynamically run different tasks based on RUN_TARGET
+CMD ["sh", "-c", "\
+  if [ \"$RUN_TARGET\" = 'post-to-facebook' ]; then python -m utils.scheduled.scheduled_job; \
+  elif [ \"$RUN_TARGET\" = 'send-newsletter' ]; then python -m utils.email.newsletter_sender; \
+  elif [ \"$RUN_TARGET\" = 'post-meme' ]; then python -m utils.scheduled.scheduled_meme_job; \
+  elif [ \"$RUN_TARGET\" = 'post-reel' ]; then python -m utils.scheduled.scheduled_reel_job; \
+  else gunicorn --bind 0.0.0.0:10000 app:app; \
+  fi"]
