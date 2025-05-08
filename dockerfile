@@ -37,7 +37,7 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 EXPOSE 10000
 
 # Dynamically run different tasks based on RUN_TARGET
-CMD ["sh", "-c", "\
+CMD ["sh", "-c", "echo '🔥 Cron job container started'; \
   if [ \"$RUN_TARGET\" = 'post-to-facebook' ]; then python -m utils.scheduled.scheduled_job; \
   elif [ \"$RUN_TARGET\" = 'send-newsletter' ]; then python -m utils.email.newsletter_sender; \
   elif [ \"$RUN_TARGET\" = 'post-meme' ]; then python -m utils.scheduled.scheduled_meme_job; \
