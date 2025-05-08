@@ -14,6 +14,7 @@ RUN apt-get update && \
         build-essential \
         libpq-dev \
         libpango-1.0-0 \
+        libpangoft2-1.0-0 \
         libgdk-pixbuf2.0-0 \
         libcairo2 \
         libffi-dev \
