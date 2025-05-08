@@ -54,7 +54,7 @@ services:
 
   - type: cron
     name: post-to-facebook
-    runtime: python
+    runtime: docker
     plan: starter
     schedule: "0 */6 * * *"
     buildCommand: pip install -r requirements.txt
@@ -64,7 +64,7 @@ services:
 
   - type: cron
     name: send-newsletter
-    runtime: python
+    runtime: docker
     plan: starter
     schedule: "0 10 * * 1,3,5"
     buildCommand: pip install -r requirements.txt
@@ -74,7 +74,7 @@ services:
 
   - type: cron
     name: post-meme
-    runtime: python
+    runtime: docker
     plan: starter
     schedule: "0 */12 * * *"
     buildCommand: pip install -r requirements.txt
@@ -84,7 +84,7 @@ services:
 
   - type: cron
     name: post-reel
-    runtime: python
+    runtime: docker
     plan: starter
     schedule: "0 12 * * 1,3,5"
     buildCommand: pip install -r requirements.txt
