@@ -11,10 +11,8 @@ from utils.image.image_generator import generate_image_from_prompt
 from utils.database.db import insert_post, get_connection
 from utils.ai.ai_team import get_random_writer
 from utils.social.x_poster import post_article_to_x
-from utils.ai.ai_writer import generate_fomo_caption
 from openai import OpenAI
 from utils.social.x_poster import post_article_to_x
-from utils.social.facebook_poster import post_image_to_facebook
 from utils.social.facebook_poster import post_image_and_comment
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -140,6 +138,11 @@ def generate_and_save_post(max_fetch_attempts=5):
                         satirical_headline,
                         teaser
                     )
+
+                    if not any([fomo_caption.strip(), teaser_line.strip(), engagement_question.strip(), comment_line.strip()]):
+                        print("🚫 Skipping Facebook post — all social elements are empty.")
+                        return
+
 
                     caption_for_post = f"{fomo_caption}\n\n{teaser_line}\n\n{engagement_question}"
                     cleaned_comment = comment_line.replace("[link]", "").replace("[LINK]", "").strip()

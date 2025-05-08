@@ -237,3 +237,4 @@ Teaser: {teaser}
     except Exception as e:
         print("❌ Failed to generate social content:", e)
         return headline, "", "", ""
+
