@@ -28,6 +28,8 @@ hooks = [
     "Remember those “spot the difference” puzzles? This one’s with headlines."
 ]
 
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+openai_client = OpenAI(api_key=OPENAI_API_KEY)
 
 def generate_ad_protected():
     if not session.get("inbox_auth"):
@@ -52,7 +54,7 @@ def generate_ad():
 
         try:
             # Generate caption
-            caption_response = openai.ChatCompletion.create(
+            caption_response = openai_client.chat.completions.create(
                 model="gpt-4",
                 messages=[{"role": "user", "content": prompt_caption}],
                 temperature=0.8
@@ -60,7 +62,7 @@ def generate_ad():
             ad_caption = caption_response.choices[0].message.content.strip()
 
             # Generate image description
-            image_response = openai.ChatCompletion.create(
+            image_response = openai_client.chat.completions.create(
                 model="gpt-4",
                 messages=[{"role": "user", "content": prompt_image}],
                 temperature=0.7
