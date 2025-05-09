@@ -50,7 +50,7 @@ def generate_ad():
         prompt_caption = f"Write a short, punchy Facebook ad caption based on this hook: \"{selected_hook}\". Target smart, media-savvy adults and encourage them to take a fun quiz."
         prompt_image = f"Describe a compelling, scroll-stopping image that matches this hook: \"{selected_hook}\". Make it suitable for a Facebook ad promoting a fake vs. real news quiz."
 
-        openai.api_key = current_app.config.get("OPENAI_API_KEY")
+    
 
         try:
             # Generate caption
@@ -70,13 +70,13 @@ def generate_ad():
             image_idea = image_response.choices[0].message.content.strip()
 
             # Generate actual image using DALL·E 3
-            image_gen = openai.Image.create(
+            image_gen = openai_client.images.generate(
                 model="dall-e-3",
                 prompt=image_idea,
                 size="1024x1024",
                 n=1
             )
-            image_url = image_gen['data'][0]['url']
+            image_url = image_gen.data[0].url
 
         except Exception as e:
             ad_caption = f"Error generating content: {e}"
