@@ -245,6 +245,8 @@ def delete_email(s3_key):
 
     return redirect(url_for("inbox"))
 
+#test line
+
 @app.route("/logout")
 def logout():
     session.pop("inbox_auth", None)
