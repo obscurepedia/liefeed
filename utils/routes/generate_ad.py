@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, current_app, send_file, session, abort
-import openai
+from openai import OpenAI
 import random
 import time
 import zipfile
