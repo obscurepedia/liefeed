@@ -90,6 +90,10 @@ def about():
 @app.route("/contact", methods=["GET", "POST"])
 def contact():
     if request.method == "POST":
+        # Honeypot trap — bots will fill this, humans won’t
+        if request.form.get("website"):
+            return "❌ Bot detected", 400
+
         name = request.form.get("name")
         email = request.form.get("email")
         message = request.form.get("message")
@@ -102,7 +106,6 @@ def contact():
         <p>{message}</p>
         """
 
-        
         admin_email = os.getenv("CONTACT_RECEIVER_EMAIL", "editor@liefeed.com")
 
         send_email(
@@ -115,6 +118,7 @@ def contact():
         return redirect(url_for("contact"))
 
     return render_template("contact.html")
+
 
 
 @app.route("/team")

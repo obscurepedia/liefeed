@@ -5,7 +5,11 @@
 <p><strong>From:</strong> {{ email.from }}</p>
 <p><strong>To:</strong> {{ email.to }}</p>
 <hr>
-<pre>{{ email.body }}</pre>
+
+<div style="margin-top: 20px; padding: 1em; background: #fefefe; border: 1px solid #ddd; border-radius: 8px;">
+  {{ email.body | safe }}
+</div>
+
 <a href="{{ url_for('inbox') }}">← Back to inbox</a>
 
 <hr>
@@ -21,7 +25,4 @@
     🗑️ Delete Email
   </button>
 </form>
-
-
-
 {% endblock %}

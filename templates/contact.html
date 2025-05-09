@@ -18,6 +18,12 @@
   <label for="message">Message:</label>
   <textarea name="message" rows="5" required class="quiz-input"></textarea>
 
+  <!-- Honeypot Field (hidden from users, used to catch bots) -->
+  <div style="display: none;">
+    <label for="website">Leave this field empty</label>
+    <input type="text" name="website" id="website" autocomplete="off">
+  </div>
+
   <button type="submit" class="quiz-button">Send</button>
 </form>
 {% endblock %}
