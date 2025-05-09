@@ -1,5 +1,3 @@
-# utils/image_generator.py
-
 import os
 from huggingface_hub import InferenceClient
 from dotenv import load_dotenv
@@ -37,31 +35,32 @@ CATEGORY_COLORS = {
     "Science": (156, 39, 176)     # Purple
 }
 
-
-
-def generate_image_from_prompt(prompt, output_filename, category="General"):
+def generate_image_from_prompt(prompt, output_filename, category="General", mode="default"):
     try:
         print("🎨 Generating image with Hugging Face...")
-        image = client.text_to_image(prompt, guidance_scale=7.5, height=768, width=768)
+        if mode == "meme":
+            image = client.text_to_image(prompt, guidance_scale=7.5, height=640, width=640)
+        else:
+            image = client.text_to_image(prompt, guidance_scale=7.5, height=768, width=768)
 
         if isinstance(image, BytesIO):
             image = Image.open(image)
 
         local_path = f"temp_{output_filename}"
+        os.makedirs(os.path.dirname(local_path) or ".", exist_ok=True)
         image.save(local_path)
-        os.makedirs(os.path.dirname(local_path) or ".", exist_ok=True)  # fallback to "." if dir is empty
         print(f"✅ Image saved temporarily at: {local_path}")
 
-        apply_watermark(local_path)
-        apply_colored_border(local_path, category)
+        if mode != "meme":
+            apply_watermark(local_path)
+            apply_colored_border(local_path, category)
 
-        # Upload to S3 (no ACL needed since your bucket is already public)
         s3_key = output_filename
         s3_client.upload_file(
             local_path,
             S3_BUCKET_NAME,
             s3_key,
-            ExtraArgs={'ContentType': 'image/png'}  # ✅ remove ACL
+            ExtraArgs={'ContentType': 'image/png'}
         )
         print(f"✅ Uploaded to S3: {s3_key}")
 
@@ -101,20 +100,16 @@ def apply_watermark(image_path, watermark_path="static/watermark.png", position=
     except Exception as e:
         print(f"❌ Failed to apply watermark: {e}")
 
-
-
 def apply_colored_border(image_path, category, border_size=12, corner_radius=30):
     try:
         base_image = Image.open(image_path).convert("RGB")
-        color = CATEGORY_COLORS.get(category.capitalize(), (0, 0, 0))  # default black
+        color = CATEGORY_COLORS.get(category.capitalize(), (0, 0, 0))
 
-        # Create base with colored background
         new_width = base_image.width + 2 * border_size
         new_height = base_image.height + 2 * border_size
         bordered_image = Image.new("RGB", (new_width, new_height), color)
         bordered_image.paste(base_image, (border_size, border_size))
 
-        # Create rounded mask
         mask = Image.new('L', bordered_image.size, 0)
         draw = ImageDraw.Draw(mask)
         draw.rounded_rectangle(
@@ -123,11 +118,8 @@ def apply_colored_border(image_path, category, border_size=12, corner_radius=30)
             fill=255
         )
 
-        # Apply rounded mask
         final_image = ImageOps.fit(bordered_image, mask.size)
         final_image.putalpha(mask)
-
-        # Save back as PNG to preserve transparency
         final_image.save(image_path, "PNG")
         print(f"✅ Colored rounded border applied for category: {category}")
 
