@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Facebook Ad Generator</h1>
+
+<form method="POST">
+    <button type="submit">🎯 Generate New Ad</button>
+</form>
+
+{% if hook %}
+    <hr>
+    <h3>🔑 Hook Chosen:</h3>
+    <p>{{ hook }}</p>
+
+    <h3>✍️ Generated Caption:</h3>
+    <p>{{ caption }}</p>
+
+    <h3>🖼️ Image Idea:</h3>
+    <p>{{ image_idea }}</p>
+
+    {% if image_url %}
+        <h3>🖼️ Generated Image:</h3>
+        <img src="{{ image_url }}" alt="Generated Ad Image" style="max-width: 100%; border: 1px solid #ccc; margin-bottom: 20px;">
+    {% endif %}
+
+    {% if image_url and caption %}
+        <form method="POST" action="{{ url_for('generate_ad.download_ad_pack') }}">
+            <input type="hidden" name="image_url" value="{{ image_url }}">
+            <input type="hidden" name="caption" value="{{ caption }}">
+            <button type="submit">📦 Download Ad Pack (ZIP)</button>
+        </form>
+    {% endif %}
+{% endif %}
+
+<hr>
+<a href="{{ url_for('logout') }}" class="view-more-button">🚪 Logout</a>
+
+
+{% endblock %}

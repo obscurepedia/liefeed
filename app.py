@@ -188,9 +188,6 @@ def view_email(s3_key):
     return render_template("view_email.html", email=email_data)
 
 
-
-
-
 @app.route("/inbox/reply/<path:recipient>/<path:subject>", methods=["POST"])
 def send_reply(recipient, subject):
     body = request.form.get("body")
@@ -244,6 +241,10 @@ def delete_email(s3_key):
 
     return redirect(url_for("inbox"))
 
+@app.route("/logout")
+def logout():
+    session.pop("inbox_auth", None)
+    return redirect(url_for("inbox_login"))
 
 
 @app.context_processor
@@ -268,5 +269,7 @@ def test_email():
 
 
 from utils.quiz.quiz_routes import quiz_bp
+from utils.routes.generate_ad import generate_ad_bp
+app.register_blueprint(generate_ad_bp)
 app.register_blueprint(quiz_bp)
 app.register_blueprint(unsubscribe_bp)
