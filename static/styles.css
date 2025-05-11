@@ -445,29 +445,45 @@ footer {
 }
 
 .quiz-button {
-    padding: 15px 30px;
-    margin: 12px;
-    font-size: 1rem;
+    color: #fff;
+    padding: 12px 24px;
+    text-decoration: none;
+    border-radius: 8px;
+    display: block;
+    font-size: 1em;
+    font-weight: bold;
+    margin: 10px auto; /* 👈 centers the button */
     border: none;
-    border-radius: 10px;
     cursor: pointer;
-    transition: background 0.3s, transform 0.2s;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    max-width: 300px;
 }
 
 .quiz-button:hover {
     transform: scale(1.05);
 }
 
-/* Style first and second buttons distinctly if you want colored options */
-.quiz-button:nth-of-type(1) {
+.quiz-button.green {
     background-color: #4CAF50;
-    color: white;
 }
 
-.quiz-button:nth-of-type(2) {
-    background-color: #F44336;
-    color: white;
+.quiz-button.green:hover {
+    background-color: #3c9e3f;
 }
+
+.quiz-button.red {
+    background-color: #F44336;
+}
+
+.quiz-button.red:hover {
+    background-color: #c0392b;
+}
+
+
+.quiz-button:hover {
+    transform: scale(1.05);
+}
+
 
 .quiz-input {
     padding: 10px;
