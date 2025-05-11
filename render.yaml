@@ -41,7 +41,7 @@ envVarGroups:
         value: liefeed-inbound-emails
       - key: INBOX_ADMIN_PASSWORD
         sync: false
-        key: FACEBOOK_PIXEL_ID
+      - key: FACEBOOK_PIXEL_ID
         sync: false
 
 services:
