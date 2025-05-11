@@ -24,6 +24,8 @@ load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY")
+app.config['FACEBOOK_PIXEL_ID'] = os.getenv('FACEBOOK_PIXEL_ID')
+
 
 unsubscribe_bp = Blueprint("unsubscribe", __name__)
 

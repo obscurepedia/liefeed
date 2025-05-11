@@ -103,7 +103,7 @@ def quiz_results():
         score=correct,
         total=len(quiz_data),
         name=name,
-        pixel_id=current_app.config['FACEBOOK_PIXEL_ID']
+        pixel_id = current_app.config.get('FACEBOOK_PIXEL_ID', '')
     )
 
 
@@ -112,7 +112,8 @@ def quiz_results():
 def quiz_landing():
     return render_template(
         "quiz_landing.html",
-        pixel_id=current_app.config['FACEBOOK_PIXEL_ID']
+        pixel_id = current_app.config.get('FACEBOOK_PIXEL_ID', '')
+
     )
 
 
