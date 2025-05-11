@@ -1,51 +1,46 @@
 {% extends "quiz_results_base.html" %}
 
-{% block content %}
 <div class="result-box">
-  <h1 class="result-heading">Your Results</h1>
-  <p class="result-score">You scored <strong>{{ score }}</strong> out of <strong>{{ total }}</strong>.</p>
 
-  <div class="certificate-msg">
-    🎓 Your personalized certificate has been emailed to you.  
-    <br>Check your inbox (and maybe your spam folder)!
+  <!-- Score Section -->
+  <div class="result-frame">
+    <h1 class="result-heading">Your Results</h1>
+    <p class="result-score">You scored <strong>5</strong> out of <strong>8</strong>.</p>
   </div>
 
-  <div class="result-feedback">
-    {% if score == total %}
-      🎉 Perfect! You might be part AI... or part journalist.
-    {% elif score >= total * 0.7 %}
-      👏 Not bad! You’ve got a sharp eye for satire.
-    {% elif score >= total * 0.4 %}
+  <!-- Certificate / Feedback Section -->
+  <div class="result-frame">
+    <div class="certificate-msg">
+      🎓 Your personalized certificate has been emailed to you.<br>
+      Check your inbox (and maybe your spam folder)!
+    </div>
+    <div class="result-feedback">
       😅 You're halfway there. Maybe read LieFeed more often?
-    {% else %}
-      😬 Yikes. Either the news is too weird... or you are.
-    {% endif %}
+    </div>
   </div>
 
-  <div class="result-section">
+  <!-- Share Section -->
+  <div class="result-frame">
     <h3>📣 Share Your Score</h3>
     <p>Think your friends can beat your score?</p>
-
-    <a class="quiz-button" target="_blank"
-       href="https://twitter.com/intent/tweet?text=I+just+scored+{{ score }}+out+of+{{ total }}+on+the+%23LieFeed+Fake+News+Quiz.+Can+you+beat+me%3F+Take+it+here+👉+https%3A%2F%2Fliefeed.com%2Fquiz%2Fstart">
+    <a class="quiz-button blue" target="_blank"
+       href="https://twitter.com/intent/tweet?text=I+just+scored+5+out+of+8+on+the+%23LieFeed+Fake+News+Quiz.+Can+you+beat+me%3F+Take+it+here+👉+https%3A%2F%2Fliefeed.com%2Fquiz%2Fstart">
       Share on X (Twitter)
     </a>
-
-    <a class="quiz-button" target="_blank"
+    <a class="quiz-button blue" target="_blank"
        href="https://www.facebook.com/sharer/sharer.php?u=https://liefeed.com/quiz/start">
       Share on Facebook
     </a>
   </div>
 
-  <div class="result-section">
+  <!-- Forward Section -->
+  <div class="result-frame">
     <h3>✉️ Forward to a Friend</h3>
     <p>Know someone who’d love this quiz?</p>
-
-    <a href="mailto:?subject=Try%20the%20LieFeed%20Fake%20News%20Quiz&body=Hey!%20Try%20this%20fake+vs+real+news+quiz+on+LieFeed+—+it’s+short,+funny,+and+weirdly+hard.+Take+it+here:+https://liefeed.com/quiz/start" class="quiz-button">
-      Send via Email
-    </a>
-
+    <a href="mailto:?subject=Try%20the%20LieFeed%20Fake%20News%20Quiz&body=Hey!%20Try%20this+quiz:+https://liefeed.com/quiz/start"
+       class="quiz-button green">Send via Email</a>
     <a href="/" class="quiz-button">🔙 Back to LieFeed</a>
   </div>
+
 </div>
 {% endblock %}

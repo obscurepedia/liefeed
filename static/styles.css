@@ -526,3 +526,39 @@ footer {
     margin-bottom: 10px;
     color: #222;
 }
+
+
+/* === Frame container === */
+.result-frame {
+    border: 2px solid #ddd;
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 30px;
+    background-color: #fefefe;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    text-align: center;
+}
+
+/* === Headings inside frames === */
+.result-frame h1,
+.result-frame h3,
+.result-frame p {
+    margin: 10px 0;
+}
+
+/* === Buttons for share and email === */
+.quiz-button.blue {
+    background-color: #1da1f2; /* Twitter Blue */
+}
+
+.quiz-button.blue:hover {
+    background-color: #0d8ddb;
+}
+
+.quiz-button.green {
+    background-color: #28a745; /* Success Green */
+}
+
+.quiz-button.green:hover {
+    background-color: #1e7e34;
+}
