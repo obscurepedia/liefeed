@@ -1,52 +1,62 @@
 {% extends "quiz_base.html" %}
 
 {% block content %}
-<div class="quiz-container">
-    <h1>Your Results</h1>
-    <p>You scored <strong>{{ score }}</strong> out of <strong>{{ total }}</strong>.</p>
+<div class="quiz-wrapper">
+  <div class="quiz-container result-box">
 
-    <p>🎓 Your personalized certificate has been emailed to you.  
-    <br>Check your inbox (and maybe your spam folder)!</p>
+    <h1 class="result-heading">Your Results</h1>
+    <p class="result-score">You scored <strong>{{ score }}</strong> out of <strong>{{ total }}</strong>.</p>
 
-    {% if score == total %}
-        <p>🎉 Perfect! You might be part AI... or part journalist.</p>
-    {% elif score >= total * 0.7 %}
-        <p>👏 Not bad! You’ve got a sharp eye for satire.</p>
-    {% elif score >= total * 0.4 %}
-        <p>😅 You're halfway there. Maybe read LieFeed more often?</p>
-    {% else %}
-        <p>😬 Yikes. Either the news is too weird... or you are.</p>
-    {% endif %}
-
-    <div class="share-section">
-        <h3>📣 Share Your Score</h3>
-        <p>Think your friends can beat your score?</p>
-    
-        <a class="quiz-button" target="_blank"
-           href="https://twitter.com/intent/tweet?text=I+just+scored+{{ score }}+out+of+{{ total }}+on+the+%23LieFeed+Fake+News+Quiz.+Can+you+beat+me%3F+Take+it+here+👉+https%3A%2F%2Fliefeed.com%2Fquiz%2Fstart">
-            Share on X (Twitter)
-        </a>
-    
-        <a class="quiz-button" target="_blank"
-           href="https://www.facebook.com/sharer/sharer.php?u=https://liefeed.com/quiz/start">
-            Share on Facebook
-        </a>
-    
-        <br><br>
-        <h3>✉️ Forward to a Friend</h3>
-        <p>Know someone who’d love this quiz?</p>
-        <a href="mailto:?subject=Try%20the%20LieFeed%20Fake%20News%20Quiz&body=Hey!%20Try%20this%20fake+vs+real+news+quiz+on+LieFeed%20%E2%80%94%20it%E2%80%99s+short,+funny,+and+weirdly+hard.%20Take+it+here:+https://liefeed.com/quiz/start" class="quiz-button">
-            Send via Email
-        </a>
+    <div class="certificate-msg">
+      🎓 Your personalized certificate has been emailed to you.  
+      <br>Check your inbox (and maybe your spam folder)!
     </div>
 
-    <a href="/" class="quiz-button">Back to LieFeed</a>
+    <div class="result-feedback">
+      {% if score == total %}
+        🎉 Perfect! You might be part AI... or part journalist.
+      {% elif score >= total * 0.7 %}
+        👏 Not bad! You’ve got a sharp eye for satire.
+      {% elif score >= total * 0.4 %}
+        😅 You're halfway there. Maybe read LieFeed more often?
+      {% else %}
+        😬 Yikes. Either the news is too weird... or you are.
+      {% endif %}
+    </div>
+
+    <div class="result-section">
+      <h3>📣 Share Your Score</h3>
+      <p>Think your friends can beat your score?</p>
+
+      <a class="quiz-button" target="_blank"
+         href="https://twitter.com/intent/tweet?text=I+just+scored+{{ score }}+out+of+{{ total }}+on+the+%23LieFeed+Fake+News+Quiz.+Can+you+beat+me%3F+Take+it+here+👉+https%3A%2F%2Fliefeed.com%2Fquiz%2Fstart">
+        Share on X (Twitter)
+      </a>
+
+      <a class="quiz-button" target="_blank"
+         href="https://www.facebook.com/sharer/sharer.php?u=https://liefeed.com/quiz/start">
+        Share on Facebook
+      </a>
+    </div>
+
+    <div class="result-section">
+      <h3>✉️ Forward to a Friend</h3>
+      <p>Know someone who’d love this quiz?</p>
+
+      <a href="mailto:?subject=Try%20the%20LieFeed%20Fake%20News%20Quiz&body=Hey!%20Try%20this%20fake+vs+real+news+quiz+on+LieFeed%20%E2%80%94%20it%E2%80%99s+short,+funny,+and+weirdly+hard.%20Take+it+here:+https://liefeed.com/quiz/start" class="quiz-button">
+        Send via Email
+      </a>
+
+      <a href="/" class="quiz-button">
+        🔙 Back to LieFeed
+      </a>
+    </div>
+  </div>
 </div>
 
 <script>
-    if (typeof fbq !== 'undefined') {
-      fbq('trackCustom', 'CompleteQuiz');
-    }
-  </script>
-  
+  if (typeof fbq !== 'undefined') {
+    fbq('trackCustom', 'CompleteQuiz');
+  }
+</script>
 {% endblock %}
