@@ -21,6 +21,8 @@ from utils.email.email_reader import fetch_parsed_emails, fetch_email_by_key
 from dotenv import load_dotenv
 load_dotenv()
 
+IS_LOCAL = os.getenv("FLASK_ENV") == "development"
+
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY")

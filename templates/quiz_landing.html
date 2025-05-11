@@ -2,14 +2,15 @@
 
 {% block content %}
 <div class="quiz-wrapper">
-    <div class="quiz-container" style="text-align: center; padding: 40px;">
-        <h1 style="font-size: 2.5em; margin-bottom: 20px;">Can You Tell Real From Fake News?</h1>
-        <p style="font-size: 1.2em; color: #444;">
-            Take our challenge and see if you can outsmart the internet.<br>
+    <div class="quiz-container quiz-intro">
+        <div class="quiz-container__icon">🧠</div>
+        <h1 class="quiz-container__title">Can You Tell Real From Fake News?</h1>
+        <div class="quiz-container__text">
+            Take our challenge.<br> Can you outsmart the internet?<br>
             Most people get it wrong.<br>
             Can you spot the fakes?
-        </p>
-        <a href="{{ url_for('quiz.quiz_question') }}" class="quiz-button" style="margin-top: 30px; display: inline-block;">
+        </div>
+        <a href="{{ url_for('quiz.quiz_question') }}" class="quiz-button start-button">
             🎯 Start the Quiz
         </a>
     </div>

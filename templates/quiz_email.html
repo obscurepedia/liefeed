@@ -2,16 +2,18 @@
 
 {% block content %}
 <div class="quiz-container">
-    <h1>See Your Results & Get Your Certificate</h1>
-    <p>You're one step away from finding out how well you did!</p>
-    <p>Enter your name and email below to reveal your quiz score <strong>and receive your personalized certificate of completion</strong>.</p>
+    <h1>See Your Results<br>&amp;<br> Get Your Certificate</h1>
+    <p>You're one step away<br> from finding out how well you did!</p>
+    <p>Enter your name and email below<br> to reveal your quiz score<br>
+       <strong>and receive your personalized certificate of completion</strong></p>
 
+    <!-- added class="quiz-form" -->
     <form method="POST">
-        <input type="text" name="name" placeholder="Your Name" required class="quiz-input">
-        <input type="email" name="email" placeholder="you@example.com" required class="quiz-input">
-        <button type="submit" class="quiz-button">Show My Results</button>
+        <div><input type="text"  name="name"  placeholder="Your Name"        required class="quiz-input"></div>
+        <div><input type="email" name="email" placeholder="you@example.com" required class="quiz-input"></div>
+        <div><button type="submit" class="quiz-button">Show My Results</button></div>
     </form>
 
-    <p class="disclaimer">No spam. Just your results, a shiny certificate, and the finest fake news that feels real.</p>
+    <p class="quiz-note">No spam.<br> Just your results, a shiny certificate,<br> and the finest fake news that feels real.</p>
 </div>
 {% endblock %}

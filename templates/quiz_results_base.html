@@ -36,6 +36,8 @@
     </noscript>
     <!-- End Facebook Pixel Code -->
     {% endif %}
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
     {% block content %}{% endblock %}

@@ -2,10 +2,18 @@ from flask import render_template
 from datetime import datetime
 import os
 
-try:
-    from weasyprint import HTML
-except ImportError:
-    HTML = None  # Gracefully handle missing WeasyPrint
+# Check environment and conditionally import WeasyPrint
+IS_LOCAL = os.getenv("FLASK_ENV") == "development"
+
+if not IS_LOCAL:
+    try:
+        from weasyprint import HTML
+    except ImportError:
+        HTML = None
+        print("❌ WeasyPrint import failed in production mode.")
+else:
+    HTML = None
+    print("⚠️ Local mode: Skipping WeasyPrint import.")
 
 def generate_certificate(name, quiz_title, score):
     html = render_template(
@@ -16,8 +24,8 @@ def generate_certificate(name, quiz_title, score):
         date=datetime.now().strftime("%B %d, %Y")
     )
 
-    if not HTML:
-        print("⚠️ WeasyPrint not available — certificate PDF not generated.")
+    if HTML is None:
+        print("🛑 Certificate generation skipped (WeasyPrint not available or in dev mode).")
         return None
 
     os.makedirs("certificates", exist_ok=True)
