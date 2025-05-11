@@ -11,40 +11,40 @@ from openai import OpenAI
 
 openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-def fetch_live_news_item():
-    articles = fetch_google_news(category="politics", max_items=5)
-    if not articles:
-        return None
-    selected = random.choice(articles)
-    return selected["title"], selected["summary"]
-
 def generate_meme_caption(title, content):
     prompt = f"""
-Turn the following news into a surreal, absurd meme caption in this style:
+Turn the following news into a short, surreal meme caption in a similar absurdist style as the example below. Use one of these formats:
 
-Example: "When life gives you tariff lemons, trade your car for pogo sticks and blame Canada."
+Examples:
+- "When life gives you tariff lemons, trade your car for pogo sticks and blame Canada."
+- "Trade wars are just spicy hugs between economies."
+- "Tariffs went up, so I paid rent in coupons and beef jerky."
+- "If inflation keeps rising, I’m switching to Monopoly money and emotional support chickens."
 
 News Title: {title}
 News Summary: {content}
 
-Rules:
-- Create a short, punchy one-liner (under 20 words)
-- Loosely reflect the news topic
-- Add an absurd or whimsical twist
-- Optionally blame someone/something unrelated
-- Do not mention real people, brands, or LieFeed
-- No hashtags or links
+Guidelines:
+- Write a one-liner (under 20 words)
+- It must be absurd, whimsical, and loosely related to the news
+- You may start with “When…”, but not always — vary the structure
+- Feel free to anthropomorphize concepts (e.g., 'inflation wants a raise')
+- Avoid real names, brands, or any mention of LieFeed
+- No hashtags, links, or quotes
+- Make it sound like a standalone meme
 """
+
     response = openai_client.chat.completions.create(
         model="gpt-4",
         messages=[
             {"role": "system", "content": "You are a master of writing absurd meme captions."},
             {"role": "user", "content": prompt}
         ],
-        temperature=0.9,
+        temperature=0.95,
         max_tokens=60
     )
     return response.choices[0].message.content.strip()
+
 
 def insert_meme(caption, image_url):
     conn = get_connection()

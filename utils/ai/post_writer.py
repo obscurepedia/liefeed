@@ -160,13 +160,13 @@ def generate_and_save_post(max_fetch_attempts=5):
                     )
 
                     # ✅ X (Twitter) post
-                    post_article_to_x(
-                        headline=satirical_headline,
-                        teaser=teaser_line,
-                        article_url=post_url,
-                        image_url=image_url,
-                        category=category.capitalize()
-                    )
+                    #post_article_to_x(
+                    #    headline=satirical_headline,
+                    #    teaser=teaser_line,
+                    #    article_url=post_url,
+                    #    image_url=image_url,
+                    #    category=category.capitalize()
+                    #)
 
                     print(f"✅ Article saved: {satirical_headline} (by {writer['name']})")
 

@@ -1,6 +1,7 @@
 import os
 import re
 import requests
+import json
 from config.config import PERPLEXITY_API_KEY
 from openai import OpenAI
 from dotenv import load_dotenv
@@ -175,17 +176,26 @@ Teaser: {teaser}
         return f"{headline}\n\n{teaser}"
 
 
+
 def generate_social_elements(headline, teaser):
     prompt = f"""
 You are a viral copywriter for a satirical Facebook page called LieFeed.
 
-Generate 4 elements for a Facebook post:
-1. FOMO-driven caption (outrageous, funny, makes people click)
-2. One-line curiosity teaser
-3. Comment prompt question
-4. Very short witty line that pairs well with a link posted *below* it. Do not include [link], URL, or placeholder text.
+Respond ONLY in JSON format with 4 fields:
+- "fomo_caption"
+- "teaser_line"
+- "engagement_question"
+- "comment_line"
 
-Do not use markdown, bullets, or numbers in the output. Return only plain text.
+Use outrageous humor and FOMO style. Don't explain or include any extra text — just return valid JSON.
+
+Example:
+{{
+  "fomo_caption": "Your FOMO-driven caption here",
+  "teaser_line": "Your one-line curiosity teaser here",
+  "engagement_question": "A question for readers to comment on",
+  "comment_line": "A witty line that fits right above a link"
+}}
 
 Headline: {headline}
 Teaser: {teaser}
@@ -202,28 +212,12 @@ Teaser: {teaser}
         resp.raise_for_status()
         content = resp.json()["choices"][0]["message"]["content"]
 
-        # ---- Improved extraction logic ----
-        def extract(label, fallback_label=None):
-            patterns = [
-                rf"{label}[:\-\s]+(.+?)(?:\n|$)",
-                rf"{label}\n(.+?)(?:\n|$)",
-                rf"{label}\s*\"(.+?)\""
-            ]
-            if fallback_label:
-                patterns.append(rf"{fallback_label}[:\-\s]+(.+?)(?:\n|$)")
-            for pat in patterns:
-                match = re.search(pat, content, re.IGNORECASE | re.DOTALL)
-                if match:
-                    return match.group(1).strip()
-            return ""
-
-        def clean(t):
-            return re.sub(r"[*_\"`]", "", t).strip()
-
-        fomo_caption        = clean(extract("FOMO-driven caption", "FOMO caption"))
-        teaser_line         = clean(extract("One-line curiosity teaser", "Curiosity Hook"))
-        engagement_question = clean(extract("Comment prompt question", "Prompt question"))
-        comment_line        = clean(extract("Witty first comment line", "Witty comment"))
+        # Try to load and parse JSON
+        data = json.loads(content)
+        fomo_caption        = data.get("fomo_caption", "").strip()
+        teaser_line         = data.get("teaser_line", "").strip()
+        engagement_question = data.get("engagement_question", "").strip()
+        comment_line        = data.get("comment_line", "").strip()
 
         # ✅ Debug logs
         print("\n🔍 Extracted Social Elements:")
@@ -235,6 +229,7 @@ Teaser: {teaser}
         return fomo_caption, teaser_line, engagement_question, comment_line
 
     except Exception as e:
-        print("❌ Failed to generate social content:", e)
+        print("❌ Failed to generate or parse social content:", e)
         return headline, "", "", ""
+
 
