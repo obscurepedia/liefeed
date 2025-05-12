@@ -1,13 +1,22 @@
 {% extends "quiz_results_base.html" %}
 
 {% block content %}
+<script>
+  // Track quiz completion as a Lead
+  if (typeof fbq === 'function') {
+    fbq('track', 'Lead');               // Standard conversion for Facebook optimization + reporting
+    fbq('trackCustom', 'CompleteQuiz'); // Custom event for precise tracking, audiences, and funnel clarity
+
+  }
+</script>
+
 <div class="result-box">
 
   <!-- Score Section -->
   <div class="result-frame">
     <h1 class="result-heading">Your Results</h1>
     <p class="result-score">You scored <strong>5</strong> out of <strong>8</strong>.</p>
-  <div class="result-feedback">
+    <div class="result-feedback">
       😅 You're halfway there. Maybe read LieFeed more often?
     </div>
   </div>

@@ -1,15 +1,14 @@
 from flask import Flask, render_template, request, abort, flash, redirect, url_for, Blueprint, session, abort
 from markupsafe import Markup
 from urllib.parse import unquote
-
+from datetime import date
 
 import markdown
 import random
 import os
 import boto3
 
-
-from utils.database.db import fetch_all_posts, fetch_post_by_slug, fetch_posts_by_category
+from utils.database.db import fetch_all_posts, fetch_post_by_slug, fetch_posts_by_category, get_connection
 from utils.ai.ai_team import ai_team
 from utils.email.email_sender import send_email
 from utils.database.token_utils import decode_unsubscribe_token
@@ -256,6 +255,57 @@ def logout():
     session.pop("inbox_auth", None)
     return redirect(url_for("inbox_login"))
 
+
+
+@app.route("/ad-tracker", methods=["GET", "POST"])
+def ad_tracker():
+    if not session.get("inbox_auth"):
+        abort(401)
+
+    conn = get_connection()
+    c = conn.cursor()
+
+    if request.method == "POST":
+        form_date = request.form.get("date") or str(date.today())
+        spend = request.form.get("spend")
+        impressions = request.form.get("impressions")
+        clicks = request.form.get("clicks")
+        leads = request.form.get("leads")
+        notes = request.form.get("notes")
+
+        c.execute("""
+            INSERT INTO ad_metrics (date, spend, impressions, clicks, leads, notes)
+            VALUES (%s, %s, %s, %s, %s, %s)
+            ON CONFLICT (date) DO UPDATE SET
+              spend = EXCLUDED.spend,
+              impressions = EXCLUDED.impressions,
+              clicks = EXCLUDED.clicks,
+              leads = EXCLUDED.leads,
+              notes = EXCLUDED.notes
+        """, (form_date, spend or None, impressions or None, clicks or None, leads or None, notes))
+        conn.commit()
+        return redirect(url_for("ad_tracker"))
+
+    c.execute("SELECT * FROM ad_metrics ORDER BY date DESC")
+    rows = c.fetchall()
+    conn.close()
+
+    processed_rows = []
+    for row in rows:
+        spend = float(row[1]) if row[1] else 0
+        leads = int(row[4]) if row[4] else 0
+        cpl = round(spend / leads, 2) if spend and leads else None
+        processed_rows.append({
+            "date": row[0],
+            "spend": row[1],
+            "impressions": row[2],
+            "clicks": row[3],
+            "leads": row[4],
+            "notes": row[5],
+            "cpl": cpl
+        })
+
+    return render_template("ad_tracker.html", rows=processed_rows, date=date)
 
 @app.context_processor
 def inject_categories():

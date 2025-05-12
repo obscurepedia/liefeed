@@ -1,13 +1,19 @@
 {% extends "quiz_base.html" %}
 
 {% block content %}
+<script>
+  // Track email gate as custom event
+  if (typeof fbq === 'function') {
+    fbq('trackCustom', 'QuizEmailGateViewed');
+  }
+</script>
+
 <div class="quiz-container">
     <h1>See Your Results<br>&amp;<br> Get Your Certificate</h1>
     <p>You're one step away<br> from finding out how well you did!</p>
     <p>Enter your name and email below<br> to reveal your quiz score<br>
        <strong>and receive your personalized certificate of completion</strong></p>
 
-    <!-- added class="quiz-form" -->
     <form method="POST">
         <div><input type="text"  name="name"  placeholder="Your Name"        required class="quiz-input"></div>
         <div><input type="email" name="email" placeholder="you@example.com" required class="quiz-input"></div>

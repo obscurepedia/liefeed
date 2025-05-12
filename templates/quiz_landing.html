@@ -1,6 +1,13 @@
 {% extends "quiz_base.html" %}
 
 {% block content %}
+<script>
+  // Track landing page view as custom event
+  if (typeof fbq === 'function') {
+    fbq('trackCustom', 'QuizLandingViewed');
+  }
+</script>
+
 <div class="quiz-wrapper">
     <div class="quiz-container quiz-intro">
         <div class="quiz-container__icon">🧠</div>
