@@ -58,7 +58,7 @@ def insert_meme(caption, image_url):
     conn.close()
 
 def generate_and_post_meme():
-    post = fetch_live_news_item()
+    post = fetch_google_news()
     if not post:
         print("❌ No suitable live news found.")
         return

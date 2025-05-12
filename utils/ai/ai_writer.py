@@ -210,14 +210,22 @@ Teaser: {teaser}
             ]
         })
         resp.raise_for_status()
-        content = resp.json()["choices"][0]["message"]["content"]
+        content = resp.json()["choices"][0]["message"]["content"].strip()
 
-        # Try to load and parse JSON
+        if not content:
+            raise ValueError("Perplexity returned empty content.")
+
+        print("🔁 Raw response content:", content)
+
         data = json.loads(content)
+
         fomo_caption        = data.get("fomo_caption", "").strip()
         teaser_line         = data.get("teaser_line", "").strip()
         engagement_question = data.get("engagement_question", "").strip()
         comment_line        = data.get("comment_line", "").strip()
+
+        if not fomo_caption:
+            raise ValueError("Missing FOMO caption")
 
         # ✅ Debug logs
         print("\n🔍 Extracted Social Elements:")
@@ -228,8 +236,12 @@ Teaser: {teaser}
 
         return fomo_caption, teaser_line, engagement_question, comment_line
 
+    except json.JSONDecodeError as je:
+        print("❌ JSON decode error:", je)
+        print("❌ Offending response content:", content if 'content' in locals() else '[no content]')
     except Exception as e:
         print("❌ Failed to generate or parse social content:", e)
-        return headline, "", "", ""
+
+    return None
 
 

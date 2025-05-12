@@ -129,44 +129,35 @@ def generate_and_save_post(max_fetch_attempts=5):
                         "source_headline": cleaned_title
                     }
 
-                    insert_post(post_data)  # Fail here? Abort everything
+                    insert_post(post_data)
 
                     teaser = satire.strip().split("\n")[0][:200]
                     post_url = f"https://liefeed.com/post/{slugify(satirical_headline)}"
 
-                    fomo_caption, teaser_line, engagement_question, comment_line = generate_social_elements(
-                        satirical_headline,
-                        teaser
-                    )
+                    social_result = generate_social_elements(satirical_headline, teaser)
+
+                    if social_result is None:
+                        print("🚫 Skipping Facebook post — failed to generate social elements.")
+                        return
+
+                    fomo_caption, teaser_line, engagement_question, comment_line = social_result
 
                     if not any([fomo_caption.strip(), teaser_line.strip(), engagement_question.strip(), comment_line.strip()]):
                         print("🚫 Skipping Facebook post — all social elements are empty.")
                         return
 
-
                     caption_for_post = f"{fomo_caption}\n\n{teaser_line}\n\n{engagement_question}"
                     cleaned_comment = comment_line.replace("[link]", "").replace("[LINK]", "").strip()
                     comment_for_link = f"{cleaned_comment}\n🔗 {post_url}"
 
-                    # ✅ Debug: Print captions being used
                     print("📄 Facebook caption preview:\n", caption_for_post)
                     print("📄 Twitter headline/teaser preview:\n", satirical_headline, teaser_line)
 
-                    # ✅ Facebook post
                     post_image_and_comment(
                         image_url=image_url,
                         caption=caption_for_post,
                         first_comment=comment_for_link
                     )
-
-                    # ✅ X (Twitter) post
-                    #post_article_to_x(
-                    #    headline=satirical_headline,
-                    #    teaser=teaser_line,
-                    #    article_url=post_url,
-                    #    image_url=image_url,
-                    #    category=category.capitalize()
-                    #)
 
                     print(f"✅ Article saved: {satirical_headline} (by {writer['name']})")
 
@@ -178,13 +169,14 @@ def generate_and_save_post(max_fetch_attempts=5):
                 except Exception as e:
                     print(f"❌ Error encountered during article generation: {e}")
                     print("⚠️ Aborting current article and skipping to the next one.")
-                    return  # Optionally stop completely here, or continue to next article
+                    return
 
             fetch_attempts += 1
 
         print(f"❌ No valid articles found for category: {category}")
 
     print("❌ Failed to generate any valid articles after trying all categories.")
+
 
 
 
