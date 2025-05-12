@@ -58,12 +58,14 @@ def insert_meme(caption, image_url):
     conn.close()
 
 def generate_and_post_meme():
-    post = fetch_google_news()
-    if not post:
+    articles = fetch_google_news()
+    if not articles:
         print("❌ No suitable live news found.")
         return
 
-    title, content = post
+    post = random.choice(articles)
+    title = post["title"]
+    content = post["summary"]
 
     try:
         meme_caption = generate_meme_caption(title, content)

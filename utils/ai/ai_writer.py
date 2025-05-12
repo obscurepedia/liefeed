@@ -212,11 +212,11 @@ Teaser: {teaser}
         resp.raise_for_status()
         content = resp.json()["choices"][0]["message"]["content"].strip()
 
-        if not content:
-            raise ValueError("Perplexity returned empty content.")
+        # Remove markdown-style triple backticks and language tag if present
+        if content.startswith("```"):
+            content = content.split("```")[-2].strip()
 
-        print("🔁 Raw response content:", content)
-
+        # Now parse JSON
         data = json.loads(content)
 
         fomo_caption        = data.get("fomo_caption", "").strip()
@@ -243,5 +243,6 @@ Teaser: {teaser}
         print("❌ Failed to generate or parse social content:", e)
 
     return None
+
 
 
