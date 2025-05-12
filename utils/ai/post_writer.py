@@ -12,7 +12,6 @@ from utils.database.db import insert_post, get_connection
 from utils.ai.ai_team import get_random_writer
 from utils.social.x_poster import post_article_to_x
 from openai import OpenAI
-from utils.social.x_poster import post_article_to_x
 from utils.social.facebook_poster import post_image_and_comment
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))

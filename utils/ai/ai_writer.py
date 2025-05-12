@@ -214,7 +214,9 @@ Teaser: {teaser}
 
         # Remove markdown-style triple backticks and language tag if present
         if content.startswith("```"):
-            content = content.split("```")[-2].strip()
+            content = content.strip("`").strip()
+            if content.startswith("json"):
+                content = content[4:].strip()
 
         # Now parse JSON
         data = json.loads(content)

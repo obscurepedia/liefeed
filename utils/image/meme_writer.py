@@ -80,7 +80,7 @@ def generate_and_post_meme():
             insert_meme(meme_caption, image_url)
             print("✅ Meme saved to database.")
 
-            if random.random() < 0.2:
+            if True:
                 reel_filename = f"reel_{timestamp}.mp4"
                 create_meme_reel_ffmpeg(
                     image_path=image_filename,
