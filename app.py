@@ -257,13 +257,17 @@ def logout():
 
 
 
+from flask import request, render_template, redirect, url_for, session, abort
+from datetime import date
+import psycopg2.extras
+
 @app.route("/ad-tracker", methods=["GET", "POST"])
 def ad_tracker():
     if not session.get("inbox_auth"):
         abort(401)
 
     conn = get_connection()
-    c = conn.cursor()
+    c = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     if request.method == "POST":
         form_date = request.form.get("date") or str(date.today())
@@ -292,20 +296,25 @@ def ad_tracker():
 
     processed_rows = []
     for row in rows:
-        spend = float(row[1]) if row[1] else 0
-        leads = int(row[4]) if row[4] else 0
-        cpl = round(spend / leads, 2) if spend and leads else None
+        try:
+            spend = float(row["spend"]) if row["spend"] else 0
+            leads = int(row["leads"]) if row["leads"] else 0
+            cpl = round(spend / leads, 2) if spend and leads else None
+        except:
+            cpl = None
+
         processed_rows.append({
-            "date": row[0],
-            "spend": row[1],
-            "impressions": row[2],
-            "clicks": row[3],
-            "leads": row[4],
-            "notes": row[5],
+            "date": row["date"],
+            "spend": row["spend"],
+            "impressions": row["impressions"],
+            "clicks": row["clicks"],
+            "leads": row["leads"],
+            "notes": row["notes"],
             "cpl": cpl
         })
 
-    return render_template("ad_tracker.html", rows=processed_rows, date=date)
+    return render_template("ad_tracker.html", rows=processed_rows)
+
 
 @app.context_processor
 def inject_categories():

@@ -29,22 +29,37 @@ def post_article_to_facebook(headline, teaser, image_url, article_url):
     except Exception as e:
         print("🚫 Failed to post to Facebook:", e)
 
-def post_image_to_facebook(caption, image_url):
+def post_image_to_facebook(caption, image_url_or_path):
     photo_upload_url = f"https://graph.facebook.com/v19.0/{PAGE_ID}/photos"
 
-    payload = {
-        "url": image_url,
-        "caption": caption,
-        "access_token": PAGE_ACCESS_TOKEN
-    }
-
     try:
-        response = requests.post(photo_upload_url, data=payload)
+        if image_url_or_path.startswith("http"):
+            # It's a URL — use standard Facebook upload
+            payload = {
+                "url": image_url_or_path,
+                "caption": caption,
+                "access_token": PAGE_ACCESS_TOKEN
+            }
+            response = requests.post(photo_upload_url, data=payload)
+        else:
+            # It's a local file — upload as binary
+            with open(image_url_or_path, "rb") as img_file:
+                files = {
+                    "source": img_file
+                }
+                payload = {
+                    "caption": caption,
+                    "access_token": PAGE_ACCESS_TOKEN
+                }
+                response = requests.post(photo_upload_url, data=payload, files=files)
+
         response.raise_for_status()
         print("✅ Meme image posted successfully!")
         print("📢 Post ID:", response.json().get("id"))
+
     except Exception as e:
         print("🚫 Failed to post meme image to Facebook:", e)
+
 
 
 def post_image_and_comment(image_url, caption, first_comment):

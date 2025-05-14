@@ -25,7 +25,7 @@ def generate_image_prompt(title, content, mode="default"):
 You are a surreal meme concept artist.
 Write a one-sentence AI image prompt that matches an absurd, viral-style meme caption inspired by the following real news article.
 
-Make it cartoonish, colorful, weird, and symbolic — not literal.
+It must be a cartoon-style digital illustration using surreal exaggeration.
 Do not include any real people or text in the image.
 
 Title: {title}

@@ -23,3 +23,5 @@ env/
 # OS-specific
 Thumbs.db
 desktop.ini
+
+/testing/

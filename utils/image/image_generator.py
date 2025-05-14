@@ -64,13 +64,16 @@ def generate_image_from_prompt(prompt, output_filename, category="General", mode
         )
         print(f"✅ Uploaded to S3: {s3_key}")
 
-        os.remove(local_path)
+        # ✅ DO NOT DELETE the file now — keep it for reel generation
+        # os.remove(local_path)  # ← commented out
 
-        return f"https://{S3_BUCKET_NAME}.s3.{AWS_REGION}.amazonaws.com/{s3_key}"
+        # ✅ RETURN LOCAL PATH instead of S3 URL
+        return local_path
 
     except Exception as e:
         print("Image generation failed:", str(e))
         return None
+
 
 def apply_watermark(image_path, watermark_path="static/watermark.png", position="bottom-right"):
     try:
