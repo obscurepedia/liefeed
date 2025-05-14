@@ -313,7 +313,7 @@ def ad_tracker():
             "cpl": cpl
         })
 
-    return render_template("ad_tracker.html", rows=processed_rows)
+    return render_template("ad_tracker.html", rows=processed_rows, date=date)
 
 
 @app.context_processor
