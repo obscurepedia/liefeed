@@ -26,20 +26,22 @@ You are a surreal meme concept artist.
 Write a one-sentence AI image prompt that matches an absurd, viral-style meme caption inspired by the following real news article.
 
 It must be a cartoon-style digital illustration using surreal exaggeration.
-Do not include any real people or text in the image.
+Absolutely no real people or text, captions, signs, or writing in the image.
 
 Title: {title}
 Content: {content}
 """
+
     else:
         prompt = f"""
 You are a creative assistant for a satirical news site.
-Write a one-sentence image prompt (no text in image) that visually and absurdly represents the following article.
-It must be a cartoon-style digital illustration using surreal exaggeration.
+Write a one-sentence image prompt that creates a cartoon-style digital illustration using surreal exaggeration. 
+The image must visually represent the article below — but must contain absolutely NO TEXT, captions, or writing of any kind in the final result.
 
 Title: {title}
 Content: {content}
 """
+
 
     # First try Perplexity
     try:
@@ -70,17 +72,18 @@ Content: {content}
         else:
             fallback_system_msg = (
                 "You are a creative assistant that writes short prompts for AI image generation. "
-                "The prompts should describe an image based on the article content in a visual, artistic way. "
-                "All prompts must be designed for a satirical news site and must follow these rules: "
-                "- The image must be a cartoon-style digital illustration "
-                "- It must use surreal, absurd, or ironic exaggeration "
-                "- There should be absolutely no text in the image "
+                "The prompts must describe a surreal, cartoon-style image that visually represents satirical news content. "
+                "STRICT RULES:\n"
+                "- NO TEXT, captions, logos, signs, writing, or numbers in the image\n"
+                "- Use artistic metaphor, visual exaggeration, or irony\n"
+                "- Format as a complete sentence describing the scene\n"
             )
+
 
         fallback_user_msg = (
             f"Title: {title}\n"
             f"Content: {content}\n\n"
-            f"Write a short, one-sentence prompt that visually represents this article "
+            f"Write a short, one-sentence visual prompt. Do not include any text in the image, signs, or lettering."
             f"following the rules above."
         )
 

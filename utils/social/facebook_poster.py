@@ -86,8 +86,11 @@ def post_image_and_comment(image_url, caption, first_comment):
         else:
             print("⚠️ No ID returned; cannot queue comment.")
 
+    except requests.exceptions.HTTPError as e:
+        print("🚫 Facebook API HTTP error:", e.response.status_code, e.response.text)
     except Exception as e:
-        print(f"🚫 Failed to post image or queue comment: {e}")
+        print("🚫 General error while posting image or queuing comment:", e)
+
 
 
 

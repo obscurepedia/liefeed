@@ -40,6 +40,20 @@ def generate_image_from_prompt(prompt, output_filename, category="General", mode
         print("🎨 Generating image with Hugging Face...")
         if mode == "meme":
             image = client.text_to_image(prompt, guidance_scale=7.5, height=640, width=640)
+        elif mode == "reel":
+            image = client.text_to_image(prompt, guidance_scale=7.5, height=768, width=768)
+
+            # === RESIZE AND PAD TO 1080x1920 ===
+            # Force image into 1080x1920 canvas
+            background = Image.new("RGBA", (1080, 1920), (247, 244, 178, 255))  # Match your HTML bg color
+            img_w, img_h = image.size
+            scale = min(1080 / img_w, 1920 / img_h)
+            new_size = (int(img_w * scale), int(img_h * scale))
+            resized = image.resize(new_size, Image.LANCZOS)
+            offset = ((1080 - new_size[0]) // 2, (1920 - new_size[1]) // 2)
+            background.paste(resized, offset, resized.convert("RGBA"))
+            image = background.convert("RGB")  # Final flattened image
+
         else:
             image = client.text_to_image(prompt, guidance_scale=7.5, height=768, width=768)
 
