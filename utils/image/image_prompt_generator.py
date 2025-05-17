@@ -31,6 +31,21 @@ Absolutely no real people or text, captions, signs, or writing in the image.
 Title: {title}
 Content: {content}
 """
+    elif mode == "reel":
+        prompt = f"""
+You are a professional photo-journalist assistant for a viral news channel.
+Write ONE sentence that tells a photorealistic image generator what to shoot.
+Pick a single, wildly surreal moment from the story (e.g. *either* flying
+chickens **or** riot-police buried in confetti — not both).
+
+Rules:
+• 1080 × 1920, vertical framing, full subject in frame.
+• Subject fully clothed, ordinary pose (no glamour or erotic styling).
+• No text, captions, watermarks or logos.
+
+Title: {title}
+Content: {content}
+"""
 
     else:
         prompt = f"""
@@ -41,7 +56,6 @@ The image must visually represent the article below — but must contain absolut
 Title: {title}
 Content: {content}
 """
-
 
     # First try Perplexity
     try:
@@ -69,6 +83,13 @@ Content: {content}
                 "Use surreal exaggeration and strange juxtapositions. "
                 "Do not include real people, logos, or any text in the image. Cartoon style only."
             )
+        elif mode == "reel":
+            fallback_system_msg = (
+                "You are a visual designer for a photorealistic news image generator. "
+                "Your prompts must result in realistic-looking images that resemble real photos, not illustrations or cartoons. "
+                "Focus on shocking, strange, or attention-grabbing visual scenes. "
+                "Do not include any text, logos, signs, or identifiable people."
+            )
         else:
             fallback_system_msg = (
                 "You are a creative assistant that writes short prompts for AI image generation. "
@@ -79,12 +100,10 @@ Content: {content}
                 "- Format as a complete sentence describing the scene\n"
             )
 
-
         fallback_user_msg = (
             f"Title: {title}\n"
             f"Content: {content}\n\n"
-            f"Write a short, one-sentence visual prompt. Do not include any text in the image, signs, or lettering."
-            f"following the rules above."
+            f"Write a short, one-sentence visual prompt. Do not include any text, signs, or lettering in the image."
         )
 
         response = openai_client.chat.completions.create(
