@@ -119,9 +119,10 @@ services:
     name: trigger-daily-reel
     runtime: docker
     plan: starter
-    schedule: "0 10 * * *"  # Runs daily at 10:00 UTC
-    buildCommand: ":"
-    command: curl --max-time 60 https://liefeed.onrender.com/generate-reel
+    schedule: "0 10 * * *"  # Daily at 10:00 UTC
+    buildCommand: ""
+    startCommand: curl --max-time 60 https://liefeed.onrender.com/generate-reel
     envVars:
       - fromGroup: shared-env
+
 
