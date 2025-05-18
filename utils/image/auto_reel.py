@@ -31,6 +31,16 @@ MUSIC_FILE = Path(__file__).resolve().parents[2] / "static" / selected_track
 REEL_ROTATION_KEY = "reel_cta_counter"
 FOLLOW_REEL_INTERVAL = 5
 
+REEL_COLORS = [
+    "#f7f4b2",  # pale yellow
+    "#fbd5e0",  # soft pink
+    "#d0f0fd",  # sky blue
+    "#e1ffd5",  # mint green
+    "#fff3b0",  # cream
+    "#ffe0b3",  # peach
+]
+
+
 # ── DB HELPERS ─────────────────────────────────────────────────────
 def fetch_post():
     conn = get_connection()
@@ -152,37 +162,27 @@ Rules:
 # ── HTML SLIDE WRITER ──────────────────────────────────────────────
 def write_slide(text: str, filename: str, *, fontsize: int = 80, layout: str = "headline", slide_number: str = ""):
     if layout == "teaser":
-        align_css = "align-items: center; justify-content: center; padding: 60px;"
-    elif layout == "cta":
-        align_css = "align-items: center; justify-content: center; padding: 60px;"
-    else:
-        align_css = "align-items: flex-start; justify-content: center; padding-top: 100px;"
-        
-    font_weight = "bold" if layout == "cta" else "normal"
-
-    # Add emoji based on layout type
-    if layout == "headline":
-        emoji = "📰"
-    elif layout == "teaser":
+        align_css = "align-items: center; justify-content: flex-start; padding-top: 150px;"
+        font_weight = "normal"
         emoji = "👀"
     elif layout == "cta":
+        align_css = "align-items: center; justify-content: flex-start; padding-top: 180px;"
+        font_weight = "bold"
         emoji = "👉"
-    else:
-        emoji = ""
+    else:  # headline
+        align_css = "align-items: center; justify-content: center; padding: 60px;"
+        font_weight = "bold"
+        emoji = "📰"
 
-
-    # Wrap CTA text with a subtle background bubble
-    if layout == "headline":
-        inner_html = f'<div class="meme"><span style="font-size: 100px;">{emoji}</span><br><br>{text}</div>'
-    elif layout == "cta":
+    # Wrap content in a bubble for teaser/cta
+    if layout == "cta" or layout == "teaser":
         inner_html = f"""
         <div style="background-color: rgba(0, 0, 0, 0.05); padding: 40px 60px; border-radius: 40px;">
             <div class="meme">{emoji} {text}</div>
         </div>
         """
     else:
-        inner_html = f'<div class="meme">{emoji} {text}</div>'
-
+        inner_html = f'<div class="meme"><span style="font-size: 100px;">{emoji}</span><br><br>{text}</div>'
 
     html = f"""
     <!DOCTYPE html><html><head><meta charset="UTF-8">
@@ -228,6 +228,7 @@ def write_slide(text: str, filename: str, *, fontsize: int = 80, layout: str = "
     """
 
     (SLIDE_DIR / filename).write_text(html, encoding="utf-8")
+
 
 
 # ── HTML→PNG ───────────────────────────────────────────────────────
@@ -304,6 +305,9 @@ async def main():
     teaser = generate_teaser(post["content"])
     prompt = generate_image_prompt(post["title"], post["content"])
 
+    bg_color = random.choice(REEL_COLORS)
+
+
     # 1. Generate reel image straight into slides/
     slide2_path = SLIDE_DIR / "slide2_image.png"
     slide2_path.parent.mkdir(exist_ok=True)
@@ -323,13 +327,13 @@ async def main():
 
     
 
-    # 2. Create headline, teaser, CTA slides
-    write_slide(post["title"], "slide1_headline.html", fontsize=120, layout="headline")
-    write_slide(teaser, "slide3_teaser.html", fontsize=72, layout="teaser", slide_number="3/4")
+    # 2. Create headline, teaser, CTA slides with improved layout and font size
+    write_slide(post["title"], "slide1_headline.html", fontsize=120, layout="headline", background_color=bg_color)
+    write_slide(teaser, "slide3_teaser.html", fontsize=90, layout="teaser", slide_number="3/4", background_color=bg_color)
 
-    counter   = get_reel_counter()
-    cta_only  = generate_cta(teaser, counter)
-    write_slide(cta_only,      "slide4_cta.html",    fontsize=72,  layout="cta")
+    counter = get_reel_counter()
+    cta_only = generate_cta(teaser, counter)
+    write_slide(cta_only, "slide4_cta.html", fontsize=90, layout="cta", slide_number="4/4", background_color=bg_color)
 
     # 3. Render HTML → PNG
     await render_html_to_png("slide1_headline.html", "slide1_headline.png")

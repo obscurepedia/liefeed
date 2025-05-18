@@ -44,7 +44,7 @@ envVarGroups:
       - key: FACEBOOK_PIXEL_ID
         sync: false
       - key: MUSIC_TRACKS
-        value: funny_music.mp3
+        value: funny_music.mp3,track1.mp3,track2.mp3,track3.mp3,track4.mp3
       - key: LEONARDO_API_KEY
         sync: false
       - key: REOON_API_KEY
