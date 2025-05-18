@@ -43,6 +43,11 @@ envVarGroups:
         sync: false
       - key: FACEBOOK_PIXEL_ID
         sync: false
+      - key: MUSIC_TRACKS
+        value: track1.mp3,track2.mp3,track3.mp3
+      - key: LEONARDO_API_KEY
+        sync: false
+
 
 services:
   - type: web
@@ -90,11 +95,20 @@ services:
     name: post-reel
     runtime: docker
     plan: starter
-    schedule: "0 12 * * 1,3,5"
+    schedule: "0 10 * * *"
     buildCommand: pip install -r requirements.txt
     envVars:
       - fromGroup: shared-env
       - key: RUN_TARGET
         value: post-reel
 
-# test
+  - type: cron
+    name: post-reel-to-facebook
+    runtime: docker
+    plan: starter
+    schedule: "30 10 * * *"
+    buildCommand: pip install -r requirements.txt
+    envVars:
+      - fromGroup: shared-env
+      - key: RUN_TARGET
+        value: post-reel-to-facebook

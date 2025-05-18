@@ -92,33 +92,35 @@ def post_image_and_comment(image_url, caption, first_comment):
         print("🚫 General error while posting image or queuing comment:", e)
 
 
-
-
-
 def post_video_to_facebook(caption, video_path):
     """
-    Posts a video (for Reels) to the Facebook page.
+    Uploads a video (Reel) to the Facebook page.
     """
-    video_upload_url = f"https://graph-video.facebook.com/v19.0/{PAGE_ID}/videos"
 
     if not PAGE_ACCESS_TOKEN or not PAGE_ID:
         raise ValueError("Facebook PAGE_ACCESS_TOKEN or PAGE_ID not set properly.")
 
-    with open(video_path, 'rb') as video_file:
-        files = {
-            'source': video_file
-        }
-        data = {
-            'access_token': PAGE_ACCESS_TOKEN,
-            'description': caption
-        }
-        try:
+    video_upload_url = f"https://graph-video.facebook.com/v19.0/{PAGE_ID}/videos"
+
+    try:
+        with open(video_path, 'rb') as video_file:
+            files = {'source': video_file}
+            data = {
+                'access_token': PAGE_ACCESS_TOKEN,
+                'description': caption
+            }
+
             response = requests.post(video_upload_url, files=files, data=data)
             response.raise_for_status()
+
             print("✅ Video Reel posted successfully!")
             print("📢 Post ID:", response.json().get("id"))
-        except Exception as e:
-            print("🚫 Failed to post video Reel to Facebook:", e)
+
+    except Exception as e:
+        print("🚫 Failed to post video Reel to Facebook:", e)
+        if hasattr(e, 'response') and e.response is not None:
+            print("❌ Facebook response:", e.response.text)
+
 
 
 
