@@ -1,8 +1,22 @@
 from flask import Blueprint, render_template, request, session, redirect, url_for, current_app
 import random
+import os
+import requests
+from dotenv import load_dotenv
+
 from utils.database.db import fetch_all_posts, save_subscriber
 from utils.email.certificate import generate_certificate
 from utils.email.email_sender import send_certificate_email_with_attachment
+from disposable_email_domains import blocklist
+from flask import flash
+
+load_dotenv()
+REOON_API_KEY = os.getenv("REOON_API_KEY")
+
+ROLE_BASED_PREFIXES = {
+    "admin", "support", "info", "contact", "sales", "help",
+    "office", "team", "billing", "noreply", "no-reply"
+}
 
 quiz_bp = Blueprint("quiz", __name__)
 
@@ -45,15 +59,53 @@ def quiz_question():
     question = quiz_data[index]
     return render_template("quiz_question.html", index=index + 1, question=question, total=len(quiz_data))
 
+
 @quiz_bp.route("/quiz/email", methods=["GET", "POST"])
 def quiz_email_capture():
     if request.method == "POST":
         email = request.form.get("email")
         name = request.form.get("name", "").strip() or "Quiz Taker"
+
+        if not email or "@" not in email:
+            flash("Please enter a valid email address.")
+            return redirect(url_for("quiz.quiz_email_capture"))
+
+        domain = email.split("@")[-1].lower()
+        prefix = email.split("@")[0].split("+")[0].lower()  # remove Gmail-style tags like john+tag@
+
+        if domain in blocklist:
+            flash("Please use a real email address, not a temporary one.")
+            return redirect(url_for("quiz.quiz_email_capture"))
+
+        if prefix in ROLE_BASED_PREFIXES:
+            flash("Please use a personal email address, not a generic one like admin@ or info@.")
+            return redirect(url_for("quiz.quiz_email_capture"))
+
+        # ✅ Reoon QUICK mode validation
+        try:
+            reoon_url = (
+                f"https://emailverifier.reoon.com/api/v1/verify"
+                f"?email={email}&key={REOON_API_KEY}&mode=quick"
+            )
+            response = requests.get(reoon_url, timeout=5)
+            result = response.json()
+
+            if result.get("status") != "valid":
+                flash("This email doesn't appear to be valid. Please try a different one.")
+                return redirect(url_for("quiz.quiz_email_capture"))
+
+        except Exception as e:
+            flash("We had trouble verifying your email. Please try again.")
+            return redirect(url_for("quiz.quiz_email_capture"))
+
         session["email"] = email
         session["name"] = name
         return redirect(url_for("quiz.quiz_results"))
+
     return render_template("quiz_email.html")
+
+
+
 
 
 @quiz_bp.route("/quiz/results", methods=["GET"])

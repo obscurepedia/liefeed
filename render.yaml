@@ -47,6 +47,8 @@ envVarGroups:
         value: track1.mp3,track2.mp3,track3.mp3
       - key: LEONARDO_API_KEY
         sync: false
+      - key: REOON_API_KEY
+        sync: false
 
 
 services:
@@ -112,3 +114,15 @@ services:
       - fromGroup: shared-env
       - key: RUN_TARGET
         value: post-reel-to-facebook
+
+  - type: cron
+    name: validate-new-signups
+    runtime: docker
+    plan: starter
+    schedule: "59 23 * * *"  # ✅ Every day at 11:59 PM
+    buildCommand: pip install -r requirements.txt
+    envVars:
+      - fromGroup: shared-env
+      - key: RUN_TARGET
+        value: validate-new-signups
+

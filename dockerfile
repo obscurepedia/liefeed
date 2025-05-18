@@ -59,5 +59,6 @@ CMD ["sh", "-c", "echo '🔥 Cron job container started'; \
   elif [ \"$RUN_TARGET\" = 'post-meme' ]; then python -m utils.scheduled.scheduled_meme_job; \
   elif [ \"$RUN_TARGET\" = 'post-reel' ]; then python -m utils.image.auto_reel; \
   elif [ \"$RUN_TARGET\" = 'post-reel-to-facebook' ]; then python -m utils.scheduled.scheduled_reel_job; \
+  elif [ \"$RUN_TARGET\" = 'validate-new-signups' ]; then python -m scheduled.validate_new_signups; \
   else gunicorn --bind 0.0.0.0:10000 app:app; \
   fi"]
