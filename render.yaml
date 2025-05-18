@@ -117,11 +117,11 @@ services:
 
   - type: cron
     name: trigger-daily-reel
-    runtime: static
+    runtime: docker
     plan: starter
-    schedule: "0 10 * * *"  # Daily at 10:00 UTC
-    startCommand: curl --max-time 60 https://liefeed.onrender.com/generate-reel
+    schedule: "0 10 * * *"
+    buildCommand: pip install -r requirements.txt
+    startCommand: python trigger_reel.py
     envVars:
       - fromGroup: shared-env
-
 
