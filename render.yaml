@@ -121,7 +121,8 @@ services:
     plan: starter
     schedule: "0 10 * * *"
     buildCommand: pip install -r requirements.txt
-    startCommand: python trigger_reel.py
     envVars:
       - fromGroup: shared-env
+      - key: RUN_TARGET
+        value: trigger-daily-reel
 
