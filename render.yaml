@@ -115,13 +115,11 @@ services:
       - key: RUN_TARGET
         value: validate-new-signups
 
-jobs:
   - type: cron
     name: trigger-daily-reel
-    runtime: docker
+    runtime: static
     plan: starter
     schedule: "0 10 * * *"  # Daily at 10:00 UTC
-    buildCommand: ""
     startCommand: curl --max-time 60 https://liefeed.onrender.com/generate-reel
     envVars:
       - fromGroup: shared-env
