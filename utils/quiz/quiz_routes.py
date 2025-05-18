@@ -49,8 +49,13 @@ def quiz_question():
         session["answers"].append(answer)
         session["current_question_index"] = index + 1
 
-        if index + 1 >= len(quiz_data):
+        # ✋ Mid-quiz email gate after 3 questions (index 3 means they're about to see Q4)
+        if index + 1 == 3 and not session.get("email_submitted"):
             return redirect(url_for("quiz.quiz_email_capture"))
+
+        if index + 1 >= len(quiz_data):
+            return redirect(url_for("quiz.quiz_results"))
+
         return redirect(url_for("quiz.quiz_question"))
 
     if index >= len(quiz_data):
@@ -58,6 +63,7 @@ def quiz_question():
 
     question = quiz_data[index]
     return render_template("quiz_question.html", index=index + 1, question=question, total=len(quiz_data))
+
 
 
 @quiz_bp.route("/quiz/email", methods=["GET", "POST"])
@@ -100,7 +106,9 @@ def quiz_email_capture():
 
         session["email"] = email
         session["name"] = name
-        return redirect(url_for("quiz.quiz_results"))
+        session["email_submitted"] = True  # ✅ NEW FLAG
+        return redirect(url_for("quiz.quiz_question"))
+        
 
     return render_template("quiz_email.html")
 

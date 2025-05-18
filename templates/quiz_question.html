@@ -1,12 +1,14 @@
 {% extends "quiz_base.html" %}
 
 {% block content %}
+{% if index == 1 %}
 <script>
   // Track quiz start as custom event
   if (typeof fbq === 'function') {
     fbq('trackCustom', 'QuizStarted');
   }
 </script>
+{% endif %}
 
 <div class="quiz-wrapper">
     <div class="quiz-container">
