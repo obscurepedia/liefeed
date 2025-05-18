@@ -52,16 +52,18 @@ def main():
     reel_id, caption, video_path = reel
 
     try:
-        # Post the reel to Facebook
-        post_video_to_facebook(caption=caption, video_path=video_path)
+        S3_BASE_URL = "https://liefeed-images.s3.us-east-1.amazonaws.com/"
+        s3_url = S3_BASE_URL + video_path
+
+        post_video_to_facebook(caption=caption, s3_url=s3_url)
         print(f"✅ Successfully posted Reel: {caption}")
 
-        # Mark the reel as posted
         mark_reel_as_posted(reel_id)
         print("✅ Reel marked as posted in database.")
 
     except Exception as e:
         print(f"❌ Failed to post Reel: {e}")
+
 
 if __name__ == "__main__":
     main()
