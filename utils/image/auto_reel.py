@@ -321,8 +321,7 @@ async def main():
     if not slide2_path.exists():
         raise FileNotFoundError("slide2_image.png did not get created")
 
-    # ✅ Use it for stitching/uploading reel, then clean up at the END of main()
-    slide2_path.unlink(missing_ok=True)
+    
 
     # 2. Create headline, teaser, CTA slides
     write_slide(post["title"], "slide1_headline.html", fontsize=120, layout="headline")
@@ -343,6 +342,9 @@ async def main():
          "slide3_teaser.png",   "slide4_cta.png"],
         MUSIC_FILE, OUTPUT_VIDEO
     )
+
+    # ✅ Use it for stitching/uploading reel, then clean up at the END of main()
+    slide2_path.unlink(missing_ok=True)
 
     # 5. Finalize housekeeping
     print(f"🧾 Attempting to mark post ID {post['id']} as used...")
