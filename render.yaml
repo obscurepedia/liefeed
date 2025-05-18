@@ -121,6 +121,6 @@ services:
     plan: starter
     schedule: "0 10 * * *"  # Runs daily at 10:00 UTC
     buildCommand: ""
-    startCommand: curl https://liefeed.com/generate-reel
+    startCommand: curl https://liefeed.onrender.com/generate-reel
     envVars:
       - fromGroup: shared-env
