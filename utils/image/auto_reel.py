@@ -7,11 +7,12 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 from playwright.async_api import async_playwright
-from utils.database.db import get_connection, s3_client
 from utils.image.image_prompt_generator import generate_image_prompt
-from utils.image.image_generator import generate_image_from_prompt
+from utils.image.image_generator import generate_image_from_prompt, s3_client
 from openai import OpenAI
 from datetime import datetime, timezone
+from utils.database.db import get_connection
+
 
 
 # ── CONFIG ─────────────────────────────────────────────────────────
