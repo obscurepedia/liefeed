@@ -50,7 +50,6 @@ envVarGroups:
       - key: REOON_API_KEY
         sync: false
 
-
 services:
   - type: web
     name: liefeed
@@ -93,17 +92,7 @@ services:
       - key: RUN_TARGET
         value: post-meme
 
-  - type: cron
-    name: post-reel
-    runtime: docker
-    plan: starter
-    schedule: "0 10 * * *"
-    buildCommand: pip install -r requirements.txt
-    envVars:
-      - fromGroup: shared-env
-      - key: RUN_TARGET
-        value: post-reel
-
+  
   - type: cron
     name: post-reel-to-facebook
     runtime: docker
@@ -119,10 +108,19 @@ services:
     name: validate-new-signups
     runtime: docker
     plan: starter
-    schedule: "59 23 * * *"  # ✅ Every day at 11:59 PM
+    schedule: "59 23 * * *"
     buildCommand: pip install -r requirements.txt
     envVars:
       - fromGroup: shared-env
       - key: RUN_TARGET
         value: validate-new-signups
 
+  - type: cron
+    name: trigger-daily-reel
+    runtime: docker
+    plan: starter
+    schedule: "0 10 * * *"  # Runs daily at 10:00 UTC
+    buildCommand: ""
+    startCommand: curl https://liefeed.com/generate-reel
+    envVars:
+      - fromGroup: shared-env

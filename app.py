@@ -7,6 +7,8 @@ import markdown
 import random
 import os
 import boto3
+import psycopg2.extras
+import asyncio
 
 from utils.database.db import fetch_all_posts, fetch_post_by_slug, fetch_posts_by_category, get_connection
 from utils.ai.ai_team import ai_team
@@ -15,6 +17,8 @@ from utils.database.token_utils import decode_unsubscribe_token
 from utils.database.db import unsubscribe_email  # we'll add this below
 from utils.email.email_sender import send_email
 from utils.email.email_reader import fetch_parsed_emails, fetch_email_by_key
+from utils.image.auto_reel import main as reel_main  # adjust path if needed
+
 
 
 from dotenv import load_dotenv
@@ -257,9 +261,7 @@ def logout():
 
 
 
-from flask import request, render_template, redirect, url_for, session, abort
-from datetime import date
-import psycopg2.extras
+
 
 @app.route("/ad-tracker", methods=["GET", "POST"])
 def ad_tracker():
@@ -315,6 +317,11 @@ def ad_tracker():
 
     return render_template("ad_tracker.html", rows=processed_rows, date=date)
 
+
+@app.route("/generate-reel")
+def trigger_reel():
+    asyncio.run(reel_main())
+    return "✅ Reel generated", 200
 
 @app.context_processor
 def inject_categories():
