@@ -55,7 +55,7 @@ def main():
         S3_BASE_URL = "https://liefeed-images.s3.us-east-1.amazonaws.com/"
         s3_url = S3_BASE_URL + video_path
 
-        post_video_to_facebook(caption=caption, s3_url=s3_url)
+        post_video_to_facebook(caption=caption, video_path=s3_url)
         print(f"✅ Successfully posted Reel: {caption}")
 
         mark_reel_as_posted(reel_id)
