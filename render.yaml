@@ -120,7 +120,8 @@ services:
     runtime: docker
     plan: starter
     schedule: "0 10 * * *"  # Runs daily at 10:00 UTC
-    buildCommand: ""
-    startCommand: curl https://liefeed.onrender.com/generate-reel
+    buildCommand: ":"
+    command: curl --max-time 60 https://liefeed.onrender.com/generate-reel
     envVars:
       - fromGroup: shared-env
+
