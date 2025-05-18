@@ -6,10 +6,28 @@ from utils.ai.news_fetcher import fetch_google_news
 from utils.image.image_prompt_generator import generate_image_prompt
 from utils.image.image_generator import generate_image_from_prompt
 from utils.social.facebook_poster import post_image_to_facebook
-from utils.image.meme_reel_creator import create_combined_reel, save_reel_to_database
 from openai import OpenAI
 
 openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+# Topics to exclude (NSFW, political, violent, tragic)
+EXCLUDED_TOPICS = [
+    # Political
+    "politics", "election", "biden", "trump", "parliament", "congress", "senate", "minister", "vote", "government",
+    
+    # NSFW
+    "nude", "sex", "porn", "erotic", "onlyfans", "fetish", "stripper", "adult", "xxx", "naked",
+
+    # Violence & Harm
+    "murder", "suicide", "assault", "shooting", "killed", "rape", "abuse", "terror", "explosion",
+
+    # Disasters & Tragedies
+    "earthquake", "flood", "wildfire", "death toll", "victim", "crash", "collapse", "tragedy"
+]
+
+def is_sensitive(title, summary):
+    combined = f"{title} {summary}".lower()
+    return any(keyword in combined for keyword in EXCLUDED_TOPICS)
 
 def generate_meme_caption(title, content):
     prompt = f"""
@@ -43,8 +61,6 @@ Examples (for tone only, not format):
     )
     return response.choices[0].message.content.strip()
 
-
-
 def insert_meme(caption, image_url):
     conn = get_connection()
     cursor = conn.cursor()
@@ -59,7 +75,14 @@ def insert_meme(caption, image_url):
 def generate_and_post_meme():
     articles = fetch_google_news()
     if not articles:
-        print("❌ No suitable live news found.")
+        print("❌ No news articles found.")
+        return
+
+    # Filter out sensitive and political content
+    articles = [a for a in articles if not is_sensitive(a["title"], a["summary"])]
+
+    if not articles:
+        print("❌ No suitable non-sensitive articles found.")
         return
 
     post = random.choice(articles)
@@ -71,28 +94,13 @@ def generate_and_post_meme():
         prompt = generate_image_prompt(title, content, mode="meme")
         timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
         image_filename = f"meme_{timestamp}.png"
-        image_path = generate_image_from_prompt(prompt, image_filename, mode="meme")  # now returns local path
+        image_path = generate_image_from_prompt(prompt, image_filename, mode="meme")
 
         if image_path:
             post_image_to_facebook(caption=meme_caption, image_url_or_path=image_path)
             print(f"✅ Meme posted: {meme_caption}")
-            insert_meme(meme_caption, image_filename)  # still use filename as key reference
+            insert_meme(meme_caption, image_filename)
             print("✅ Meme saved to database.")
-
-            if False:
-                reel_filename = f"reel_{timestamp}.mp4"
-                create_combined_reel(
-                    image_path=image_path,
-                    caption=meme_caption,
-                    news_summary=content,  # this is the summary you fetched earlier
-                    audio_path="static/funny_music.mp3",
-                    output_path=reel_filename
-                )
-                save_reel_to_database(meme_caption, reel_filename)
-                print(f"✅ Meme + summary reel created and saved: {reel_filename}")
-
-            else:
-                print("ℹ️ No reel created this time.")
         else:
             print("❌ Failed to generate meme image.")
 
