@@ -321,7 +321,7 @@ def ad_tracker():
 
 @app.route("/generate-reel")
 def trigger_reel():
-    subprocess.Popen(["python", "utils/image/auto_reel.py"])
+    subprocess.Popen(["python", "-m", "utils.image.auto_reel"])
     return "🎬 Reel job started in background", 200
 
 @app.context_processor
