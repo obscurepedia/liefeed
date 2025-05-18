@@ -42,6 +42,8 @@ RUN apt-get update && \
 
 # Copy project files
 COPY . .
+COPY static/ static/
+
 
 # Install Python dependencies
 RUN pip install --upgrade pip && pip install -r requirements.txt

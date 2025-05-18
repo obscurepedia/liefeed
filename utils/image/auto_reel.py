@@ -25,7 +25,7 @@ SLIDE_DIR.mkdir(exist_ok=True)
 
 track_list = os.getenv("MUSIC_TRACKS", "").split(",")
 selected_track = random.choice(track_list).strip()
-MUSIC_FILE = Path(__file__).resolve().parent.parent / "static" / selected_track
+MUSIC_FILE = Path(__file__).resolve().parents[2] / "static" / selected_track
 
 # --- SETTINGS ---
 REEL_ROTATION_KEY = "reel_cta_counter"
