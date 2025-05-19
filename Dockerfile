@@ -7,7 +7,7 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 # Set work directory
-WORKDIR /liefeed
+WORKDIR /app
 
 # Install system dependencies (WeasyPrint, PostgreSQL, FFmpeg, Playwright)
 RUN apt-get update && \
@@ -42,7 +42,7 @@ RUN apt-get update && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Copy project files
-COPY liefeed/ .
+COPY . .
 COPY static/ static/
 
 # Install Python dependencies
