@@ -46,7 +46,7 @@ def fetch_post():
     conn = get_connection()
     with conn.cursor() as cur:
         cur.execute("""
-            SELECT id, title, content
+            SELECT id, title, content, slug
             FROM posts
             WHERE used_in_reel IS NOT TRUE
             ORDER BY created_at DESC
@@ -56,7 +56,7 @@ def fetch_post():
     conn.close()
     if not row:
         raise Exception("No unused posts found.")
-    return {"id": row[0], "title": row[1], "content": row[2]}
+    return {"id": row[0], "title": row[1], "content": row[2], "slug": row[3]}
 
 # --- HELPER TO FETCH & INCREMENT CTA COUNTER ---
 def get_reel_counter():
@@ -244,23 +244,6 @@ async def render_html_to_png(html_file: str, png_file: str):
         )
         await browser.close()
 
-def pad_to_1080x1920(src: Path, dst: Path):
-    cmd = [
-        "ffmpeg", "-y", "-i", str(src),
-        "-filter_complex",
-        (
-            "[0:v]scale=1080:1920:force_original_aspect_ratio=decrease,"
-            "pad=1080:1920:(ow-iw)/2:(oh-ih)/2,setsar=1,boxblur=10:1[bg];"
-            "[0:v]scale=1080:-1[fg];"
-            "[bg][fg]overlay=(W-w)/2:(H-h)/2:format=auto"
-        ),
-        "-frames:v", "1",          # single-frame PNG output
-        "-q:v", "3",
-        str(dst)
-    ]
-    subprocess.run(cmd, check=True)
-
-
 
 def stitch_slides(slides: list[str], music: Path, output: str):
     args = []
@@ -374,7 +357,7 @@ async def main():
     print(f"📤 Uploaded reel to S3: {reel_url}")
     
     # Save to DB
-    full_url = f"https://liefeed.com/posts/{post['id']}"
+    full_url = f"https://liefeed.com/posts/{post['slug']}"
     caption_with_link = f"{cta_only}\n\nRead more 👉 {full_url}"
     save_reel_to_database(caption_with_link, S3_REEL_KEY)
     print(f"✅ Reel created and saved to database.")
