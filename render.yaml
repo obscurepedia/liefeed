@@ -63,7 +63,7 @@ services:
     name: post-to-facebook
     runtime: docker
     plan: starter
-    autoDeploy: false   
+    autoDeploy: true   
     schedule: "0 */6 * * *"
     buildCommand: pip install -r requirements.txt
     buildFilter:
@@ -83,7 +83,7 @@ services:
     name: send-newsletter
     runtime: docker
     plan: starter
-    autoDeploy: false   
+    autoDeploy: true   
     schedule: "0 10 * * 1,3,5"
     buildCommand: pip install -r requirements.txt
     buildFilter:
@@ -124,7 +124,7 @@ services:
     name: post-reel-to-facebook
     runtime: docker
     plan: starter
-    autoDeploy: false   
+    autoDeploy: true   
     schedule: "30 10 * * *"
     buildCommand: pip install -r requirements.txt
     buildFilter:
@@ -144,7 +144,7 @@ services:
     name: validate-new-signups
     runtime: docker
     plan: starter
-    autoDeploy: false   
+    autoDeploy: true   
     schedule: "59 23 * * *"
     buildCommand: pip install -r requirements.txt
     buildFilter:
