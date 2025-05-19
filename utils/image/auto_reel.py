@@ -374,7 +374,9 @@ async def main():
     print(f"📤 Uploaded reel to S3: {reel_url}")
     
     # Save to DB
-    save_reel_to_database(cta_only, S3_REEL_KEY)
+    full_url = f"https://liefeed.com/posts/{post['id']}"
+    caption_with_link = f"{cta_only}\n\nRead more 👉 {full_url}"
+    save_reel_to_database(caption_with_link, S3_REEL_KEY)
     print(f"✅ Reel created and saved to database.")
 
 

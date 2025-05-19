@@ -30,7 +30,7 @@ def generate_dynamic_quiz():
                  [{"headline": h, "is_real": False} for h in fake_headlines]
 
     random.shuffle(quiz_items)
-    return quiz_items[:8]
+    return quiz_items[:5]
 
 @quiz_bp.route("/quiz/start")
 def quiz_start():
