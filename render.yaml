@@ -72,8 +72,8 @@ services:
         - render.yaml
         - requirements.txt
         - cron/scheduled_job.py
-        - utils/
-        - config/
+        - utils
+        - config
     envVars:
       - fromGroup: shared-env
       - key: RUN_TARGET
@@ -92,8 +92,8 @@ services:
         - render.yaml
         - requirements.txt
         - cron/newsletter_sender.py
-        - utils/
-        - config/
+        - utils
+        - config
     envVars:
       - fromGroup: shared-env
       - key: RUN_TARGET
@@ -112,8 +112,8 @@ services:
         - render.yaml
         - requirements.txt
         - cron/scheduled_meme_job.py
-        - utils/
-        - config/
+        - utils
+        - config
     envVars:
       - fromGroup: shared-env
       - key: RUN_TARGET
@@ -133,8 +133,8 @@ services:
         - render.yaml
         - requirements.txt
         - cron/scheduled_reel_job.py
-        - utils/
-        - config/
+        - utils
+        - config
     envVars:
       - fromGroup: shared-env
       - key: RUN_TARGET
@@ -153,8 +153,8 @@ services:
         - render.yaml
         - requirements.txt
         - cron/validate_new_signups.py
-        - utils/
-        - config/
+        - utils
+        - config
     envVars:
       - fromGroup: shared-env
       - key: RUN_TARGET
@@ -173,8 +173,8 @@ services:
         - render.yaml
         - requirements.txt
         - cron/trigger_reel.py
-        - utils/                         # if needed
-        - config/                        # if needed
+        - utils                         # if needed
+        - config                        # if needed
     envVars:
       - fromGroup: shared-env
       - key: RUN_TARGET
