@@ -123,10 +123,19 @@ services:
     name: trigger-daily-reel
     runtime: docker
     plan: starter
-    autoDeploy: true   
+    autoDeploy: true
     schedule: "0 10 * * *"
     buildCommand: pip install -r requirements.txt
+    buildFilter:
+      paths:
+        - Dockerfile
+        - render.yaml
+        - requirements.txt
+        - cron/trigger_reel.py
+        - utils/                         # if needed
+        - config/                        # if needed
     envVars:
       - fromGroup: shared-env
       - key: RUN_TARGET
         value: trigger-daily-reel
+
