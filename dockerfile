@@ -61,5 +61,5 @@ CMD ["sh", "-c", "echo '🔥 Cron job container started'; \
   elif [ \"$RUN_TARGET\" = 'post-reel-to-facebook' ]; then python liefeed/cron/scheduled_reel_job.py; \
   elif [ \"$RUN_TARGET\" = 'validate-new-signups' ]; then python liefeed/cron/validate_new_signups.py; \
   elif [ \"$RUN_TARGET\" = 'trigger-daily-reel' ]; then python liefeed/cron/trigger_reel.py; \
-  else gunicorn --bind 0.0.0.0:10000 liefeed.web.app:app; \
+  else gunicorn --bind 0.0.0.0:10000 web.app:app; \
   fi"]
