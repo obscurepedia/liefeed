@@ -55,11 +55,11 @@ EXPOSE 10000
 
 # Dynamically run different tasks based on RUN_TARGET
 CMD ["sh", "-c", "echo '🔥 Cron job container started'; \
-  if [ \"$RUN_TARGET\" = 'post-to-facebook' ]; then python liefeed/cron/scheduled_job.py; \
-  elif [ \"$RUN_TARGET\" = 'send-newsletter' ]; then python liefeed/cron/newsletter_sender.py; \
-  elif [ \"$RUN_TARGET\" = 'post-meme' ]; then python liefeed/cron/scheduled_meme_job.py; \
-  elif [ \"$RUN_TARGET\" = 'post-reel-to-facebook' ]; then python liefeed/cron/scheduled_reel_job.py; \
-  elif [ \"$RUN_TARGET\" = 'validate-new-signups' ]; then python liefeed/cron/validate_new_signups.py; \
-  elif [ \"$RUN_TARGET\" = 'trigger-daily-reel' ]; then python liefeed/cron/trigger_reel.py; \
+  if [ \"$RUN_TARGET\" = 'post-to-facebook' ]; then python cron/scheduled_job.py; \
+  elif [ \"$RUN_TARGET\" = 'send-newsletter' ]; then python cron/newsletter_sender.py; \
+  elif [ \"$RUN_TARGET\" = 'post-meme' ]; then python cron/scheduled_meme_job.py; \
+  elif [ \"$RUN_TARGET\" = 'post-reel-to-facebook' ]; then python cron/scheduled_reel_job.py; \
+  elif [ \"$RUN_TARGET\" = 'validate-new-signups' ]; then python cron/validate_new_signups.py; \
+  elif [ \"$RUN_TARGET\" = 'trigger-daily-reel' ]; then python cron/trigger_reel.py; \
   else gunicorn --bind 0.0.0.0:10000 web.app:app; \
   fi"]
