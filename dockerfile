@@ -6,7 +6,7 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 # Set work directory
-WORKDIR /app
+WORKDIR /liefeed
 
 # Install system dependencies (WeasyPrint, PostgreSQL, FFmpeg, Playwright)
 RUN apt-get update && \
@@ -44,7 +44,6 @@ RUN apt-get update && \
 COPY . .
 COPY static/ static/
 
-
 # Install Python dependencies
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
@@ -56,11 +55,11 @@ EXPOSE 10000
 
 # Dynamically run different tasks based on RUN_TARGET
 CMD ["sh", "-c", "echo '🔥 Cron job container started'; \
-  if [ \"$RUN_TARGET\" = 'post-to-facebook' ]; then python -m utils.scheduled.scheduled_job; \
-  elif [ \"$RUN_TARGET\" = 'send-newsletter' ]; then python -m utils.email.newsletter_sender; \
-  elif [ \"$RUN_TARGET\" = 'post-meme' ]; then python -m utils.scheduled.scheduled_meme_job; \
-  elif [ \"$RUN_TARGET\" = 'post-reel-to-facebook' ]; then python -m utils.scheduled.scheduled_reel_job; \
-  elif [ \"$RUN_TARGET\" = 'validate-new-signups' ]; then python -m utils. scheduled.validate_new_signups; \
-  elif [ \"$RUN_TARGET\" = 'trigger-daily-reel' ]; then python -m utils.scheduled.trigger_reel; \
-  else gunicorn --bind 0.0.0.0:10000 app:app; \
+  if [ \"$RUN_TARGET\" = 'post-to-facebook' ]; then python liefeed/cron/scheduled_job.py; \
+  elif [ \"$RUN_TARGET\" = 'send-newsletter' ]; then python liefeed/cron/newsletter_sender.py; \
+  elif [ \"$RUN_TARGET\" = 'post-meme' ]; then python liefeed/cron/scheduled_meme_job.py; \
+  elif [ \"$RUN_TARGET\" = 'post-reel-to-facebook' ]; then python liefeed/cron/scheduled_reel_job.py; \
+  elif [ \"$RUN_TARGET\" = 'validate-new-signups' ]; then python liefeed/cron/validate_new_signups.py; \
+  elif [ \"$RUN_TARGET\" = 'trigger-daily-reel' ]; then python liefeed/cron/trigger_reel.py; \
+  else gunicorn --bind 0.0.0.0:10000 liefeed.web.app:app; \
   fi"]

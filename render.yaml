@@ -92,7 +92,6 @@ services:
       - key: RUN_TARGET
         value: post-meme
 
-  
   - type: cron
     name: post-reel-to-facebook
     runtime: docker
@@ -125,4 +124,3 @@ services:
       - fromGroup: shared-env
       - key: RUN_TARGET
         value: trigger-daily-reel
-
