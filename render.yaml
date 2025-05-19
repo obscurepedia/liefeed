@@ -123,7 +123,7 @@ services:
     name: trigger-daily-reel
     runtime: docker
     plan: starter
-    autoDeploy: false   
+    autoDeploy: true   
     schedule: "0 10 * * *"
     buildCommand: pip install -r requirements.txt
     envVars:
