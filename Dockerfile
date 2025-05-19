@@ -42,7 +42,7 @@ RUN apt-get update && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Copy project files
-COPY . .
+COPY liefeed/ .
 COPY static/ static/
 
 # Install Python dependencies
