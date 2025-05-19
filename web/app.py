@@ -26,7 +26,12 @@ load_dotenv()
 IS_LOCAL = os.getenv("FLASK_ENV") == "development"
 
 
-app = Flask(__name__)
+app = Flask(
+    __name__,
+    template_folder="templates",      # templates already live here
+    static_folder="../static"         # tell Flask where static files really are
+)
+
 app.secret_key = os.environ.get("SECRET_KEY")
 app.config['FACEBOOK_PIXEL_ID'] = os.getenv('FACEBOOK_PIXEL_ID')
 
