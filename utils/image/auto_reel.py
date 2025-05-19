@@ -160,7 +160,7 @@ Rules:
 
 
 # ── HTML SLIDE WRITER ──────────────────────────────────────────────
-def write_slide(text: str, filename: str, *, fontsize: int = 80, layout: str = "headline", slide_number: str = ""):
+def write_slide(text: str, filename: str, *, fontsize: int = 80, layout: str = "headline", slide_number: str = "", background_color: str = "#f7f4b2"):
     if layout == "teaser":
         align_css = "align-items: center; justify-content: flex-start; padding-top: 150px;"
         font_weight = "normal"
@@ -192,7 +192,7 @@ def write_slide(text: str, filename: str, *, fontsize: int = 80, layout: str = "
         padding: 0;
         width: 1080px;
         height: 1920px;
-        background: #f7f4b2;
+        background: {background_color};
         font-family: 'Patrick Hand', cursive;
         display: flex;
         justify-content: center;
