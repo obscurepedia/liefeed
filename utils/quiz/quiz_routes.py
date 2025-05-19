@@ -62,7 +62,7 @@ def quiz_question():
         return redirect(url_for("quiz.quiz_start"))
 
     question = quiz_data[index]
-    return render_template("quiz_question.html", index=index + 1, question=question, total=len(quiz_data))
+    return render_template("quiz_question.html", index=index + 1, question=question, total=len(quiz_data), pixel_id=current_app.config.get('FACEBOOK_PIXEL_ID', ''))
 
 
 
