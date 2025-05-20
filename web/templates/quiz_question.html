@@ -11,18 +11,25 @@
 {% endif %}
 
 <div class="quiz-wrapper">
-    <div class="quiz-container">
-        <div class="progress-bar">
-            <div class="progress" style="width: {{ (index / total) * 100 }}%;"></div>
-        </div>
-
-        <h1>Question {{ index }} of {{ total }}</h1>
-        <p class="quiz-headline">🧠 {{ question.headline }}</p>
-
-        <form method="POST">
-            <button type="submit" name="answer" value="real" class="quiz-button green">✅ Real</button>
-            <button type="submit" name="answer" value="fake" class="quiz-button red">❌ Fake</button>
-        </form>
+  <div class="quiz-container">
+    <div class="progress-bar">
+      <div class="progress" style="width: {{ (index / total) * 100 }}%;"></div>
     </div>
+
+    <h1>Question {{ index }} of {{ total }}</h1>
+    <p class="quiz-headline">🧠 {{ question.headline }}</p>
+    <p style="font-size: 0.95em; color: #666; margin-top: -10px; margin-bottom: 20px;">
+      Real? Fake? Honestly, even we had to double-check.
+    </p>
+
+    <form method="POST">
+      <button type="submit" name="answer" value="real" class="quiz-button green">✅ Real</button>
+      <button type="submit" name="answer" value="fake" class="quiz-button red">❌ Fake</button>
+    </form>
+
+    <p style="font-size: 0.85em; color: #888; margin-top: 25px;">
+      Careful… some of these were written by real journalists.
+    </p>
+  </div>
 </div>
 {% endblock %}

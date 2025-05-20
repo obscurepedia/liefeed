@@ -9,22 +9,34 @@
 </script>
 
 <div class="quiz-wrapper">
-    <div class="quiz-container quiz-intro">
-        <div class="quiz-container__icon">🧠</div>
-        <h1 class="quiz-container__title">Can You Tell Real From Fake News?</h1>
-        <div class="quiz-container__text">
-            Take the internet’s most deceptive quiz.<br>
-            Most people get it wrong.<br>
-            Can you spot the fakes?<br>
-            <br>
-            <span style="font-size: 0.9em; color: #777;">
-                You’ll be asked for your name & email halfway through<br>
-                to unlock your final score and a custom certificate.
-            </span>
-        </div>
-        <a href="{{ url_for('quiz.quiz_question') }}" class="quiz-button start-button">
-            🎯 Start the Quiz
-        </a>
+  <div class="quiz-container quiz-intro">
+    <div class="quiz-container__icon">🧠</div>
+    <h1 class="quiz-container__title">Can You Outsmart the Internet?</h1>
+    
+    <div class="quiz-container__text">
+      Take the web’s most deceptive quiz.<br>
+      Most people fail — will you?<br>
+      <br>
+      ✅ 5 headlines. Real or fake?<br>
+      ✅ Get a custom certificate.<br>
+      ✅ Beat your friends' scores.<br>
+      <br>
+      <span style="font-size: 0.9em; color: #777;">
+        We’ll ask for your name & email after question 3<br>
+        so we can calculate your score, crown your ego,<br>
+        and email you a glorious certificate you’ll be proud to show your friends.
+      </span>
     </div>
+
+    <a href="{{ url_for('quiz.quiz_question') }}" class="quiz-button start-button">
+      🎯 Take the Quiz Now
+    </a>
+
+    <p style="margin-top: 15px; font-size: 0.85em; color: #999;">
+    Most people are getting it wrong.<br>
+    Think you can beat the average?
+    </p>
+
+  </div>
 </div>
 {% endblock %}

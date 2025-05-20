@@ -14,27 +14,27 @@
   <!-- Score Section -->
   <div class="result-frame">
     <h1 class="result-heading">Your Results</h1>
-    <p class="result-score">You scored <strong>5</strong> out of <strong>8</strong>.</p>
+    <p class="result-score">You scored <strong>{{ score }}</strong> out of <strong>{{ total }}</strong>.</p>
     <div class="result-feedback">
-      😅 You're halfway to news mastery. Maybe read LieFeed more often?
+      {{ result_feedback }}
     </div>
   </div>
 
   <!-- Certificate / Feedback Section -->
   <div class="result-frame">
     <div class="certificate-msg">
-      🎓 Your certificate is on its way!<br>
+      🎓 Your certificate is being emailed as we speak.<br>
       Check your inbox (and maybe your spam folder).<br>
-      Thanks for playing — you did great.
+      Brag responsibly.
     </div>  
   </div>
 
   <!-- Share Section -->
   <div class="result-frame">
     <h3>📣 Share Your Score</h3>
-    <p>Think your friends can beat your score?</p>
+    <p>Think your friends can beat you? (They probably can’t.)</p>
     <a class="quiz-button blue" target="_blank"
-       href="https://twitter.com/intent/tweet?text=I+just+scored+5+out+of+8+on+the+%23LieFeed+Fake+News+Quiz.+Can+you+beat+me%3F+Take+it+here+👉+https%3A%2F%2Fliefeed.com%2Fquiz%2Fstart">
+       href="https://twitter.com/intent/tweet?text=I+just+scored+{{ score }}+out+of+{{ total }}+on+the+%23LieFeed+Fake+News+Quiz.+Can+you+beat+me%3F+Take+it+here+👉+https%3A%2F%2Fliefeed.com%2Fquiz%2Fstart">
       Share on X (Twitter)
     </a>
     <a class="quiz-button blue" target="_blank"
@@ -46,7 +46,7 @@
   <!-- Forward Section -->
   <div class="result-frame">
     <h3>✉️ Forward to a Friend</h3>
-    <p>Know someone who’d love this quiz?</p>
+    <p>Know someone who thinks they’re a human lie detector?</p>
     <a href="mailto:?subject=Try%20the%20LieFeed%20Fake%20News%20Quiz&body=Hey!%20Try%20this+quiz:+https://liefeed.com/quiz/start"
        class="quiz-button green">Send via Email</a>
   </div>
