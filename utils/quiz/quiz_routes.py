@@ -113,8 +113,22 @@ def quiz_email_capture():
     return render_template("quiz_email.html")
 
 
-
-
+# Satirical feedback based on score
+def get_result_feedback(score, total):
+    if score == 0:
+        return "😬 You might be a goldfish with a TikTok addiction."
+    elif score == 1:
+        return "😵 You're not gullible… you're just too trusting. Bless."
+    elif score == 2:
+        return "🤷 Some hits, some misses. Journalism is hard."
+    elif score == 3:
+        return "🧐 You're suspicious of everything — we respect that."
+    elif score == 4:
+        return "🎯 Nicely done. You've got a nose for nonsense."
+    elif score == total:
+        return "🧠 Perfect score! Are you an AI in disguise?"
+    else:
+        return "📡 Solid effort. Just don't believe everything with a headline."
 
 @quiz_bp.route("/quiz/results", methods=["GET"])
 def quiz_results():
@@ -158,13 +172,17 @@ def quiz_results():
             pdf_path=pdf_path
         )
 
+    result_feedback = get_result_feedback(correct, len(quiz_data))
+
     return render_template(
         "quiz_results.html",
         score=correct,
         total=len(quiz_data),
         name=name,
-        pixel_id = current_app.config.get('FACEBOOK_PIXEL_ID', '')
+        result_feedback=result_feedback,
+        pixel_id=current_app.config.get('FACEBOOK_PIXEL_ID', '')
     )
+
 
 
 
