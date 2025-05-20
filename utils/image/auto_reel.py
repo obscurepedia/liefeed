@@ -3,6 +3,7 @@ import time
 import mimetypes
 import random
 
+
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
@@ -12,7 +13,7 @@ from utils.image.image_generator import generate_image_from_prompt, s3_client
 from openai import OpenAI
 from datetime import datetime, timezone
 from utils.database.db import get_connection
-
+from PIL import Image
 
 
 # ── CONFIG ─────────────────────────────────────────────────────────
@@ -159,6 +160,18 @@ Rules:
     return resp.choices[0].message.content.strip()
 
 
+
+def ensure_exact_1080x1920(image_path: Path):
+    try:
+        with Image.open(image_path) as img:
+            if img.size != (1080, 1920):
+                print(f"🛠️ Resizing {image_path.name} from {img.size} to (1080, 1920)")
+                img = img.resize((1080, 1920), Image.LANCZOS)
+                img.save(image_path)
+    except Exception as e:
+        print(f"❌ Failed to resize {image_path.name}: {e}")
+
+
 # ── HTML SLIDE WRITER ──────────────────────────────────────────────
 def write_slide(text: str, filename: str, *, fontsize: int = 80, layout: str = "headline", slide_number: str = "", background_color: str = "#f7f4b2"):
     if layout == "teaser":
@@ -247,25 +260,57 @@ async def render_html_to_png(html_file: str, png_file: str):
 
 def stitch_slides(slides: list[str], music: Path, output: str):
     args = []
-    filters = []
+    filter_parts = []
+    input_count = len(slides)
+
+    duration = 4  # seconds each slide is on screen
+    transition = 1  # duration of each fade
 
     for idx, slide in enumerate(slides):
         slide_path = str(SLIDE_DIR / slide)
-        args += ["-loop", "1", "-t", "4", "-i", slide_path]
-        filters.append(f"[{idx}:v]scale=1080:1920,setsar=1[v{idx}]")
+        args += ["-loop", "1", "-t", str(duration + transition), "-i", slide_path]
 
-    # Combine all video inputs
-    filter_complex = "; ".join(filters) + f"; {' '.join([f'[v{i}]' for i in range(len(slides))])}concat=n={len(slides)}:v=1:a=0[outv]"
+    args += ["-i", str(music)]  # Add background music
+
+    # Ensure input images are scaled *before* transitions
+    for idx in range(input_count):
+        zoom_filter = ""
+        if idx == 1:
+            # Apply zoom only to slide 2
+            zoom_filter = ",zoompan=z='min(zoom+0.0005,1.1)':d=125:s=1080x1920"
+        filter_parts.append(
+            f"[{idx}:v]scale=1080:1920,format=rgba,setpts=PTS-STARTPTS{zoom_filter}[v{idx}]"
+        )
+
+    # Create xfade sequence
+    xfade_parts = []
+    for i in range(input_count - 1):
+        input_a = f"[v{i}]" if i == 0 else f"[xf{i-1}]"
+        input_b = f"[v{i+1}]"
+        tag = f"[xf{i}]"
+        offset = duration * (i + 1)
+        xfade_parts.append(
+            f"{input_a}{input_b}xfade=transition=fade:duration={transition}:offset={offset}{tag}"
+        )
+
+    filter_complex = "; ".join(filter_parts + xfade_parts)
+    final_video = f"[xf{input_count - 2}]" if input_count >= 2 else "[v0]"
 
     cmd = [
-        "ffmpeg", "-y", *args, "-i", str(music),
+        "ffmpeg", "-y", *args,
         "-filter_complex", filter_complex,
-        "-map", "[outv]", "-map", f"{len(slides)}:a",
-        "-c:v", "libx264", "-preset", "veryfast", "-crf", "23", "-pix_fmt", "yuv420p",
-        "-c:a", "aac", "-b:a", "128k", "-shortest", output
+        "-map", final_video,
+        "-map", f"{input_count}:a",
+        "-c:v", "libx264", "-preset", "veryfast", "-crf", "23",
+        "-pix_fmt", "yuv420p", "-r", "30", "-movflags", "+faststart",
+        "-c:a", "aac", "-b:a", "128k",
+        "-shortest", output
     ]
 
     subprocess.run(cmd, check=True)
+
+
+
 
 def save_reel_to_database(caption, s3_key):
     """
@@ -303,6 +348,15 @@ async def main():
         str(slide2_path),      # write directly here
         mode="reel"
     )
+    # Wait briefly to ensure image is fully written
+    time.sleep(1)
+    # Force resize if needed
+    ensure_exact_1080x1920(slide2_path)
+
+    # Log final size to confirm
+    with Image.open(slide2_path) as img:
+         print(f"📏 Final image size for slide2: {img.size}")
+
 
     # ✅ Check if slide was actually created
     if not slide2_path.exists():
@@ -357,7 +411,7 @@ async def main():
     print(f"📤 Uploaded reel to S3: {reel_url}")
     
     # Save to DB
-    full_url = f"https://liefeed.com/posts/{post['slug']}"
+    full_url = f"https://liefeed.com/post/{post['slug']}"
     caption_with_link = f"{cta_only}\n\nRead more 👉 {full_url}"
     save_reel_to_database(caption_with_link, S3_REEL_KEY)
     print(f"✅ Reel created and saved to database.")
