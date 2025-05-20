@@ -1,8 +1,11 @@
 import os
+import sys
 import requests
 from datetime import date
 from dotenv import load_dotenv
 from utils.database.db import get_connection
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 # Load environment variables
 load_dotenv()
