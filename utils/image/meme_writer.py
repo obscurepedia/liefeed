@@ -73,12 +73,17 @@ def insert_meme(caption, image_url):
     conn.close()
 
 def generate_and_post_meme():
-    articles = fetch_google_news()
+    # Randomly select from safe, fun categories
+    categories = ["weird", "science", "tech", "entertainment", "lifestyle"]
+    selected_category = random.choice(categories)
+    print(f"🗞️ Fetching memes from category: {selected_category}")
+
+    articles = fetch_google_news(selected_category)
     if not articles:
         print("❌ No news articles found.")
         return
 
-    # Filter out sensitive and political content
+    # Filter out sensitive content (in addition to OpenAI filtering inside fetcher)
     articles = [a for a in articles if not is_sensitive(a["title"], a["summary"])]
 
     if not articles:
@@ -106,6 +111,3 @@ def generate_and_post_meme():
 
     except Exception as e:
         print(f"❌ Meme generation failed: {e}")
-
-if __name__ == "__main__":
-    generate_and_post_meme()

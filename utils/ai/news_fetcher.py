@@ -32,9 +32,27 @@ def is_sensitive_topic(title, summary):
         return False  # Assume safe if an error occurs
 
 def fetch_google_news(category="politics", max_items=5):
-    query = f"{category} site:bbc.com OR site:cnn.com OR site:nytimes.com"
+    CATEGORY_SITES = {
+        "tech": ["theverge.com", "techcrunch.com", "wired.com"],
+        "weird": ["mirror.co.uk", "nypost.com", "odditycentral.com", "ladbible.com", "dailystar.co.uk"],
+        "science": ["livescience.com", "newscientist.com", "phys.org"],
+        "food": ["eater.com", "delish.com", "foodandwine.com"],
+        "travel": ["cntraveler.com", "lonelyplanet.com"],
+        "entertainment": ["buzzfeed.com", "vulture.com", "avclub.com"],
+        "lifestyle": ["huffpost.com", "mindbodygreen.com", "wellandgood.com"],
+        "sports": ["espn.com", "bleacherreport.com"],
+        "business": ["marketwatch.com", "forbes.com", "businessinsider.com"],
+        # Default fallback if category is unrecognized
+        "default": ["bbc.com", "cnn.com", "nytimes.com"]
+    }
+
+    # Get list of sites for this category or fallback to default
+    sites = CATEGORY_SITES.get(category.lower(), CATEGORY_SITES["default"])
+    site_query = " OR ".join(f"site:{site}" for site in sites)
+    query = f"{category} {site_query}"
     rss_url = f"https://news.google.com/rss/search?q={query.replace(' ', '+')}&hl=en-US&gl=US&ceid=US:en"
 
+    print(f"📰 Fetching Google News RSS: {rss_url}")
     feed = feedparser.parse(rss_url)
     articles = []
 
@@ -54,4 +72,5 @@ def fetch_google_news(category="politics", max_items=5):
             break
 
     return articles
+
 
