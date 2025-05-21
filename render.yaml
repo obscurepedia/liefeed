@@ -187,7 +187,7 @@ services:
     autoDeploy: true
     schedule: "0 2,10,18 * * *"  # ✅ Runs at 2 AM, 10 AM, and 6 PM
     buildCommand: pip install -r requirements.txt
-    startCommand: python -m utils.email.send_subscriber_summary
+    command: python -m utils.email.send_subscriber_summary
     buildFilter:
       paths:
         - Dockerfile
