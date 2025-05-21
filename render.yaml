@@ -180,3 +180,23 @@ services:
       - key: RUN_TARGET
         value: trigger-daily-reel
 
+  - type: cron
+    name: subscriber-summary
+    runtime: docker
+    plan: starter
+    autoDeploy: true
+    schedule: "0 2,10,18 * * *"  # ✅ Runs at 2 AM, 10 AM, and 6 PM
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m utils.email.send_subscriber_summary
+    buildFilter:
+      paths:
+        - Dockerfile
+        - render.yaml
+        - requirements.txt
+        - utils/email/send_subscriber_summary.py
+        - utils/email/email_sender.py
+        - utils/database/db.py
+    envVars:
+      - fromGroup: shared-env
+
+

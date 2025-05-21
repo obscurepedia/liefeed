@@ -38,6 +38,7 @@ for user_id, email in users:
             cursor.execute("""
                 UPDATE subscribers
                 SET is_active = FALSE
+                    unsubscribed_at = NOW()
                 WHERE id = %s
             """, (user_id,))
             print(f"⚠️ Deactivated: {email} ({status})")
