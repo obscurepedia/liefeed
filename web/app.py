@@ -19,6 +19,10 @@ from utils.database.db import unsubscribe_email  # we'll add this below
 from utils.email.email_sender import send_email
 from utils.email.email_reader import fetch_parsed_emails, fetch_email_by_key
 
+from openai import OpenAI
+
+# Load OpenAI API key from environment
+openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -267,8 +271,8 @@ def logout():
 
 
 
-@app.route("/ad-tracker", methods=["GET", "POST"])
-def ad_tracker():
+@app.route("/data-tracker", methods=["GET", "POST"])
+def data_tracker():
     if not session.get("inbox_auth"):
         abort(401)
 
@@ -282,19 +286,35 @@ def ad_tracker():
         clicks = request.form.get("clicks")
         leads = request.form.get("leads")
         notes = request.form.get("notes")
+        reach = request.form.get("reach")
+        frequency = request.form.get("frequency")
+        campaign_name = request.form.get("campaign_name")
 
         c.execute("""
-            INSERT INTO ad_metrics (date, spend, impressions, clicks, leads, notes)
-            VALUES (%s, %s, %s, %s, %s, %s)
+            INSERT INTO ad_metrics (date, spend, impressions, clicks, leads, notes, reach, frequency, campaign_name)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (date) DO UPDATE SET
               spend = EXCLUDED.spend,
               impressions = EXCLUDED.impressions,
               clicks = EXCLUDED.clicks,
               leads = EXCLUDED.leads,
-              notes = EXCLUDED.notes
-        """, (form_date, spend or None, impressions or None, clicks or None, leads or None, notes))
+              notes = EXCLUDED.notes,
+              reach = EXCLUDED.reach,
+              frequency = EXCLUDED.frequency,
+              campaign_name = EXCLUDED.campaign_name
+        """, (
+            form_date,
+            spend or None,
+            impressions or None,
+            clicks or None,
+            leads or None,
+            notes,
+            reach or None,
+            frequency or None,
+            campaign_name,
+        ))
         conn.commit()
-        return redirect(url_for("ad_tracker"))
+        return redirect(url_for("data_tracker"))
 
     c.execute("SELECT * FROM ad_metrics ORDER BY date DESC")
     rows = c.fetchall()
@@ -305,9 +325,15 @@ def ad_tracker():
         try:
             spend = float(row["spend"]) if row["spend"] else 0
             leads = int(row["leads"]) if row["leads"] else 0
+            clicks = int(row["clicks"]) if row["clicks"] else 0
+            impressions = int(row["impressions"]) if row["impressions"] else 0
+
             cpl = round(spend / leads, 2) if spend and leads else None
+            ctr = round(clicks / impressions * 100, 2) if clicks and impressions else None
+            cpc = round(spend / clicks, 2) if spend and clicks else None
+            conversion_rate = round(leads / clicks * 100, 2) if leads and clicks else None
         except:
-            cpl = None
+            cpl = ctr = cpc = conversion_rate = None
 
         processed_rows.append({
             "date": row["date"],
@@ -316,11 +342,61 @@ def ad_tracker():
             "clicks": row["clicks"],
             "leads": row["leads"],
             "notes": row["notes"],
-            "cpl": cpl
+            "reach": row["reach"],
+            "frequency": row["frequency"],
+            "campaign_name": row["campaign_name"],
+            "cpl": cpl,
+            "ctr": ctr,
+            "cpc": cpc,
+            "conversion_rate": conversion_rate
         })
 
-    return render_template("ad_tracker.html", rows=processed_rows, date=date)
+    return render_template("data_tracker.html", rows=processed_rows, date=date)
 
+@app.route("/analyze-data", methods=["POST"])
+def analyze_data():
+    if not session.get("inbox_auth"):
+        abort(401)
+
+    conn = get_connection()
+    c = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    c.execute("SELECT * FROM ad_metrics ORDER BY date DESC LIMIT 30")
+    rows = c.fetchall()
+    conn.close()
+
+    data = []
+    for row in rows:
+        data.append({
+            "date": str(row["date"]),
+            "spend": row["spend"],
+            "impressions": row["impressions"],
+            "clicks": row["clicks"],
+            "leads": row["leads"],
+            "reach": row["reach"],
+            "frequency": row["frequency"],
+            "campaign_name": row["campaign_name"],
+            "notes": row["notes"],
+        })
+
+    prompt = (
+        "Analyze the following Facebook ad data and provide insights:\n"
+        "1. What is the data showing?\n"
+        "2. What improvements or changes should be made?\n\n"
+        f"{data}"
+    )
+
+    # Use your existing client style
+    response = openai_client.chat.completions.create(
+        model="gpt-4",
+        messages=[
+            {"role": "system", "content": "You are a digital marketing analyst."},
+            {"role": "user", "content": prompt}
+        ]
+    )
+
+    analysis = response.choices[0].message.content
+
+    return render_template("ai_analysis.html", analysis=analysis)
 
 
 

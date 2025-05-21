@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>🧠 AI Analysis Report</h1>
+<pre style="white-space: pre-wrap;">{{ analysis }}</pre>
+<a href="{{ url_for('data_tracker') }}">← Back to Data Tracker</a>
+{% endblock %}

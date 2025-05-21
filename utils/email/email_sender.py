@@ -1,5 +1,8 @@
-import boto3
 import os
+from dotenv import load_dotenv
+load_dotenv()  # ✅ MAKE SURE THIS IS CALLED HERE
+
+import boto3
 from botocore.exceptions import ClientError
 import mimetypes
 from email.mime.multipart import MIMEMultipart

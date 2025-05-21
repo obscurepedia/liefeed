@@ -54,7 +54,7 @@ services:
   - type: web
     name: liefeed
     runtime: docker
-    plan: starter
+    plan: standard
     autoDeploy: true
     envVars:
       - fromGroup: shared-env
