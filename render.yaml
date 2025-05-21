@@ -185,18 +185,19 @@ services:
     runtime: docker
     plan: starter
     autoDeploy: true
-    schedule: "0 2,10,18 * * *"  # ✅ Runs at 2 AM, 10 AM, and 6 PM
+    schedule: "0 2,10,18 * * *"
     buildCommand: pip install -r requirements.txt
-    command: python -m utils.email.send_subscriber_summary
     buildFilter:
       paths:
         - Dockerfile
-        - render.yaml
+        -  render.yaml
         - requirements.txt
         - utils/email/send_subscriber_summary.py
         - utils/email/email_sender.py
         - utils/database/db.py
+        - cron/send_subscriber_summary_runner.py   # ✅ Include this
     envVars:
       - fromGroup: shared-env
+
 
 
