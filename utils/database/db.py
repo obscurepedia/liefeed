@@ -132,7 +132,7 @@ def save_subscriber(email, name="", quiz_score=None, quiz_total=None):
 def unsubscribe_email(email):
     conn = get_connection()
     c = conn.cursor()
-    c.execute("UPDATE subscribers SET subscribed = FALSE WHERE email = %s", (email,))
+    c.execute("UPDATE subscribers SET is_active = FALSE WHERE email = %s", (email,))
     conn.commit()
     success = c.rowcount > 0
     conn.close()
