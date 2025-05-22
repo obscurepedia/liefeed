@@ -52,7 +52,7 @@ def home():
     posts = fetch_all_posts()
     featured_post = posts[0] if posts else None
     recent_posts = posts[1:25] if len(posts) > 1 else []
-    trending_posts = get_random_posts(limit=5)
+    trending_posts = get_random_posts(limit=5)  # ✅ uses only last 25
 
     return render_template(
         "home.html",
@@ -60,6 +60,7 @@ def home():
         posts=recent_posts,
         trending=trending_posts
     )
+
 
 
 @app.route("/post/<slug>")
@@ -153,9 +154,8 @@ def author_profile(slug):
 
 
 def get_random_posts(limit=5):
-    posts = fetch_all_posts()
+    posts = fetch_all_posts()[:25]  # ✅ limits to first 25 posts
     return random.sample(posts, min(limit, len(posts)))
-
 
 
 @unsubscribe_bp.route("/unsubscribe/<token>")

@@ -2,11 +2,15 @@ from flask import Blueprint, render_template, request, session, redirect, url_fo
 import random
 import os
 import requests
+import time
+import hashlib
+
 from dotenv import load_dotenv
 
 from utils.database.db import fetch_all_posts, save_subscriber
 from utils.email.certificate import generate_certificate
 from utils.email.email_sender import send_certificate_email_with_attachment
+from utils.facebook.conversions import send_fb_lead_event
 from flask import flash
 
 load_dotenv()
@@ -87,9 +91,21 @@ def quiz_email_capture():
         session["email"] = email
         session["name"] = name
         session["email_submitted"] = True
+
+        # ✅ Generate event_id using hashed email + timestamp
+        raw_id = f"{email.lower().strip()}-{int(time.time())}"
+        event_id = hashlib.sha256(raw_id.encode()).hexdigest()[:16]  # Shorten for readability
+
+        # Save to session so Pixel can access it in template
+        session["fb_event_id"] = event_id
+
+        # Send to Facebook CAPI with event_id
+        send_fb_lead_event(email, event_id=event_id)
+
         return redirect(url_for("quiz.quiz_question", fb_lead="1"))
 
     return render_template("quiz_email.html")
+
 
 
 

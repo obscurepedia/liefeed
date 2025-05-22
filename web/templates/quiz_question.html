@@ -10,14 +10,18 @@
 </script>
 {% endif %}
 
-{% if request.args.get('fb_lead') %}
+{% if request.args.get('fb_lead') and session.fb_event_id %}
 <script>
   if (typeof fbq === 'function') {
-    fbq('track', 'Lead'); // Fires Facebook Lead pixel
-    fbq('trackCustom', 'QuizEmailSubmitted'); // Optional: for custom audience refinement
+    fbq('track', 'Lead', {
+      eventID: '{{ session.fb_event_id }}'
+    });
+    fbq('trackCustom', 'QuizEmailSubmitted');
+    console.log("📡 Pixel Lead event sent with eventID: {{ session.fb_event_id }}");
   }
 </script>
 {% endif %}
+
 
 <div class="quiz-wrapper">
   <div class="quiz-container">
