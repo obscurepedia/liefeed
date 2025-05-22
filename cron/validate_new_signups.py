@@ -37,7 +37,7 @@ for user_id, email in users:
         if status != "safe" or not is_safe:
             cursor.execute("""
                 UPDATE subscribers
-                SET is_active = FALSE
+                SET is_active = FALSE,
                     unsubscribed_at = NOW()
                 WHERE id = %s
             """, (user_id,))
