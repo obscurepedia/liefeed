@@ -190,14 +190,17 @@ services:
     buildFilter:
       paths:
         - Dockerfile
-        -  render.yaml
+        - render.yaml
         - requirements.txt
         - utils/email/send_subscriber_summary.py
         - utils/email/email_sender.py
         - utils/database/db.py
-        - cron/send_subscriber_summary_runner.py   # ✅ Include this
+        - cron/send_subscriber_summary_runner.py
     envVars:
       - fromGroup: shared-env
+      - key: RUN_TARGET
+        value: subscriber-summary
+
 
 
 
