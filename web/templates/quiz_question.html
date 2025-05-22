@@ -10,6 +10,15 @@
 </script>
 {% endif %}
 
+{% if request.args.get('fb_lead') %}
+<script>
+  if (typeof fbq === 'function') {
+    fbq('track', 'Lead'); // Fires Facebook Lead pixel
+    fbq('trackCustom', 'QuizEmailSubmitted'); // Optional: for custom audience refinement
+  }
+</script>
+{% endif %}
+
 <div class="quiz-wrapper">
   <div class="quiz-container">
     <div class="progress-bar">

@@ -7,69 +7,83 @@ def generate_newsletter_html(posts, recipient_email, satirical_spin):
     featured_post = posts[0]
     more_posts = posts[1:5]
 
-    html = f"""
-    <html>
-    <body style="font-family: Arial, sans-serif; padding: 30px; background-color: #f9f9f9; color: #333;">
-        <div style="max-width: 600px; margin: auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.05);">
+    # Create the table-based rows for the additional posts
+    more_posts_rows = ""
+    for post in more_posts:
+        if post.get("image"):
+            image_html = f"<td width='60' valign='top'><img src='{post['image']}' alt='Thumbnail' width='60' height='60' style='display:block; border-radius:4px;'></td>"
+        else:
+            image_html = ""
 
-            <img src="https://liefeed.com/static/logo.png" alt="LieFeed Logo" style="max-width: 180px; display: block; margin: 0 auto 10px auto;">
-            <p style="text-align: center; font-size: 20px; color: #555; margin-bottom: 20px; font-weight: 500;">
-                Today’s Made-Up Headlines, Delivered Fresh.
-            </p>
+        more_posts_rows += f"""
+        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 15px;">
+          <tr>
+            {image_html}
+            <td valign="middle" style="padding-left: 10px;">
+              <a href="https://liefeed.com/{post['slug']}" style="font-size: 16px; color: #0077cc; text-decoration: none;">{post['title']}</a>
+            </td>
+          </tr>
+        </table>
+        """
 
-            <h2 style="color: #d32f2f; margin-bottom: 10px;">{featured_post['title']}</h2>
+    html = f"""\
+<html>
+  <body style="margin: 0; padding: 0; background-color: #f9f9f9;">
+    <center>
+      <table width="600" border="0" cellspacing="0" cellpadding="0" style="border-collapse: collapse; background: #ffffff; margin: 30px auto; font-family: Arial, sans-serif; color: #333;">
+        <tr>
+          <td align="center" style="padding: 30px;">
+            <img src="https://liefeed.com/static/logo.png" alt="LieFeed Logo" width="180" style="display: block; border: 0; margin-bottom: 20px;">
+            <p style="font-size: 20px; color: #555; font-weight: 500; margin: 0 0 20px 0;">Today’s Made-Up Headlines, Delivered Fresh.</p>
+
+            <h2 style="color: #d32f2f; font-size: 22px; margin: 0 0 10px 0;">{featured_post['title']}</h2>
     """
 
     if featured_post.get('image'):
         html += f"""
-            <img src="{featured_post['image']}" alt="Featured Image" style="width: 100%; max-height: 300px; object-fit: cover; border-radius: 5px; margin: 15px 0;">
+            <img src="{featured_post['image']}" alt="Featured Image" width="540" height="300" style="display: block; border-radius: 5px; margin: 15px 0;">
         """
 
-    html += featured_post['content']  # Already paragraph-formatted in the sender script
-
     html += f"""
+            <div style="font-size: 15px; line-height: 1.6;">
+              {featured_post['content']}
+            </div>
+
             <p style="margin-top: 20px;">
-                👉 <a href="https://liefeed.com/{featured_post['slug']}" style="color: #0077cc;">Read it on LieFeed</a>
+              👉 <a href="https://liefeed.com/{featured_post['slug']}" style="color: #0077cc;">Read it on LieFeed</a>
             </p>
 
-            <hr style="margin: 30px 0;">
+            <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
 
-            <h3>🗞️ More News You May Have Missed</h3>
-            <ul style="list-style-type: none; padding: 0;">
-    """
+            <h3 style="margin-bottom: 10px;">🗞️ More News You May Have Missed</h3>
 
-    for post in more_posts:
-        html += f"<li style='margin: 15px 0; display: flex; align-items: center;'>"
-        if post.get("image"):
-            html += f"<img src='{post['image']}' alt='Thumbnail' style='width: 60px; height: 60px; object-fit: cover; margin-right: 10px; border-radius: 4px;'>"
-        html += f"<a href='https://liefeed.com/{post['slug']}' style='text-decoration: none; color: #0077cc; font-size: 16px;'>{post['title']}</a></li>"
+            {more_posts_rows}
 
-    html += f"""
-            </ul>
+            <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
 
-            <hr style="margin: 30px 30px;">
-
-            <h3>🤡 This Week’s Satirical Spin</h3>
+            <h3 style="margin-bottom: 10px;">🤡 This Week’s Satirical Spin</h3>
             <blockquote style="font-style: italic; font-size: 15px; color: #555; border-left: 4px solid #ccc; padding-left: 10px; margin: 10px 0;">
-                {satirical_spin}
+              {satirical_spin}
             </blockquote>
 
             <div style="text-align: center; margin-top: 30px;">
-                <a href="https://facebook.com/liefeed" target="_blank" style="margin: 0 10px;">
-                    <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" style="width: 24px; height: 24px;">
-                </a>
-                <a href="https://x.com/liefeed" target="_blank" style="margin: 0 10px;">
-                    <img src="https://cdn-icons-png.flaticon.com/512/5968/5968958.png" alt="Twitter" style="width: 24px; height: 24px;">
-                </a>
+              <a href="https://facebook.com/liefeed" target="_blank" style="margin: 0 10px;">
+                <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" width="24" height="24" style="display: inline-block;">
+              </a>
+              <a href="https://x.com/liefeed" target="_blank" style="margin: 0 10px;">
+                <img src="https://cdn-icons-png.flaticon.com/512/5968/5968958.png" alt="Twitter" width="24" height="24" style="display: inline-block;">
+              </a>
             </div>
 
             <p style="font-size: 12px; color: #888; text-align: center; margin-top: 40px;">
-                You're receiving this because you subscribed to LieFeed.<br>
-                <a href="{unsubscribe_url}" style="color: #999;">Unsubscribe</a> if satire makes you uncomfortable.
+              You're receiving this because you subscribed to LieFeed.<br>
+              <a href="{unsubscribe_url}" style="color: #999;">Unsubscribe</a> if satire makes you uncomfortable.
             </p>
-
-        </div>
-    </body>
-    </html>
-    """
+          </td>
+        </tr>
+      </table>
+    </center>
+  </body>
+</html>
+"""
     return html

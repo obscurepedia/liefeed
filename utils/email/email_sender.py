@@ -41,12 +41,14 @@ def send_email(recipient, subject, html_body, text_body=None):
                         'Charset': 'UTF-8'
                     }
                 }
-            }
+            },
+            ConfigurationSetName='LieFeedTracking'  # ✅ Enables open & click tracking
         )
         return response
     except ClientError as e:
         print("❌ SES Error:", e.response['Error']['Message'])
         return None
+
 
 def send_certificate_email_with_attachment(recipient, subject, html_body, pdf_path):
     # Construct raw email

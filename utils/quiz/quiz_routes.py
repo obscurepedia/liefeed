@@ -7,16 +7,11 @@ from dotenv import load_dotenv
 from utils.database.db import fetch_all_posts, save_subscriber
 from utils.email.certificate import generate_certificate
 from utils.email.email_sender import send_certificate_email_with_attachment
-from disposable_email_domains import blocklist
 from flask import flash
 
 load_dotenv()
 REOON_API_KEY = os.getenv("REOON_API_KEY")
 
-ROLE_BASED_PREFIXES = {
-    "admin", "support", "info", "contact", "sales", "help",
-    "office", "team", "billing", "noreply", "no-reply"
-}
 
 quiz_bp = Blueprint("quiz", __name__)
 
@@ -72,21 +67,6 @@ def quiz_email_capture():
         email = request.form.get("email")
         name = request.form.get("name", "").strip() or "Quiz Taker"
 
-        if not email or "@" not in email:
-            flash("Please enter a valid email address.")
-            return redirect(url_for("quiz.quiz_email_capture"))
-
-        domain = email.split("@")[-1].lower()
-        prefix = email.split("@")[0].split("+")[0].lower()  # remove Gmail-style tags like john+tag@
-
-        if domain in blocklist:
-            flash("Please use a real email address, not a temporary one.")
-            return redirect(url_for("quiz.quiz_email_capture"))
-
-        if prefix in ROLE_BASED_PREFIXES:
-            flash("Please use a personal email address, not a generic one like admin@ or info@.")
-            return redirect(url_for("quiz.quiz_email_capture"))
-
         # ✅ Reoon QUICK mode validation
         try:
             reoon_url = (
@@ -106,11 +86,11 @@ def quiz_email_capture():
 
         session["email"] = email
         session["name"] = name
-        session["email_submitted"] = True  # ✅ NEW FLAG
-        return redirect(url_for("quiz.quiz_question"))
-        
+        session["email_submitted"] = True
+        return redirect(url_for("quiz.quiz_question", fb_lead="1"))
 
     return render_template("quiz_email.html")
+
 
 
 # Satirical feedback based on score
