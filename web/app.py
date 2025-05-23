@@ -1,46 +1,47 @@
-from flask import Flask, render_template, request, abort, flash, redirect, url_for, Blueprint, session, abort
-from markupsafe import Markup
-from urllib.parse import unquote
-from datetime import date
-
-import markdown
-import random
+# === Standard Library ===
 import os
-import boto3
-import psycopg2.extras
+import random
 import subprocess
+from datetime import datetime, date
+from io import BytesIO
+from urllib.parse import unquote
 
+# === Third-Party Libraries ===
+from flask import (
+    Flask, render_template, request, abort, flash, redirect,
+    url_for, Blueprint, session, send_file
+)
+from markupsafe import Markup
+import markdown
+import boto3
+import psycopg2
+import psycopg2.extras
+from dotenv import load_dotenv
+from openai import OpenAI
 
-from utils.database.db import fetch_all_posts, fetch_post_by_slug, fetch_posts_by_category, get_connection
+# === Local Modules ===
+from utils.database.db import (
+    fetch_all_posts, fetch_post_by_slug, fetch_posts_by_category,
+    get_connection, unsubscribe_email
+)
 from utils.ai.ai_team import ai_team
 from utils.email.email_sender import send_email
 from utils.database.token_utils import decode_unsubscribe_token
-from utils.database.db import unsubscribe_email  # we'll add this below
-from utils.email.email_sender import send_email
 from utils.email.email_reader import fetch_parsed_emails, fetch_email_by_key
 
-from openai import OpenAI
-
-# Load OpenAI API key from environment
+# === Environment ===
+load_dotenv()
 openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-from dotenv import load_dotenv
-load_dotenv()
-
+# === App Setup ===
 IS_LOCAL = os.getenv("FLASK_ENV") == "development"
-
-
-app = Flask(
-    __name__,
-    template_folder="templates",      # templates already live here
-    static_folder="../static"         # tell Flask where static files really are
-)
-
+app = Flask(__name__, template_folder="templates", static_folder="../static")
 app.secret_key = os.environ.get("SECRET_KEY")
 app.config['FACEBOOK_PIXEL_ID'] = os.getenv('FACEBOOK_PIXEL_ID')
 
-
+# === Blueprints ===
 unsubscribe_bp = Blueprint("unsubscribe", __name__)
+
 
 @app.template_filter('markdown')
 def markdown_filter(text):
@@ -170,6 +171,30 @@ def unsubscribe(token):
     else:
         return render_template("unsubscribe_invalid.html")
 
+
+
+@app.route("/open-tracker/<subscriber_id>/<email_id>")
+def track_open(subscriber_id, email_id):
+    conn = get_connection()
+    c = conn.cursor()
+
+    c.execute("""
+        INSERT INTO email_opens (subscriber_id, email_id, opened_at)
+        VALUES (%s, %s, %s)
+        ON CONFLICT DO NOTHING
+    """, (subscriber_id, email_id, datetime.utcnow()))
+    
+    conn.commit()
+    c.close()
+
+    # Return a 1x1 transparent PNG
+    pixel = BytesIO(
+        b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR'
+        b'\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06'
+        b'\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\nIDATx\xdacd'
+        b'\xf8\x0f\x00\x01\x01\x01\x00\x18\xdd\x8d\xe1\x00\x00\x00\x00IEND\xaeB`\x82'
+    )
+    return send_file(pixel, mimetype='image/png')
 
 
 

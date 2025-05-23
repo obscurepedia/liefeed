@@ -5,6 +5,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import requests
 import random
+import uuid
 from utils.database.db import fetch_top_posts
 from utils.email.email_templates import generate_newsletter_html
 from utils.email.email_sender import send_email
@@ -125,7 +126,8 @@ def send_newsletter():
     subscribers = fetch_all_subscriber_emails()
 
     for email in subscribers:
-        html = generate_newsletter_html(posts, email, satirical_spin=spin)
+        email_id = str(uuid.uuid4())
+        html = generate_newsletter_html(posts, email, satirical_spin=spin, email_id=email_id)
         result = send_email(email, subject, html)
         if result:
             print(f"✅ Sent to {email}")
