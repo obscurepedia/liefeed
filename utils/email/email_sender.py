@@ -16,9 +16,10 @@ SENDER = os.getenv("SES_SENDER")      # e.g., "newsletter@liefeed.com"
 # Create SES client
 ses_client = boto3.client("ses", region_name=AWS_REGION)
 
-def send_email(recipient, subject, html_body, text_body=None):
+def send_email(recipient, subject, html_body, text_body=None, sender=None):
     if not text_body:
         text_body = "Your email client does not support HTML. Visit our website instead."
+    sender = sender or os.getenv("SES_SENDER", "newsletter@liefeed.com")  # fallback
 
     try:
         response = ses_client.send_email(
@@ -50,7 +51,9 @@ def send_email(recipient, subject, html_body, text_body=None):
         return None
 
 
-def send_certificate_email_with_attachment(recipient, subject, html_body, pdf_path):
+def send_certificate_email_with_attachment(recipient, subject, html_body, pdf_path, sender=None):
+    sender = sender or os.getenv("SES_SENDER_CERT", "certificates@liefeed.com")  # fallback
+    
     # Construct raw email
     msg = MIMEMultipart()
     msg["Subject"] = subject

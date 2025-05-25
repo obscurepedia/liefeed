@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="quiz-wrapper">
+  <div class="quiz-container">
+    <h1>Level 2 Results</h1>
+
+    <p><strong>{{ name }}</strong>, you scored <strong>{{ score }}/{{ total }}</strong>.</p>
+    <p style="margin-top: 10px;">{{ result_feedback }}</p>
+
+    <hr style="margin: 20px 0;">
+
+    <p style="font-size: 1.1em;">
+      🚀 You’ve completed Level 2. That puts you ahead of most internet users.  
+      <br>We’ll review your results and send your next mission soon.
+    </p>
+
+    <a href="{{ url_for('home') }}" class="quiz-button" style="margin-top: 20px;">🏠 Return to Homepage</a>
+  </div>
+</div>
+{% endblock %}

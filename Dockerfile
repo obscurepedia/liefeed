@@ -63,5 +63,11 @@ CMD ["sh", "-c", "echo '🔥 Cron job container started'; \
   elif [ \"$RUN_TARGET\" = 'validate-new-signups' ]; then python cron/validate_new_signups.py; \
   elif [ \"$RUN_TARGET\" = 'trigger-daily-reel' ]; then python cron/trigger_reel.py; \
   elif [ \"$RUN_TARGET\" = 'subscriber-summary' ]; then python cron/send_subscriber_summary_runner.py; \
+  elif [ \"$RUN_TARGET\" = 'send-start-quiz-followups' ]; then python cron/send_start_quiz_followups.py; \
+  elif [ \"$RUN_TARGET\" = 'send-level2-retakes' ]; then python cron/send_level2_retakes.py; \
+  elif [ \"$RUN_TARGET\" = 'send-level3-invites' ]; then python cron/send_level3_invites.py; \
+  elif [ \"$RUN_TARGET\" = 'send-newsletter-optin-invite' ]; then python cron/send_newsletter_optin_invite.py; \
+  elif [ \"$RUN_TARGET\" = 'send-quiz2-nudges' ]; then python cron/send_quiz2_nudges.py; \
+  elif [ \"$RUN_TARGET\" = 'send-newsletter-optin-nudge' ]; then python cron/send_newsletter_optin_nudge.py; \
   else gunicorn --bind 0.0.0.0:10000 web.app:app; \
   fi"]

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 3rem auto; padding: 2rem; border: 2px solid #ddd; border-radius: 10px; background: #fff; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+  <h1 style="margin-bottom: 1rem;">Your Level 1 Results</h1>
+  <p style="font-size: 1.2rem;">You got <strong>{{ score }}</strong> out of 5 correct.</p>
+
+  {% if reward %}
+    <div style="margin-top: 2rem; padding: 1rem; background: #f1f8e9; border-radius: 6px; border: 1px solid #c5e1a5;">
+      <p style="font-size: 1.1rem;">🎉 Congratulations! Here's your reward:</p>
+      <h3>{{ reward }}</h3>
+    </div>
+  {% else %}
+    <p style="margin-top: 2rem;">No reward this time — but you can <a href="{{ url_for('quiz.level_1_quiz') }}">try again</a>!</p>
+  {% endif %}
+
+  <div style="margin-top: 2rem;">
+    <a href="{{ url_for('home') }}" class="btn btn-secondary">Back to Homepage</a>
+  </div>
+</div>
+{% endblock %}

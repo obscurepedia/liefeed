@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="quiz-wrapper">
+  <div class="quiz-container">
+    <h1>✅ You're In.</h1>
+
+    <p>Thanks, {{ email }} — you've successfully joined <strong>The LieFeed Weekly</strong>.</p>
+
+    <p style="margin-top: 10px;">
+      Expect carefully fabricated facts, mind-melting headlines, and entirely unnecessary investigative journalism — all delivered once a week.
+    </p>
+
+    <a href="{{ url_for('home') }}" class="quiz-button" style="margin-top: 20px;">🏠 Return to Homepage</a>
+  </div>
+</div>
+{% endblock %}

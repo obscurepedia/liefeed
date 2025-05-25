@@ -17,7 +17,7 @@ else:
 
 def generate_certificate(name, quiz_title, score):
     html = render_template(
-        "certificate.html",
+        "quiz/certificate.html",
         name=name,
         quiz_title=quiz_title,
         score=score,

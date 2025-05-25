@@ -178,3 +178,19 @@ def row_to_dict(row):
         "quote": row[10],
         "source_headline": row[11]  # ✅ added
     }
+
+def tag_user_event(email, tag):
+    conn = get_connection()
+    with conn.cursor() as c:
+        c.execute("""
+            SELECT id FROM subscribers WHERE email = %s
+        """, (email,))
+        row = c.fetchone()
+        if row:
+            subscriber_id = row[0]
+            c.execute("""
+                INSERT INTO subscriber_tags (subscriber_id, tag)
+                VALUES (%s, %s)
+                ON CONFLICT DO NOTHING
+            """, (subscriber_id, tag))
+            conn.commit()

@@ -74,21 +74,23 @@ def format_as_paragraphs(text):
     )
 
 
+from utils.database.db import get_connection
+import uuid
+import random
+
 def send_newsletter():
     posts = fetch_top_posts(limit=5)
     featured = posts[0]
 
-    # Rotate from a predefined list of subject lines
     SUBJECT_LINES = [
         "This Week’s Most Believable Lies 😏",
-        "Fresh B.S. Delivered to Your Inbox 🚚",
         "You Can’t Unread This News (But You’ll Want To)",
         "Straight From Our Satirical Printing Press 🧻",
         "Truth is Stranger — But We’re Stranger Still.",
         "Today's Headlines, Lightly Fact-Checked 😬",
         "Satire So Sharp It Should Come With a Warning ⚠️",
         "Spoiler Alert: None of This Actually Happened 🙃",
-        "All the Lies Fit to Print (And Then Some)"
+        "All the Lies Fit to Print (And Then Some)",
         "Breaking News (to Your Sense of Reality) 🧠",
         "Fake News, Real Laughs 😂",
         "Still More Reliable Than Your Uncle's Facebook Feed 📱",
@@ -123,7 +125,16 @@ def send_newsletter():
 
     featured['content'] = format_as_paragraphs(featured['content'])
 
-    subscribers = fetch_all_subscriber_emails()
+    # ✅ Fetch only newsletter-opted-in subscribers
+    conn = get_connection()
+    with conn.cursor() as c:
+        c.execute("""
+            SELECT email
+            FROM subscribers s
+            JOIN subscriber_tags t ON s.id = t.subscriber_id
+            WHERE t.tag = 'newsletter_opted_in'
+        """)
+        subscribers = [row[0] for row in c.fetchall()]
 
     for email in subscribers:
         email_id = str(uuid.uuid4())
@@ -133,6 +144,7 @@ def send_newsletter():
             print(f"✅ Sent to {email}")
         else:
             print(f"❌ Failed to send to {email}")
+
 
 if __name__ == "__main__":
     send_newsletter()

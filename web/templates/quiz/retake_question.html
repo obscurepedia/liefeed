@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="quiz-wrapper">
+  <div class="quiz-container">
+    <h1>Retake Quiz — Question {{ index }} of {{ total }}</h1>
+    <p class="quiz-headline">{{ question.headline }}</p>
+
+    <form method="POST">
+      <button type="submit" name="answer" value="real" class="quiz-button green">✅ Real</button>
+      <button type="submit" name="answer" value="fake" class="quiz-button red">❌ Fake</button>
+    </form>
+
+    <p style="font-size: 0.85em; color: #888; margin-top: 25px;">
+      Every retake is randomized. No repeats, no shortcuts.
+    </p>
+  </div>
+</div>
+{% endblock %}

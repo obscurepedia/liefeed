@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="quiz-wrapper">
+  <div class="quiz-container">
+    <h1>Retake Results</h1>
+
+    <p><strong>{{ name }}</strong>, you scored <strong>{{ score }}/{{ total }}</strong>.</p>
+    <p style="margin-top: 10px;">{{ result_feedback }}</p>
+
+    <hr style="margin: 20px 0;">
+
+    <p style="font-size: 1.1em;">
+      🔒 Your next challenge is being prepared.<br>
+      You’ve shown promise — and something even trickier may be coming your way.<br>
+      Keep an eye on your inbox.
+    </p>
+
+
+    <a href="{{ url_for('home') }}" class="quiz-button" style="margin-top: 20px;">🏠 Return to Homepage</a>
+  </div>
+</div>
+{% endblock %}

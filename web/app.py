@@ -451,8 +451,14 @@ def test_email():
         return "❌ Failed to send email"
 
 
-from utils.quiz.quiz_routes import quiz_bp
+from utils.quiz import quiz_bp                     # ✅ changed line
 from utils.routes.generate_ad import generate_ad_bp
+
+
 app.register_blueprint(generate_ad_bp)
 app.register_blueprint(quiz_bp)
 app.register_blueprint(unsubscribe_bp)
+
+if __name__ == "__main__":
+    app.run(debug=True)
+

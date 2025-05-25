@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="quiz-wrapper">
+  <div class="quiz-container">
+    <h1>Level 3 Results</h1>
+
+    <p><strong>{{ name }}</strong>, you scored <strong>{{ score }}/{{ total }}</strong>.</p>
+    <p style="margin-top: 10px;">{{ result_feedback }}</p>
+
+    <hr style="margin: 20px 0;">
+
+    <p style="font-size: 1.1em;">
+      🎉 You’ve reached the end of our headline gauntlet — and proved you're no ordinary reader.
+      <br><br>
+      We’ll be in touch soon with a new type of quiz, and something special from the editorial team.
+    </p>
+
+    <a href="{{ url_for('home') }}" class="quiz-button" style="margin-top: 20px;">🏠 Return to Homepage</a>
+  </div>
+</div>
+{% endblock %}

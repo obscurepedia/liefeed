@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="quiz-wrapper">
+  <div class="quiz-container">
+    <h1>Level 2 — Question {{ index }} of {{ total }}</h1>
+    <p class="quiz-headline">{{ question.headline }}</p>
+
+    <form method="POST">
+      <button type="submit" name="answer" value="real" class="quiz-button green">✅ Real</button>
+      <button type="submit" name="answer" value="fake" class="quiz-button red">❌ Fake</button>
+    </form>
+
+    <p style="font-size: 0.85em; color: #888; margin-top: 25px;">
+      Level 2 is harder — more twisted, more subtle. Good luck.
+    </p>
+  </div>
+</div>
+{% endblock %}
