@@ -213,17 +213,17 @@ services:
     schedule: "0 11 * * *"  # runs daily at 11:00 AM UTC
     buildCommand: pip install -r requirements.txt
     buildFilter:
-    paths:
-      - Dockerfile
-      - render.yaml
-      - requirements.txt
-      - cron/send_start_quiz_followups.py
-      - utils
-      - config
+      paths:
+        - Dockerfile
+        - render.yaml
+        - requirements.txt
+        - cron/send_start_quiz_followups.py
+        - utils
+        - config
     envVars:
-    - fromGroup: shared-env
-    - key: RUN_TARGET
-      value: send-start-quiz-followups
+      - fromGroup: shared-env
+      - key: RUN_TARGET
+        value: send-start-quiz-followups
 
   - type: cron
     name: send-level2-retakes
@@ -233,17 +233,17 @@ services:
     schedule: "0 12 * * *"  # Runs daily at 12:00 UTC
     buildCommand: pip install -r requirements.txt
     buildFilter:
-    paths:
-      - Dockerfile
-      - render.yaml
-      - requirements.txt
-      - cron/send_level2_retakes.py
-      - utils
-      - config
+      paths:
+        - Dockerfile
+        - render.yaml
+        - requirements.txt
+        - cron/send_level2_retakes.py
+        - utils
+        - config
     envVars:
-    - fromGroup: shared-env
-    - key: RUN_TARGET
-      value: send-level2-retakes
+      - fromGroup: shared-env
+      - key: RUN_TARGET
+        value: send-level2-retakes
 
   - type: cron
     name: send-level3-invites
@@ -253,17 +253,17 @@ services:
     schedule: "0 14 * * *"  # Daily at 14:00 UTC
     buildCommand: pip install -r requirements.txt
     buildFilter:
-    paths:
-      - Dockerfile
-      - render.yaml
-      - requirements.txt
-      - cron/send_level3_invites.py
-      - utils
-      - config
+      paths:
+        - Dockerfile
+        - render.yaml
+        - requirements.txt
+        - cron/send_level3_invites.py
+        - utils
+        - config
     envVars:
-    - fromGroup: shared-env
-    - key: RUN_TARGET
-      value: send-level3-invites
+      - fromGroup: shared-env
+      - key: RUN_TARGET
+        value: send-level3-invites
 
   - type: cron
     name: send-newsletter-optin-invite
@@ -273,17 +273,17 @@ services:
     schedule: "0 15 * * *"  # Daily at 15:00 UTC
     buildCommand: pip install -r requirements.txt
     buildFilter:
-    paths:
-      - Dockerfile
-      - render.yaml
-      - requirements.txt
-      - cron/send_newsletter_optin_invite.py
-      - utils
-      - config
+      paths:
+        - Dockerfile
+        - render.yaml
+        - requirements.txt
+        - cron/send_newsletter_optin_invite.py
+        - utils
+        - config
     envVars:
-    - fromGroup: shared-env
-    - key: RUN_TARGET
-      value: send-newsletter-optin-invite
+      - fromGroup: shared-env
+      - key: RUN_TARGET
+        value: send-newsletter-optin-invite
 
   - type: cron
     name: send-quiz2-nudges
@@ -293,17 +293,17 @@ services:
     schedule: "0 15 * * *"  # Daily at 15:00 UTC
     buildCommand: pip install -r requirements.txt
     buildFilter:
-    paths:
-      - Dockerfile
-      - render.yaml
-      - requirements.txt
-      - cron/send_quiz2_nudges.py
-      - utils
-      - config
+      paths:
+        - Dockerfile
+        - render.yaml
+        - requirements.txt
+        - cron/send_quiz2_nudges.py
+        - utils
+        - config
     envVars:
-    - fromGroup: shared-env
-    - key: RUN_TARGET
-      value: send-quiz2-nudges
+      - fromGroup: shared-env
+      - key: RUN_TARGET
+        value: send-quiz2-nudges
 
   - type: cron
     name: send-newsletter-optin-nudge
@@ -313,15 +313,15 @@ services:
     schedule: "0 16 * * *"  # Daily at 16:00 UTC
     buildCommand: pip install -r requirements.txt
     buildFilter:
-    paths:
-      - Dockerfile
-      - render.yaml
-      - requirements.txt
-      - cron/send_newsletter_optin_nudge.py
-      - utils
-      - config
+      paths:
+        - Dockerfile
+        - render.yaml
+        - requirements.txt
+        - cron/send_newsletter_optin_nudge.py
+        - utils
+        - config
     envVars:
-    - fromGroup: shared-env
-    - key: RUN_TARGET
-      value: send-newsletter-optin-nudge
-  
+      - fromGroup: shared-env
+      - key: RUN_TARGET
+        value: send-newsletter-optin-nudge
+
