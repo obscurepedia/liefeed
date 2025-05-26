@@ -5,6 +5,11 @@ from flask import render_template
 import os
 import sys
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
+
 def send_level2_retakes(dry_run=False):
     conn = get_connection()
     with conn.cursor() as c:
@@ -40,7 +45,7 @@ def send_level2_retakes(dry_run=False):
                 print(f"Subject: {subject}")
                 print(f"Body (HTML rendered):\n{html_body}\n")
             else:
-                send_email(to=email, subject=subject, html_body=html_body)
+                send_email(to=email, subject=subject, html_body=html_body, sender=os.getenv("SES_SENDER_QUIZ"))
                 c.execute("""
                     INSERT INTO subscriber_tags (subscriber_id, tag)
                     VALUES (%s, 'quiz_level_2_retake_sent')
