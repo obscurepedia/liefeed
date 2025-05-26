@@ -196,6 +196,21 @@ def track_open(subscriber_id, email_id):
     )
     return send_file(pixel, mimetype='image/png')
 
+@app.route("/click/<subscriber_id>/<email_id>")
+def track_click(subscriber_id, email_id):
+    target = request.args.get("url")
+    if not target:
+        abort(400)
+
+    conn = get_connection()
+    with conn.cursor() as c:
+        c.execute("""
+            INSERT INTO email_clicks (subscriber_id, email_id, clicked_at, url)
+            VALUES (%s, %s, %s, %s)
+        """, (subscriber_id, email_id, datetime.utcnow(), target))
+        conn.commit()
+
+    return redirect(target)
 
 
 @app.route("/inbox/login", methods=["GET", "POST"])

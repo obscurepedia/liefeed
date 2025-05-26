@@ -1,16 +1,17 @@
-from utils.email.email_sender import send_email
-from utils.database.db import get_connection
-from flask import render_template
-import os
 import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 
+import uuid
+from flask import render_template
 from dotenv import load_dotenv
+from utils.database.db import get_connection
+from utils.email.email_sender import send_email
 
 load_dotenv()
 
-
-def send_level3_invites(dry_run=False):
+def send_level3_invites():
     conn = get_connection()
     with conn.cursor() as c:
         c.execute("""
@@ -25,7 +26,7 @@ def send_level3_invites(dry_run=False):
         subscribers = c.fetchall()
 
         for sub in subscribers:
-            sub_id, email, _ = sub  # we don't use score in this script
+            sub_id, email, _ = sub  # level2_score not needed here
 
             subject = "🧠 Final Mission: Level 3 Awaits"
             button_link = "https://liefeed.com/quiz/level3"
@@ -36,22 +37,17 @@ def send_level3_invites(dry_run=False):
                 button_link=button_link
             )
 
-            if dry_run:
-                print(f"\n[DRY RUN] Would send to: {email}")
-                print(f"Subject: {subject}")
-                print(f"Body (HTML rendered):\n{html_body}\n")
-            else:
-                send_email(to=email, subject=subject, html_body=html_body, sender=os.getenv("SES_SENDER_QUIZ") )
-                c.execute("""
-                    INSERT INTO subscriber_tags (subscriber_id, tag)
-                    VALUES (%s, 'quiz_level_3_sent')
-                    ON CONFLICT DO NOTHING
-                """, (sub_id,))
+            email_id = f"quiz_level3_invite_{uuid.uuid4()}"
+            send_email(sub_id, email_id, email, subject, html_body, sender=os.getenv("SES_SENDER_QUIZ"))
 
-        if not dry_run:
-            conn.commit()
-        print(f"✅ {'Previewed' if dry_run else 'Sent'} Level 3 invites to {len(subscribers)} subscriber(s).")
+            c.execute("""
+                INSERT INTO subscriber_tags (subscriber_id, tag)
+                VALUES (%s, 'quiz_level_3_sent')
+                ON CONFLICT DO NOTHING
+            """, (sub_id,))
+
+        conn.commit()
+        print(f"✅ Sent Level 3 invites to {len(subscribers)} subscriber(s).")
 
 if __name__ == "__main__":
-    dry = len(sys.argv) > 1 and sys.argv[1] == "dry"
-    send_level3_invites(dry_run=dry)
+    send_level3_invites()

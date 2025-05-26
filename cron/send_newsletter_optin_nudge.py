@@ -1,16 +1,17 @@
-from utils.email.email_sender import send_email
-from utils.database.db import get_connection
-from flask import render_template
-import os
 import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 
+import uuid
+from flask import render_template
 from dotenv import load_dotenv
+from utils.database.db import get_connection
+from utils.email.email_sender import send_email
 
 load_dotenv()
 
-
-def send_newsletter_optin_nudge(dry_run=False):
+def send_newsletter_optin_nudge():
     conn = get_connection()
     with conn.cursor() as c:
         c.execute("""
@@ -35,22 +36,17 @@ def send_newsletter_optin_nudge(dry_run=False):
                 button_link=button_link
             )
 
-            if dry_run:
-                print(f"\n[DRY RUN] Would send nudge to: {email}")
-                print(f"Subject: {subject}")
-                print(f"Body (HTML rendered):\n{html_body}\n")
-            else:
-                send_email(to=email, subject=subject, html_body=html_body, sender=os.getenv("SES_SENDER_QUIZ"))
-                c.execute("""
-                    INSERT INTO subscriber_tags (subscriber_id, tag)
-                    VALUES (%s, 'newsletter_optin_nudge_sent')
-                    ON CONFLICT DO NOTHING
-                """, (user_id,))
+            email_id = f"newsletter_optin_nudge_{uuid.uuid4()}"
+            send_email(user_id, email_id, email, subject, html_body, sender=os.getenv("SES_SENDER_QUIZ"))
 
-        if not dry_run:
-            conn.commit()
-        print(f"✅ {'Previewed' if dry_run else 'Sent'} opt-in nudges to {len(users)} user(s).")
+            c.execute("""
+                INSERT INTO subscriber_tags (subscriber_id, tag)
+                VALUES (%s, 'newsletter_optin_nudge_sent')
+                ON CONFLICT DO NOTHING
+            """, (user_id,))
+
+        conn.commit()
+        print(f"✅ Sent opt-in nudges to {len(users)} user(s).")
 
 if __name__ == "__main__":
-    dry = len(sys.argv) > 1 and sys.argv[1] == "dry"
-    send_newsletter_optin_nudge(dry_run=dry)
+    send_newsletter_optin_nudge()

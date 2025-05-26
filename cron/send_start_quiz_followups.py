@@ -1,17 +1,18 @@
-from utils.email.email_sender import send_email
-from utils.database.db import get_connection
-from itsdangerous import URLSafeSerializer
-from flask import render_template
-import os
 import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 
+import uuid
+from flask import render_template
+from itsdangerous import URLSafeSerializer
 from dotenv import load_dotenv
+from utils.database.db import get_connection
+from utils.email.email_sender import send_email
 
 load_dotenv()
 
-
-def send_followups(dry_run=False):
+def send_followups():
     conn = get_connection()
     with conn.cursor() as c:
         c.execute("""
@@ -39,12 +40,11 @@ def send_followups(dry_run=False):
                     button_link=button_link
                 )
 
-                if not dry_run:
-                    c.execute("""
-                        INSERT INTO subscriber_tags (subscriber_id, tag)
-                        VALUES (%s, 'quiz_level_2_sent')
-                        ON CONFLICT DO NOTHING
-                    """, (sub_id,))
+                c.execute("""
+                    INSERT INTO subscriber_tags (subscriber_id, tag)
+                    VALUES (%s, 'quiz_level_2_sent')
+                    ON CONFLICT DO NOTHING
+                """, (sub_id,))
             else:
                 token = s.dumps(email)
                 button_link = f"https://liefeed.com/quiz/retake?token={token}"
@@ -56,22 +56,17 @@ def send_followups(dry_run=False):
                     button_link=button_link
                 )
 
-            if dry_run:
-                print(f"\n[DRY RUN] Would send to: {email}")
-                print(f"Subject: {subject}")
-                print(f"Body (HTML rendered):\n{html_body}\n")
-            else:
-                send_email(to=email, subject=subject, html_body=html_body, sender=os.getenv("SES_SENDER_QUIZ"))
-                c.execute("""
-                    INSERT INTO subscriber_tags (subscriber_id, tag)
-                    VALUES (%s, 'quiz_followup_sent')
-                    ON CONFLICT DO NOTHING
-                """, (sub_id,))
+            email_id = f"quiz_followup_{uuid.uuid4()}"
+            send_email(sub_id, email_id, email, subject, html_body, sender=os.getenv("SES_SENDER_QUIZ"))
 
-        if not dry_run:
-            conn.commit()
-        print(f"✅ {'Previewed' if dry_run else 'Sent'} follow-up emails to {len(subscribers)} subscriber(s).")
+            c.execute("""
+                INSERT INTO subscriber_tags (subscriber_id, tag)
+                VALUES (%s, 'quiz_followup_sent')
+                ON CONFLICT DO NOTHING
+            """, (sub_id,))
+
+        conn.commit()
+        print(f"✅ Sent follow-up emails to {len(subscribers)} subscriber(s).")
 
 if __name__ == "__main__":
-    dry = len(sys.argv) > 1 and sys.argv[1] == "dry"
-    send_followups(dry_run=dry)
+    send_followups()

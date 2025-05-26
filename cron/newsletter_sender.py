@@ -6,12 +6,10 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import requests
 import random
 import uuid
-from utils.database.db import fetch_top_posts
+from utils.database.db import fetch_top_posts, get_connection
 from utils.email.email_templates import generate_newsletter_html
 from utils.email.email_sender import send_email
-from utils.database.db import fetch_all_subscriber_emails
 from dotenv import load_dotenv
-
 
 load_dotenv()
 
@@ -38,12 +36,8 @@ def generate_perplexity_response(prompt):
         print("❌ Perplexity API Error:", response.text)
         return "This week's satire is missing. But hey, that's probably fake too."
 
-
-
 def clean_markdown(text):
     text = text.replace("**", "").replace("*", "").strip()
-
-    # Remove leading AI-style intros
     intro_patterns = [
         r"^sure[!.,]?\s*here('s| is)?( a)? satirical one-liner.*?:\s*",
         r"^here('s| is)?( a)? satirical one-liner.*?:\s*",
@@ -51,20 +45,10 @@ def clean_markdown(text):
     ]
     for pattern in intro_patterns:
         text = re.sub(pattern, "", text, flags=re.IGNORECASE)
-
-    # Remove lead-in like "Today's fake news:"
     text = re.sub(r"^(today[’'`s]* fake news[.:]*)\s*", "", text, flags=re.IGNORECASE)
-
-    # Remove markdown quote indicators
     text = re.sub(r"^[>\-–—]\s*", "", text)
-
-    # Remove surrounding quotes
     text = text.strip('“”"\'')
-
-    # Trim anything after markdown-style link brackets
     return text.split("[")[0].strip()
-
-
 
 def format_as_paragraphs(text):
     text = text.replace("**", "").replace("*", "")
@@ -72,11 +56,6 @@ def format_as_paragraphs(text):
         f"<p style='line-height: 1.8; font-size: 16px; color: #333; margin-bottom: 15px;'>{para.strip()}</p>"
         for para in text.split('\n') if para.strip()
     )
-
-
-from utils.database.db import get_connection
-import uuid
-import random
 
 def send_newsletter():
     posts = fetch_top_posts(limit=5)
@@ -125,26 +104,25 @@ def send_newsletter():
 
     featured['content'] = format_as_paragraphs(featured['content'])
 
-    # ✅ Fetch only newsletter-opted-in subscribers
+    # ✅ Fetch subscribers
     conn = get_connection()
     with conn.cursor() as c:
         c.execute("""
-            SELECT email
+            SELECT s.id, s.email
             FROM subscribers s
             JOIN subscriber_tags t ON s.id = t.subscriber_id
             WHERE t.tag = 'newsletter_opted_in'
         """)
-        subscribers = [row[0] for row in c.fetchall()]
+        subscribers = c.fetchall()  # (subscriber_id, email)
 
-    for email in subscribers:
+    for subscriber_id, email in subscribers:
         email_id = str(uuid.uuid4())
-        html = generate_newsletter_html(posts, email, satirical_spin=spin, email_id=email_id)
-        result = send_email(email, subject, html)
+        html = generate_newsletter_html(posts, subscriber_id, email, satirical_spin=spin, email_id=email_id)
+        result = send_email(subscriber_id, email_id, email, subject, html)
         if result:
             print(f"✅ Sent to {email}")
         else:
             print(f"❌ Failed to send to {email}")
-
 
 if __name__ == "__main__":
     send_newsletter()

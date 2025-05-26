@@ -1,6 +1,6 @@
 from utils.database.token_utils import generate_unsubscribe_token
 
-def generate_newsletter_html(posts, recipient_email, satirical_spin, email_id):
+def generate_newsletter_html(posts, subscriber_id, recipient_email, satirical_spin, email_id):
     token = generate_unsubscribe_token(recipient_email)
     unsubscribe_url = f"https://liefeed.com/unsubscribe/{token}"
 
@@ -79,9 +79,9 @@ def generate_newsletter_html(posts, recipient_email, satirical_spin, email_id):
               You're receiving this because you subscribed to LieFeed.<br>
               <a href="{unsubscribe_url}" style="color: #999;">Unsubscribe</a> if satire makes you uncomfortable.
             </p>
-          
+
             <!-- Tracking Pixel -->
-            <img src="https://liefeed.com/open-tracker/{recipient_email}/{email_id}" width="1" height="1" alt="" style="display:none;">
+            <img src="https://liefeed.com/open-tracker/{subscriber_id}/{email_id}" width="1" height="1" alt="" style="display:none;">
           </td>
         </tr>
       </table>

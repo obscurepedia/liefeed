@@ -1,14 +1,17 @@
-from utils.email.email_sender import send_email
-from utils.database.db import get_connection
-from itsdangerous import URLSafeSerializer
-from flask import render_template
-import os
 import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
+
+import sys
+import uuid
+from flask import render_template
+from itsdangerous import URLSafeSerializer
 from dotenv import load_dotenv
+from utils.database.db import get_connection
+from utils.email.email_sender import send_email
 
 load_dotenv()
-
 
 def send_level2_retakes(dry_run=False):
     conn = get_connection()
@@ -45,7 +48,8 @@ def send_level2_retakes(dry_run=False):
                 print(f"Subject: {subject}")
                 print(f"Body (HTML rendered):\n{html_body}\n")
             else:
-                send_email(to=email, subject=subject, html_body=html_body, sender=os.getenv("SES_SENDER_QUIZ"))
+                email_id = f"quiz_level2_retake_{uuid.uuid4()}"
+                send_email(sub_id, email_id, email, subject, html_body, sender=os.getenv("SES_SENDER_QUIZ"))
                 c.execute("""
                     INSERT INTO subscriber_tags (subscriber_id, tag)
                     VALUES (%s, 'quiz_level_2_retake_sent')

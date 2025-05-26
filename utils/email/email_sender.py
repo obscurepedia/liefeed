@@ -1,4 +1,5 @@
 import os
+import re
 from dotenv import load_dotenv
 load_dotenv()  # ✅ MAKE SURE THIS IS CALLED HERE
 
@@ -9,6 +10,11 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
 
+from urllib.parse import quote
+from datetime import datetime
+from botocore.exceptions import ClientError
+from io import BytesIO
+
 # Load credentials from environment variables
 AWS_REGION = os.getenv("AWS_REGION")  # e.g., "us-east-1"
 SENDER = os.getenv("SES_SENDER")      # e.g., "newsletter@liefeed.com"
@@ -16,14 +22,33 @@ SENDER = os.getenv("SES_SENDER")      # e.g., "newsletter@liefeed.com"
 # Create SES client
 ses_client = boto3.client("ses", region_name=AWS_REGION)
 
-def send_email(recipient, subject, html_body, text_body=None, sender=None):
+def add_click_tracking(html, subscriber_id, email_id):
+    def replacer(match):
+        url = match.group(1)
+        if "yourdomain.com/click" in url:
+            return match.group(0)  # already tracked
+
+        encoded_url = quote(url, safe='')
+        tracked_url = f"https://yourdomain.com/click/{subscriber_id}/{email_id}?url={encoded_url}"
+        return f'href="{tracked_url}"'
+    
+    return re.sub(r'href="([^"]+)"', replacer, html)
+
+def send_email(subscriber_id, email_id, recipient, subject, html_body, text_body=None, sender=None):
     if not text_body:
         text_body = "Your email client does not support HTML. Visit our website instead."
-    sender = sender or os.getenv("SES_SENDER", "newsletter@liefeed.com")  # fallback
+    sender = sender or os.getenv("SES_SENDER", "newsletter@liefeed.com")
+
+    # ✅ Add custom open tracking pixel
+    pixel_tag = f'<img src="https://yourdomain.com/open-tracker/{subscriber_id}/{email_id}" width="1" height="1" style="display:none;" alt="tracker">'
+    html_body += pixel_tag
+
+    # ✅ Add custom click tracking to all links
+    html_body = add_click_tracking(html_body, subscriber_id, email_id)
 
     try:
         response = ses_client.send_email(
-            Source=SENDER,
+            Source=sender,
             Destination={
                 'ToAddresses': [recipient]
             },
@@ -43,8 +68,9 @@ def send_email(recipient, subject, html_body, text_body=None, sender=None):
                     }
                 }
             },
-            ConfigurationSetName='LieFeedTracking'  # ✅ Enables open & click tracking
+            ConfigurationSetName='LieFeedTracking'  # Optional: SES-level metrics
         )
+        print("✅ Email sent:", response['MessageId'])
         return response
     except ClientError as e:
         print("❌ SES Error:", e.response['Error']['Message'])
