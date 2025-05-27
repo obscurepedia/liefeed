@@ -50,14 +50,16 @@ def fetch_post():
             SELECT id, title, content, slug
             FROM posts
             WHERE used_in_reel IS NOT TRUE
-            ORDER BY created_at DESC
+              AND (reel_failed_attempts IS NULL OR reel_failed_attempts < 3)
+            ORDER BY created_at ASC
             LIMIT 1
         """)
         row = cur.fetchone()
     conn.close()
     if not row:
-        raise Exception("No unused posts found.")
+        raise Exception("No eligible posts found (all used or failed too many times).")
     return {"id": row[0], "title": row[1], "content": row[2], "slug": row[3]}
+
 
 # --- HELPER TO FETCH & INCREMENT CTA COUNTER ---
 def get_reel_counter():
@@ -91,6 +93,19 @@ def mark_post_used(post_id: int):
         cur.execute("UPDATE posts SET used_in_reel = TRUE WHERE id = %s", (post_id,))
         conn.commit()
     conn.close()
+
+# --- HELPER TO FETCH & INCREMENT FAILED ATTEMPT COUNTER ---
+def increment_failed_attempt(post_id: int):
+    conn = get_connection()
+    with conn.cursor() as cur:
+        cur.execute("""
+            UPDATE posts
+            SET reel_failed_attempts = reel_failed_attempts + 1
+            WHERE id = %s
+        """, (post_id,))
+        conn.commit()
+    conn.close()
+
 
 # ── TEXT TEASER ────────────────────────────────────────────────────
 def generate_teaser(article: str) -> str:
@@ -329,92 +344,82 @@ def save_reel_to_database(caption, s3_key):
 
 # ── MAIN PIPELINE ─────────────────────────────────────────────────
 async def main():
-    post   = fetch_post()
-    teaser = generate_teaser(post["content"])
-    prompt = generate_image_prompt(post["title"], post["content"])
+    post = fetch_post()
+    try:
+        teaser = generate_teaser(post["content"])
+        prompt = generate_image_prompt(post["title"], post["content"])
 
-    bg_color = random.choice(REEL_COLORS)
+        bg_color = random.choice(REEL_COLORS)
 
+        # 1. Generate reel image straight into slides/
+        slide2_path = SLIDE_DIR / "slide2_image.png"
+        slide2_path.parent.mkdir(exist_ok=True)
+        slide2_path.unlink(missing_ok=True)
 
-    # 1. Generate reel image straight into slides/
-    slide2_path = SLIDE_DIR / "slide2_image.png"
-    slide2_path.parent.mkdir(exist_ok=True)
+        generate_image_from_prompt(
+            prompt,
+            str(slide2_path),
+            mode="reel"
+        )
+        time.sleep(1)
+        ensure_exact_1080x1920(slide2_path)
 
-    # if an old slide exists, delete it so we don't hit "file exists"
-    slide2_path.unlink(missing_ok=True)
+        if not slide2_path.exists():
+            raise FileNotFoundError("slide2_image.png did not get created")
 
-    generate_image_from_prompt(
-        prompt,
-        str(slide2_path),      # write directly here
-        mode="reel"
-    )
-    # Wait briefly to ensure image is fully written
-    time.sleep(1)
-    # Force resize if needed
-    ensure_exact_1080x1920(slide2_path)
+        with Image.open(slide2_path) as img:
+            print(f"📏 Final image size for slide2: {img.size}")
 
-    # Log final size to confirm
-    with Image.open(slide2_path) as img:
-         print(f"📏 Final image size for slide2: {img.size}")
+        # 2. Create headline, teaser, CTA slides
+        write_slide(post["title"], "slide1_headline.html", fontsize=120, layout="headline", background_color=bg_color)
+        write_slide(teaser, "slide3_teaser.html", fontsize=90, layout="teaser", slide_number="3/4", background_color=bg_color)
 
+        counter = get_reel_counter()
+        cta_only = generate_cta(teaser, counter)
+        write_slide(cta_only, "slide4_cta.html", fontsize=90, layout="cta", slide_number="4/4", background_color=bg_color)
 
-    # ✅ Check if slide was actually created
-    if not slide2_path.exists():
-        raise FileNotFoundError("slide2_image.png did not get created")
+        # 3. Render HTML → PNG
+        await render_html_to_png("slide1_headline.html", "slide1_headline.png")
+        await render_html_to_png("slide3_teaser.html",   "slide3_teaser.png")
+        await render_html_to_png("slide4_cta.html",      "slide4_cta.png")
 
-    
+        # 4. Stitch video
+        stitch_slides(
+            ["slide1_headline.png", "slide2_image.png",
+             "slide3_teaser.png",   "slide4_cta.png"],
+            MUSIC_FILE, OUTPUT_VIDEO
+        )
 
-    # 2. Create headline, teaser, CTA slides with improved layout and font size
-    write_slide(post["title"], "slide1_headline.html", fontsize=120, layout="headline", background_color=bg_color)
-    write_slide(teaser, "slide3_teaser.html", fontsize=90, layout="teaser", slide_number="3/4", background_color=bg_color)
+        slide2_path.unlink(missing_ok=True)
 
-    counter = get_reel_counter()
-    cta_only = generate_cta(teaser, counter)
-    write_slide(cta_only, "slide4_cta.html", fontsize=90, layout="cta", slide_number="4/4", background_color=bg_color)
+        # 5. Finalize housekeeping
+        print(f"🧾 Attempting to mark post ID {post['id']} as used...")
+        mark_post_used(post["id"])
+        increment_reel_counter()
+        print(f"✅ Reel created: {OUTPUT_VIDEO}")
 
-    # 3. Render HTML → PNG
-    await render_html_to_png("slide1_headline.html", "slide1_headline.png")
-    await render_html_to_png("slide3_teaser.html",   "slide3_teaser.png")
-    await render_html_to_png("slide4_cta.html",      "slide4_cta.png")
+        # Upload to S3
+        date_str = datetime.now(timezone.utc).strftime("%Y/%m/%d")
+        S3_REEL_KEY = f"reels/{date_str}/{int(time.time())}_reel.mp4"
+        s3_client.upload_file(
+            OUTPUT_VIDEO,
+            "liefeed-images",
+            S3_REEL_KEY,
+            ExtraArgs={'ContentType': mimetypes.guess_type(OUTPUT_VIDEO)[0] or 'video/mp4'}
+        )
 
-    # 4. Stitch video
-    stitch_slides(
-        ["slide1_headline.png", "slide2_image.png",
-         "slide3_teaser.png",   "slide4_cta.png"],
-        MUSIC_FILE, OUTPUT_VIDEO
-    )
+        reel_url = f"https://liefeed-images.s3.us-east-1.amazonaws.com/{S3_REEL_KEY}"
+        print(f"📤 Uploaded reel to S3: {reel_url}")
 
-    # ✅ Use it for stitching/uploading reel, then clean up at the END of main()
-    slide2_path.unlink(missing_ok=True)
+        full_url = f"https://liefeed.com/post/{post['slug']}"
+        caption_with_link = f"{cta_only}\n\nRead more 👉 {full_url}"
+        save_reel_to_database(caption_with_link, S3_REEL_KEY)
+        print(f"✅ Reel created and saved to database.")
 
-    # 5. Finalize housekeeping
-    print(f"🧾 Attempting to mark post ID {post['id']} as used...")
-    mark_post_used(post["id"])
-    increment_reel_counter()
-    print(f"✅ Reel created: {OUTPUT_VIDEO}")
+    except Exception as e:
+        print(f"❌ Error during reel generation: {e}")
+        increment_failed_attempt(post["id"])
 
-    
-    # Generate the S3 key with a date-based subfolder
-    date_str = datetime.now(timezone.utc).strftime("%Y/%m/%d")
-    S3_REEL_KEY = f"reels/{date_str}/{int(time.time())}_reel.mp4"
-
-    # Upload the reel to S3
-    s3_client.upload_file(
-        OUTPUT_VIDEO,
-        "liefeed-images",  # Replace with your actual bucket if different
-        S3_REEL_KEY,
-        ExtraArgs={'ContentType': mimetypes.guess_type(OUTPUT_VIDEO)[0] or 'video/mp4'}
-    )
-
-    # Generate and print the public S3 URL
-    reel_url = f"https://liefeed-images.s3.us-east-1.amazonaws.com/{S3_REEL_KEY}"
-    print(f"📤 Uploaded reel to S3: {reel_url}")
-    
-    # Save to DB
-    full_url = f"https://liefeed.com/post/{post['slug']}"
-    caption_with_link = f"{cta_only}\n\nRead more 👉 {full_url}"
-    save_reel_to_database(caption_with_link, S3_REEL_KEY)
-    print(f"✅ Reel created and saved to database.")
 
 
 
