@@ -2,13 +2,15 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
-
 import uuid
 from flask import render_template
 from itsdangerous import URLSafeSerializer
 from dotenv import load_dotenv
 from utils.database.db import get_connection
 from utils.email.email_sender import send_email
+
+# ✅ Import your Flask app
+from web.app import app  # adjust if your app is elsewhere
 
 load_dotenv()
 
@@ -69,4 +71,5 @@ def send_followups():
         print(f"✅ Sent follow-up emails to {len(subscribers)} subscriber(s).")
 
 if __name__ == "__main__":
-    send_followups()
+    with app.app_context():  # ✅ Wrap the function call in the app context
+        send_followups()
