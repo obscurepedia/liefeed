@@ -6,10 +6,13 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # === Third-Party Libraries ===
-from flask import Flask, Markup
+
+from flask import Flask
+from markupsafe import Markup
 from dotenv import load_dotenv
 import markdown
 from openai import OpenAI
+
 
 # === Local Modules ===
 from utils.database.db import fetch_all_posts
