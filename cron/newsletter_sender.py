@@ -111,7 +111,8 @@ def send_newsletter():
             SELECT s.id, s.email
             FROM subscribers s
             JOIN subscriber_tags t ON s.id = t.subscriber_id
-            WHERE t.tag = 'newsletter_opted_in'
+            WHERE s.active = TRUE
+                AND t.tag = 'newsletter_opted_in'
         """)
         subscribers = c.fetchall()  # (subscriber_id, email)
 

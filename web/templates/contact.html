@@ -1,29 +1,72 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Contact Us</h1>
+<div style="max-width:600px; margin:40px auto; padding:0 20px;">
+  <h1 style="text-align:center; margin-bottom:30px;">Contact Us</h1>
 
-{% with messages = get_flashed_messages(with_categories=true) %}
-  {% for category, message in messages %}
-    <div class="flash {{ category }}">{{ message }}</div>
-  {% endfor %}
-{% endwith %}
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="flash {{ category }}" style="margin-bottom:20px;">{{ message }}</div>
+    {% endfor %}
+  {% endwith %}
 
-<form method="post" action="/contact" class="contact-form">
-  <label for="name">Name:</label>
-  <input type="text" name="name" required class="quiz-input">
+  <form method="post" action="{{ url_for('pages.contact') }}"
+        style="display:flex; flex-direction:column; align-items:center;">
+    
+    <!-- Name -->
+    <div style="width:100%; max-width:400px; margin-bottom:20px;">
+      <label for="name" style="display:block; margin-bottom:5px;">Name:</label>
+      <input
+        type="text"
+        id="name"
+        name="name"
+        required
+        class="quiz-input"
+        style="width:100%; padding:8px;"
+      />
+    </div>
 
-  <label for="email">Email:</label>
-  <input type="email" name="email" required class="quiz-input">
+    <!-- Email -->
+    <div style="width:100%; max-width:400px; margin-bottom:20px;">
+      <label for="email" style="display:block; margin-bottom:5px;">Email:</label>
+      <input
+        type="email"
+        id="email"
+        name="email"
+        required
+        class="quiz-input"
+        style="width:100%; padding:8px;"
+      />
+    </div>
 
-  <label for="message">Message:</label>
-  <textarea name="message" rows="5" required class="quiz-input"></textarea>
+    <!-- Message -->
+    <div style="width:100%; max-width:400px; margin-bottom:30px;">
+      <label for="message" style="display:block; margin-bottom:5px;">Message:</label>
+      <textarea
+        id="message"
+        name="message"
+        rows="5"
+        required
+        class="quiz-input"
+        style="width:100%; padding:8px;"
+      ></textarea>
+    </div>
 
-  <!-- Honeypot Field (hidden from users, used to catch bots) -->
-  <div style="display: none;">
-    <label for="website">Leave this field empty</label>
-    <input type="text" name="website" id="website" autocomplete="off">
-  </div>
+    <!-- Honeypot (hidden) -->
+    <div style="display:none;">
+      <label for="website">Leave this empty</label>
+      <input type="text" id="website" name="website" autocomplete="off" />
+    </div>
 
-  <button type="submit" class="quiz-button">Send</button>
-</form>
+    <!-- Submit Button -->
+    <div style="width:100%; max-width:400px; text-align:center;">
+      <button
+        type="submit"
+        class="quiz-button"
+        style="padding:10px 40px; margin-bottom:20px;"
+      >
+        Send
+      </button>
+    </div>
+  </form>
+</div>
 {% endblock %}

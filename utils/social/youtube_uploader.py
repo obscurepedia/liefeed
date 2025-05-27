@@ -39,14 +39,24 @@ def upload_to_youtube(video_path, title, description, tags=None):
     print("✅ YouTube Upload Successful!")
     print("📺 Video URL: https://youtu.be/" + response["id"])
 
+
 def get_post_title_from_caption(caption):
+    try:
+        # Extract slug from the link after the 👉
+        slug = caption.split("👉")[1].strip().split("/")[-1]
+    except IndexError:
+        print(f"❌ Failed to extract slug from caption: {caption}")
+        return None
+
     conn = get_connection()
     with conn.cursor() as c:
-        c.execute("""
-            SELECT title FROM posts 
-            WHERE %s LIKE '%' || slug
-            LIMIT 1
-        """, (caption,))
+        c.execute("SELECT title FROM posts WHERE slug = %s", (slug,))
         result = c.fetchone()
     conn.close()
-    return result[0] if result else None
+
+    if not result:
+        print(f"❌ No post found for slug: {slug}")
+        return None
+
+    return result[0]
+

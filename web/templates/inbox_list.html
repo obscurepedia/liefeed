@@ -16,7 +16,7 @@
     <tr style="border-bottom: 1px solid #e0e0e0;">
       <td style="padding: 12px;">{{ email.from }}</td>
       <td style="padding: 12px;">
-        <a href="{{ url_for('view_email', s3_key=email.s3_key) }}" style="color: #007bff; text-decoration: none;">
+        <a href="{{ url_for('inbox.view_email', s3_key=email.s3_key) }}" style="color: #007bff; text-decoration: none;">
           {{ email.subject }}
         </a>
       </td>
