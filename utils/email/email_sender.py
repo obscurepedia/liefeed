@@ -25,11 +25,11 @@ ses_client = boto3.client("ses", region_name=AWS_REGION)
 def add_click_tracking(html, subscriber_id, email_id):
     def replacer(match):
         url = match.group(1)
-        if "yourdomain.com/click" in url:
+        if "liefeed.com/click" in url:
             return match.group(0)  # already tracked
 
         encoded_url = quote(url, safe='')
-        tracked_url = f"https://yourdomain.com/click/{subscriber_id}/{email_id}?url={encoded_url}"
+        tracked_url = f"https://liefeed.com/click/{subscriber_id}/{email_id}?url={encoded_url}"
         return f'href="{tracked_url}"'
     
     return re.sub(r'href="([^"]+)"', replacer, html)
@@ -40,7 +40,7 @@ def send_email(subscriber_id, email_id, recipient, subject, html_body, text_body
     sender = sender or os.getenv("SES_SENDER", "newsletter@liefeed.com")
 
     # ✅ Add custom open tracking pixel
-    pixel_tag = f'<img src="https://yourdomain.com/open-tracker/{subscriber_id}/{email_id}" width="1" height="1" style="display:none;" alt="tracker">'
+    pixel_tag = f'<img src="https://liefeed.com/open-tracker/{subscriber_id}/{email_id}" width="1" height="1" style="display:none;" alt="tracker">'
     html_body += pixel_tag
 
     # ✅ Add custom click tracking to all links
