@@ -20,7 +20,7 @@ def send_newsletter_optin_invite():
             FROM subscribers s
             LEFT JOIN subscriber_tags t 
               ON s.id = t.subscriber_id AND t.tag = 'newsletter_optin_sent'
-            WHERE s.active = TRUE
+            WHERE s.is_active = TRUE
               AND s.level3_score >= 6
               AND t.tag IS NULL
               AND s.subscribed_at <= NOW() - INTERVAL '21 days'

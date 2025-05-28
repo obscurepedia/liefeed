@@ -23,7 +23,7 @@ def send_followups():
             LEFT JOIN subscriber_tags t
               ON s.id = t.subscriber_id AND t.tag = 'quiz_followup_sent'
             WHERE s.subscribed_at <= NOW() - INTERVAL '2 days'
-              AND s.active = TRUE
+              AND s.is_active = TRUE
               AND t.tag IS NULL
         """)
         subscribers = c.fetchall()
@@ -31,7 +31,7 @@ def send_followups():
         s = URLSafeSerializer(os.getenv("SECRET_KEY"))
 
         for sub_id, email, name, score in subscribers:
-            greeting = f"Hey {name or 'there'},"
+            greeting = f"Hey {name or 'there'},"  
             email_id = f"quiz_followup_{uuid.uuid4()}"
 
             if score is not None and score >= 4:
@@ -86,6 +86,7 @@ def send_followups():
 
         conn.commit()
         print(f"✅ Sent follow-up emails to {len(subscribers)} subscriber(s).")
+
 
 if __name__ == "__main__":
     with app.app_context():

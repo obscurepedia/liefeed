@@ -20,7 +20,7 @@ def send_level3_invites():
               ON s.id = tag2.subscriber_id AND tag2.tag = 'quiz_level_2_sent'
             LEFT JOIN subscriber_tags tag3 
               ON s.id = tag3.subscriber_id AND tag3.tag = 'quiz_level_3_sent'
-            WHERE s.active = TRUE
+            WHERE s.is_active = TRUE
               AND s.level2_score >= 5
               AND tag3.tag IS NULL
               AND tag2.created_at <= NOW() - INTERVAL '2 days'

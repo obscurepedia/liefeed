@@ -2,8 +2,8 @@
 <html>
   <body style="font-family: sans-serif; font-size: 16px; color: #222; line-height: 1.5;">
 
-    <p>{{ message_intro }}</p>
-    <p>{{ message_body }}</p>
+    <p>{{ message_intro|safe }}</p>
+    <p>{{ message_body|safe }}</p>
 
     <a href="{{ button_link }}" style="
         display: inline-block;

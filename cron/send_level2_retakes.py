@@ -22,7 +22,7 @@ def send_level2_retakes(dry_run=False):
               ON s.id = sent_tag.subscriber_id AND sent_tag.tag = 'quiz_level_2_sent'
             LEFT JOIN subscriber_tags retake_tag 
               ON s.id = retake_tag.subscriber_id AND retake_tag.tag = 'quiz_level_2_retake_sent'
-            WHERE s.active = TRUE
+            WHERE s.is_active = TRUE
               AND (s.level2_score IS NULL OR s.level2_score < 5)
               AND retake_tag.tag IS NULL
               AND sent_tag.created_at <= NOW() - INTERVAL '3 days'

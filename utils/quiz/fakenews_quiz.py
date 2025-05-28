@@ -162,8 +162,12 @@ def quiz_retake():
             except BadSignature:
                 return "Invalid or expired link", 400
 
-    if "retake_quiz_data" not in session:
-        session["retake_quiz_data"] = generate_dynamic_quiz()
+    # ✅ Always regenerate quiz on GET to start fresh
+    if request.method == "GET" or "retake_quiz_data" not in session:
+        quiz_data = generate_dynamic_quiz()
+        if not quiz_data:
+            return render_template("quiz/error.html", message="No quiz questions found.")
+        session["retake_quiz_data"] = quiz_data
         session["retake_answers"] = []
         session["retake_question_index"] = 0
 
@@ -178,11 +182,14 @@ def quiz_retake():
             return redirect(url_for("quiz.quiz_retake_results"))
         return redirect(url_for("quiz.quiz_retake"))
 
+    # ✅ Avoid redirect loop — send to first question
     if index >= len(quiz_data):
-        return redirect(url_for("quiz.quiz_retake"))
+        return redirect(url_for("quiz.quiz_retake_results"))
 
     question = quiz_data[index]
     return render_template("quiz/retake_question.html", question=question, index=index + 1, total=len(quiz_data))
+
+
 
 @quiz_bp.route("/quiz/retake-results")
 def quiz_retake_results():
@@ -219,13 +226,19 @@ def quiz_landing():
 
 @quiz_bp.route("/quiz/level2", methods=["GET", "POST"])
 def quiz_level2():
-    if "level2_quiz_data" not in session:
-        session["level2_quiz_data"] = generate_dynamic_quiz(length=8)
+    if request.method == "GET" or "level2_quiz_data" not in session:
+        quiz_data = generate_dynamic_quiz(length=8)
+        if not quiz_data:
+            return render_template("quiz/error.html", message="No quiz questions found.")
+        session["level2_quiz_data"] = quiz_data
         session["level2_answers"] = []
         session["level2_question_index"] = 0
 
     quiz_data = session["level2_quiz_data"]
     index = session["level2_question_index"]
+
+    if not quiz_data:
+        return render_template("quiz/error.html", message="No quiz questions available.")
 
     if request.method == "POST":
         answer = request.form.get("answer")
@@ -238,7 +251,7 @@ def quiz_level2():
         return redirect(url_for("quiz.quiz_level2"))
 
     if index >= len(quiz_data):
-        return redirect(url_for("quiz.quiz_level2"))
+        return redirect(url_for("quiz.quiz_level2_results"))
 
     question = quiz_data[index]
 
@@ -248,6 +261,7 @@ def quiz_level2():
         index=index + 1,
         total=len(quiz_data)
     )
+
 
 @quiz_bp.route("/quiz/level2-results", methods=["GET"])
 def quiz_level2_results():
@@ -286,13 +300,19 @@ def quiz_level2_results():
 
 @quiz_bp.route("/quiz/level3", methods=["GET", "POST"])
 def quiz_level3():
-    if "level3_quiz_data" not in session:
-        session["level3_quiz_data"] = generate_dynamic_quiz(length=10)
+    if request.method == "GET" or "level3_quiz_data" not in session:
+        quiz_data = generate_dynamic_quiz(length=10)
+        if not quiz_data:
+            return render_template("quiz/error.html", message="No quiz questions found.")
+        session["level3_quiz_data"] = quiz_data
         session["level3_answers"] = []
         session["level3_question_index"] = 0
 
     quiz_data = session["level3_quiz_data"]
     index = session["level3_question_index"]
+
+    if not quiz_data:
+        return render_template("quiz/error.html", message="No quiz questions available.")
 
     if request.method == "POST":
         answer = request.form.get("answer")
@@ -305,7 +325,7 @@ def quiz_level3():
         return redirect(url_for("quiz.quiz_level3"))
 
     if index >= len(quiz_data):
-        return redirect(url_for("quiz.quiz_level3"))
+        return redirect(url_for("quiz.quiz_level3_results"))
 
     question = quiz_data[index]
 
@@ -315,6 +335,7 @@ def quiz_level3():
         index=index + 1,
         total=len(quiz_data)
     )
+
 
 @quiz_bp.route("/quiz/level3-results", methods=["GET"])
 def quiz_level3_results():

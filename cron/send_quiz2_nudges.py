@@ -24,7 +24,7 @@ def send_quiz2_nudges():
               ON s.id = completed_tag.subscriber_id AND completed_tag.tag = 'quiz2_completed'
             LEFT JOIN subscriber_tags nudged_tag 
               ON s.id = nudged_tag.subscriber_id AND nudged_tag.tag = 'quiz2_nudge_sent'
-            WHERE s.active = TRUE
+            WHERE s.is_active = TRUE
               AND completed_tag.tag IS NULL
               AND nudged_tag.tag IS NULL
         """)

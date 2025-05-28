@@ -23,7 +23,7 @@ def send_newsletter_optin_nudge():
               ON s.id = done.subscriber_id AND done.tag = 'newsletter_optin_completed'
             LEFT JOIN subscriber_tags nudged 
               ON s.id = nudged.subscriber_id AND nudged.tag = 'newsletter_optin_nudge_sent'
-            WHERE s.active = TRUE
+            WHERE s.is_active = TRUE
               AND done.tag IS NULL
               AND nudged.tag IS NULL
               AND sent.created_at <= NOW() - INTERVAL '7 days'
