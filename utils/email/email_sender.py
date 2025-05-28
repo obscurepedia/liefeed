@@ -39,39 +39,28 @@ def send_email(subscriber_id, email_id, recipient, subject, html_body, text_body
         text_body = "Your email client does not support HTML. Visit our website instead."
     sender = sender or os.getenv("SES_SENDER", "newsletter@liefeed.com")
 
-    # ✅ Add custom open tracking pixel
-    pixel_tag = f'<img src="https://liefeed.com/open-tracker/{subscriber_id}/{email_id}" width="1" height="1" style="display:none;" alt="tracker">'
-    html_body += pixel_tag
-
-    # ✅ Add custom click tracking to all links
-    html_body = add_click_tracking(html_body, subscriber_id, email_id)
+    # ✅ If IDs are provided, add tracking
+    if subscriber_id and email_id:
+        pixel_tag = f'<img src="https://liefeed.com/open-tracker/{subscriber_id}/{email_id}" width="1" height="1" style="display:none;" alt="tracker">'
+        html_body += pixel_tag
+        html_body = add_click_tracking(html_body, subscriber_id, email_id)
 
     try:
         response = ses_client.send_email(
             Source=sender,
-            Destination={
-                'ToAddresses': [recipient]
-            },
+            Destination={'ToAddresses': [recipient]},
             Message={
-                'Subject': {
-                    'Data': subject,
-                    'Charset': 'UTF-8'
-                },
+                'Subject': {'Data': subject, 'Charset': 'UTF-8'},
                 'Body': {
-                    'Text': {
-                        'Data': text_body,
-                        'Charset': 'UTF-8'
-                    },
-                    'Html': {
-                        'Data': html_body,
-                        'Charset': 'UTF-8'
-                    }
+                    'Text': {'Data': text_body, 'Charset': 'UTF-8'},
+                    'Html': {'Data': html_body, 'Charset': 'UTF-8'}
                 }
             },
-            ConfigurationSetName='LieFeedTracking'  # Optional: SES-level metrics
+            ConfigurationSetName='LieFeedTracking'  # Optional
         )
         print("✅ Email sent:", response['MessageId'])
         return response
+
     except ClientError as e:
         print("❌ SES Error:", e.response['Error']['Message'])
         return None
