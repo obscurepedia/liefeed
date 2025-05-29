@@ -204,3 +204,45 @@ services:
       - fromGroup: shared-env
       - key: RUN_TARGET
         value: subscriber-summary
+
+  - type: cron
+    name: send-weekly-newsletter
+    runtime: docker
+    plan: starter
+    autoDeploy: true
+    schedule: "0 10 * * 4"  # Thursday at 10 AM
+    buildCommand: pip install -r requirements.txt
+    buildFilter:
+      paths:
+        - Dockerfile
+        - render.yaml
+        - requirements.txt
+        - utils/email/send_weekly_newsletter.py
+        - utils/email/email_sender.py
+        - utils/database/db.py
+    envVars:
+      - fromGroup: shared-env
+      - key: RUN_TARGET
+        value: send-weekly-newsletter
+
+  - type: cron
+    name: send-3x-newsletter
+    runtime: docker
+    plan: starter
+    autoDeploy: true
+    schedule: "0 10 * * 1,3,5"  # Mon, Wed, Fri at 10 AM
+    buildCommand: pip install -r requirements.txt
+    buildFilter:
+      paths:
+        - Dockerfile
+        - render.yaml
+        - requirements.txt
+        - utils/email/send_3x_newsletter.py
+        - utils/email/email_sender.py
+        - utils/database/db.py
+    envVars:
+      - fromGroup: shared-env
+      - key: RUN_TARGET
+        value: send-3x-newsletter
+
+

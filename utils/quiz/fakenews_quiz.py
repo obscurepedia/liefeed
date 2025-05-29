@@ -89,25 +89,36 @@ def quiz_results():
 
     if email:
         save_subscriber(email=email, name=name, quiz_score=correct, quiz_total=len(quiz_data))
-        pdf_path = generate_certificate(name, "Real or Fake News Quiz", correct)
 
-        html_body = f"""
-            <p>Agent {name},</p>
-            <p>Based on your recent performance in the field, LieFeed HQ has issued the attached Certificate of Completion.</p>
-            <p>You have demonstrated exceptional instincts in detecting satire (or were spectacularly fooled — both are impressive in their own way).</p>
-            <p><strong>Score:</strong> {correct}/{len(quiz_data)}</p>
-            <p>Open the certificate. Frame it. Print two and pretend one is a diploma.</p>
-            <p>Stay suspicious,<br>LieFeed Intelligence Division 🕵️‍♀️</p>
-        """
-        send_certificate_email_with_attachment(
-            recipient=email,
-            subject="🕵️ Your Fake News Detection Mission Debrief Is In",
-            html_body=html_body,
-            pdf_path=pdf_path
-        )
+        # 🛑 Disable certificate generation/email
+        if False:
+            pdf_path = generate_certificate(name, "Real or Fake News Quiz", correct)
+
+            html_body = f"""
+                <p>Agent {name},</p>
+                <p>Based on your recent performance in the field, LieFeed HQ has issued the attached Certificate of Completion.</p>
+                <p>You have demonstrated exceptional instincts in detecting satire (or were spectacularly fooled — both are impressive in their own way).</p>
+                <p><strong>Score:</strong> {correct}/{len(quiz_data)}</p>
+                <p>Open the certificate. Frame it. Print two and pretend one is a diploma.</p>
+                <p>Stay suspicious,<br>LieFeed Intelligence Division 🕵️‍♀️</p>
+            """
+            send_certificate_email_with_attachment(
+                recipient=email,
+                subject="🕵️ Your Fake News Detection Mission Debrief Is In",
+                html_body=html_body,
+                pdf_path=pdf_path
+            )
 
     result_feedback = get_result_feedback(correct, len(quiz_data))
-    return render_template("quiz/quiz_results.html", score=correct, total=len(quiz_data), name=name, result_feedback=result_feedback, pixel_id=current_app.config.get('FACEBOOK_PIXEL_ID', ''))
+    return render_template(
+        "quiz/quiz_results.html",
+        score=correct,
+        total=len(quiz_data),
+        name=name,
+        result_feedback=result_feedback,
+        pixel_id=current_app.config.get('FACEBOOK_PIXEL_ID', '')
+    )
+
 
 @quiz_bp.route("/quiz/email", methods=["GET", "POST"])
 def quiz_email_capture():
@@ -228,83 +239,81 @@ def quiz_landing():
 
 
 
-# ARCHIVED: Retake logic disabled as of May 2025
-if False:
-    @quiz_bp.route("/quiz/level2", methods=["GET", "POST"])
-    def quiz_level2():
-        if request.method == "GET" or "level2_quiz_data" not in session:
-            quiz_data = generate_dynamic_quiz(length=8)
-            if not quiz_data:
-                return render_template("quiz/error.html", message="No quiz questions found.")
-            session["level2_quiz_data"] = quiz_data
-            session["level2_answers"] = []
-            session["level2_question_index"] = 0
-
-        quiz_data = session["level2_quiz_data"]
-        index = session["level2_question_index"]
-
+@quiz_bp.route("/quiz/level2", methods=["GET", "POST"])
+def quiz_level2():
+    if request.method == "GET" or "level2_quiz_data" not in session:
+        quiz_data = generate_dynamic_quiz(length=8)
         if not quiz_data:
-            return render_template("quiz/error.html", message="No quiz questions available.")
+            return render_template("quiz/error.html", message="No quiz questions found.")
+        session["level2_quiz_data"] = quiz_data
+        session["level2_answers"] = []
+        session["level2_question_index"] = 0
 
-        if request.method == "POST":
-            answer = request.form.get("answer")
-            session["level2_answers"].append(answer)
-            session["level2_question_index"] = index + 1
+    quiz_data = session["level2_quiz_data"]
+    index = session["level2_question_index"]
 
-            if index + 1 >= len(quiz_data):
-                return redirect(url_for("quiz.quiz_level2_results"))
+    if not quiz_data:
+        return render_template("quiz/error.html", message="No quiz questions available.")
 
-            return redirect(url_for("quiz.quiz_level2"))
+    if request.method == "POST":
+        answer = request.form.get("answer")
+        session["level2_answers"].append(answer)
+        session["level2_question_index"] = index + 1
 
-        if index >= len(quiz_data):
+        if index + 1 >= len(quiz_data):
             return redirect(url_for("quiz.quiz_level2_results"))
 
-        question = quiz_data[index]
+        return redirect(url_for("quiz.quiz_level2"))
 
-        return render_template(
-            "quiz/level2_question.html",
-            question=question,
-            index=index + 1,
-            total=len(quiz_data)
+    if index >= len(quiz_data):
+        return redirect(url_for("quiz.quiz_level2_results"))
+
+    question = quiz_data[index]
+
+    return render_template(
+        "quiz/level2_question.html",
+        question=question,
+        index=index + 1,
+        total=len(quiz_data)
+    )
+
+
+@quiz_bp.route("/quiz/level2-results", methods=["GET"])
+def quiz_level2_results():
+    quiz_data = session.get("level2_quiz_data", [])
+    user_answers = session.get("level2_answers", [])
+    name = session.get("name", "Quiz Taker")
+    email = session.get("email", "")
+    
+    total_questions = len(quiz_data)
+    score = sum(
+        1 for i, answer in enumerate(user_answers)
+        if i < total_questions and (
+            (answer == "real" and quiz_data[i]["is_real"]) or
+            (answer == "fake" and not quiz_data[i]["is_real"])
         )
+    )
 
+    if email:
+        conn = get_connection()
+        with conn.cursor() as c:
+            c.execute("""
+                UPDATE subscribers
+                SET level2_score = %s,
+                    level2_total = %s
+                WHERE email = %s
+            """, (score, total_questions, email))
+            conn.commit()
 
-# ARCHIVED: Retake logic disabled as of May 2025
-if False:
-    @quiz_bp.route("/quiz/level2-results", methods=["GET"])
-    def quiz_level2_results():
-        quiz_data = session.get("level2_quiz_data", [])
-        user_answers = session.get("level2_answers", [])
-        name = session.get("name", "Quiz Taker")
-        email = session.get("email", "")
-        correct = 0
+    feedback = get_result_feedback(score, total_questions)
 
-        for i, user_answer in enumerate(user_answers):
-            if i < len(quiz_data):
-                actual = quiz_data[i]["is_real"]
-                if (user_answer == "real" and actual) or (user_answer == "fake" and not actual):
-                    correct += 1
-
-        if email:
-            conn = get_connection()
-            with conn.cursor() as c:
-                c.execute("""
-                    UPDATE subscribers
-                    SET level2_score = %s,
-                        level2_total = %s
-                    WHERE email = %s
-                """, (correct, len(quiz_data), email))
-                conn.commit()
-
-        result_feedback = get_result_feedback(correct, len(quiz_data))
-
-        return render_template(
-            "quiz/level2_results.html",
-            score=correct,
-            total=len(quiz_data),
-            name=name,
-            result_feedback=result_feedback
-        )
+    return render_template(
+        "quiz/level2_results.html",
+        score=score,
+        total=total_questions,
+        name=name,
+        result_feedback=feedback
+    )
 
 
 # ARCHIVED: Retake logic disabled as of May 2025

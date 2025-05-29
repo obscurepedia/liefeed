@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 80px auto; background: #fff; padding: 50px 40px; border-radius: 14px; box-shadow: 0 12px 40px rgba(0,0,0,0.12); text-align: center; font-family: 'Segoe UI', sans-serif;">
+  <h1 style="font-size: 32px; color: #27ae60; margin-bottom: 10px;">✅ Preferences Saved!</h1>
+  <p style="font-size: 18px; color: #333; margin-bottom: 20px;">
+    You’ve officially chosen how often you’d like to be lied to.
+  </p>
+  <p style="color: #666; font-size: 16px; margin-bottom: 30px;">
+    Expect satire, scandal, and suspiciously accurate nonsense <br>delivered right on your twisted schedule.
+  </p>
+
+  <a href="{{ url_for('home.home') }}" style="display: inline-block; background: #0077cc; color: white; padding: 12px 28px; border-radius: 6px; text-decoration: none; font-size: 16px;">
+    🔙 Return to LieFeed HQ
+  </a>
+
+  <p style="margin-top: 40px; font-size: 12px; color: #999;">We’ll lie to you soon. Promise.</p>
+</div>
+{% endblock %}

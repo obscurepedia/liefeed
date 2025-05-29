@@ -1,23 +1,24 @@
 import os
 import re
-from dotenv import load_dotenv
-load_dotenv()  # ✅ MAKE SURE THIS IS CALLED HERE
-
-import boto3
-from botocore.exceptions import ClientError
-import mimetypes
+from urllib.parse import quote
+from datetime import datetime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
-
-from urllib.parse import quote
-from datetime import datetime
-from botocore.exceptions import ClientError
 from io import BytesIO
+
+import boto3
+from botocore.exceptions import ClientError
+from dotenv import load_dotenv
+
+from utils.database.db import get_connection  # ✅ Make sure this exists in your project
+
+load_dotenv()
 
 # Load credentials from environment variables
 AWS_REGION = os.getenv("AWS_REGION")  # e.g., "us-east-1"
-SENDER = os.getenv("SES_SENDER")      # e.g., "newsletter@liefeed.com"
+DEFAULT_SENDER = os.getenv("SES_SENDER", "newsletter@liefeed.com")
+CERT_SENDER = os.getenv("SES_SENDER_CERT", "certificates@liefeed.com")
 
 # Create SES client
 ses_client = boto3.client("ses", region_name=AWS_REGION)
@@ -34,10 +35,20 @@ def add_click_tracking(html, subscriber_id, email_id):
     
     return re.sub(r'href="([^"]+)"', replacer, html)
 
-def send_email(subscriber_id, email_id, recipient, subject, html_body, text_body=None, sender=None):
+def send_email(subscriber_id, email_id, recipient, subject, html_body, text_body=None, sender=None, required_freq=None):
     if not text_body:
         text_body = "Your email client does not support HTML. Visit our website instead."
-    sender = sender or os.getenv("SES_SENDER", "newsletter@liefeed.com")
+    sender = sender or DEFAULT_SENDER
+
+    # ✅ Check subscriber's frequency setting if required
+    if required_freq and subscriber_id:
+        conn = get_connection()
+        with conn.cursor() as cur:
+            cur.execute("SELECT newsletter_freq FROM subscribers WHERE id = %s", (subscriber_id,))
+            row = cur.fetchone()
+            if not row or row[0] != required_freq:
+                print(f"⏭ Skipping email to {recipient}: frequency mismatch or not opted in")
+                return None
 
     # ✅ If IDs are provided, add tracking
     if subscriber_id and email_id:
@@ -65,14 +76,13 @@ def send_email(subscriber_id, email_id, recipient, subject, html_body, text_body
         print("❌ SES Error:", e.response['Error']['Message'])
         return None
 
-
 def send_certificate_email_with_attachment(recipient, subject, html_body, pdf_path, sender=None):
-    sender = sender or os.getenv("SES_SENDER_CERT", "certificates@liefeed.com")  # fallback
-    
+    sender = sender or CERT_SENDER
+
     # Construct raw email
     msg = MIMEMultipart()
     msg["Subject"] = subject
-    msg["From"] = SENDER
+    msg["From"] = sender
     msg["To"] = recipient
 
     # Attach HTML and plain text body
@@ -87,10 +97,11 @@ def send_certificate_email_with_attachment(recipient, subject, html_body, pdf_pa
 
     try:
         response = ses_client.send_raw_email(
-            Source=SENDER,
+            Source=sender,
             Destinations=[recipient],
             RawMessage={"Data": msg.as_string()}
         )
+        print("✅ Certificate email sent:", response['MessageId'])
         return response
     except ClientError as e:
         print("❌ SES Attachment Error:", e.response['Error']['Message'])

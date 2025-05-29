@@ -1,6 +1,6 @@
 from utils.database.token_utils import generate_unsubscribe_token
 
-def generate_newsletter_html(posts, subscriber_id, recipient_email, satirical_spin, email_id):
+def generate_newsletter_html(posts, subscriber_id, recipient_email, satirical_spin, email_id, current_freq=None):
     token = generate_unsubscribe_token(recipient_email)
     unsubscribe_url = f"https://liefeed.com/unsubscribe/{token}"
 
@@ -20,7 +20,7 @@ def generate_newsletter_html(posts, subscriber_id, recipient_email, satirical_sp
           <tr>
             {image_html}
             <td valign="middle" style="padding-left: 10px;">
-              <a href="https://liefeed.com/{post['slug']}" style="font-size: 16px; color: #0077cc; text-decoration: none;">{post['title']}</a>
+              <a href="https://liefeed.com/post/{post['slug']}" style="font-size: 16px; color: #0077cc; text-decoration: none;">{post['title']}</a>
             </td>
           </tr>
         </table>
@@ -30,6 +30,12 @@ def generate_newsletter_html(posts, subscriber_id, recipient_email, satirical_sp
 <html>
   <body style="margin: 0; padding: 0; background-color: #f9f9f9;">
     <center>
+
+      <!-- Preheader -->
+      <span style="display: none; font-size: 1px; color: #fff;">
+        Here’s your next dose of truth-adjacent absurdity.
+      </span>
+
       <table width="600" border="0" cellspacing="0" cellpadding="0" style="border-collapse: collapse; background: #ffffff; margin: 30px auto; font-family: Arial, sans-serif; color: #333;">
         <tr>
           <td align="center" style="padding: 30px;">
@@ -41,7 +47,7 @@ def generate_newsletter_html(posts, subscriber_id, recipient_email, satirical_sp
 
     if featured_post.get('image'):
         html += f"""
-            <img src="{featured_post['image']}" alt="Featured Image" width="540" height="300" style="display: block; border-radius: 5px; margin: 15px 0;">
+            <img src="{featured_post['image']}" alt="{featured_post['title']}" width="540" height="300" style="display: block; border-radius: 5px; margin: 15px 0;">
         """
 
     html += f"""
@@ -50,7 +56,7 @@ def generate_newsletter_html(posts, subscriber_id, recipient_email, satirical_sp
             </div>
 
             <p style="margin-top: 20px;">
-              👉 <a href="https://liefeed.com/{featured_post['slug']}" style="color: #0077cc;">Read it on LieFeed</a>
+              👉 <a href="https://liefeed.com/post/{featured_post['slug']}" style="color: #0077cc;">Read it on LieFeed</a>
             </p>
 
             <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
@@ -65,7 +71,26 @@ def generate_newsletter_html(posts, subscriber_id, recipient_email, satirical_sp
             <blockquote style="font-style: italic; font-size: 15px; color: #555; border-left: 4px solid #ccc; padding-left: 10px; margin: 10px 0;">
               {satirical_spin}
             </blockquote>
+    """
 
+    # 🆙 Add upgrade prompt for weekly users
+    if current_freq == "weekly":
+        html += f"""
+            <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
+
+            <div style="background: #f0f8ff; padding: 20px; border-radius: 8px; text-align: center;">
+              <h3 style="margin-bottom: 10px;">💥 Upgrade Your Dose of Nonsense</h3>
+              <p style="font-size: 15px; color: #444;">
+                You're on the <strong>Weekly Plan</strong> — but you could be getting 3x the satire, scandal, and surrealism.
+              </p>
+              <a href="https://liefeed.com/newsletter/upgrade-to-3x?email={recipient_email}"
+                 style="display: inline-block; background: #0077cc; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; margin-top: 10px;">
+                🔁 Switch to 3x/week Lies
+              </a>
+            </div>
+        """
+
+    html += f"""
             <div style="text-align: center; margin-top: 30px;">
               <a href="https://facebook.com/liefeed" target="_blank" style="margin: 0 10px;">
                 <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" width="24" height="24" style="display: inline-block;">
@@ -79,9 +104,6 @@ def generate_newsletter_html(posts, subscriber_id, recipient_email, satirical_sp
               You're receiving this because you subscribed to LieFeed.<br>
               <a href="{unsubscribe_url}" style="color: #999;">Unsubscribe</a> if satire makes you uncomfortable.
             </p>
-
-            <!-- Tracking Pixel -->
-            <img src="https://liefeed.com/open-tracker/{subscriber_id}/{email_id}" width="1" height="1" alt="" style="display:none;">
           </td>
         </tr>
       </table>

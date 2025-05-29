@@ -26,6 +26,7 @@ from routes.team import team_bp
 from routes.email_events import email_events_bp
 from routes.inbox import inbox_bp
 from routes.jobs import jobs_bp
+from routes.newsletter_preferences import newsletter_bp
 
 # === Environment ===
 load_dotenv()
@@ -60,6 +61,7 @@ app.register_blueprint(team_bp)
 app.register_blueprint(email_events_bp)
 app.register_blueprint(inbox_bp)
 app.register_blueprint(jobs_bp)
+app.register_blueprint(newsletter_bp)
 
 # === Run App ===
 if __name__ == "__main__":
