@@ -43,4 +43,4 @@ def send_weekly_newsletter(dry_run=False):
 if __name__ == "__main__":
     send_weekly_newsletter()
 
-
+# this is to make it git again
