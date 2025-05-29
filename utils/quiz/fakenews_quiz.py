@@ -150,224 +150,239 @@ def quiz_email_capture():
 
     return render_template("quiz/quiz_email.html")
 
-@quiz_bp.route("/quiz/retake", methods=["GET", "POST"])
-def quiz_retake():
-    if "email" not in session:
-        token = request.args.get("token")
-        if token:
-            try:
-                s = URLSafeSerializer(current_app.config["SECRET_KEY"])
-                email = s.loads(token)
-                session["email"] = email
-            except BadSignature:
-                return "Invalid or expired link", 400
+# ARCHIVED: Retake logic disabled as of May 2025
+if False:
+    @quiz_bp.route("/quiz/retake", methods=["GET", "POST"])
+    def quiz_retake():
+        if "email" not in session:
+            token = request.args.get("token")
+            if token:
+                try:
+                    s = URLSafeSerializer(current_app.config["SECRET_KEY"])
+                    email = s.loads(token)
+                    session["email"] = email
+                except BadSignature:
+                    return "Invalid or expired link", 400
 
-    # ✅ Always regenerate quiz on GET to start fresh
-    if request.method == "GET" or "retake_quiz_data" not in session:
-        quiz_data = generate_dynamic_quiz()
-        if not quiz_data:
-            return render_template("quiz/error.html", message="No quiz questions found.")
-        session["retake_quiz_data"] = quiz_data
-        session["retake_answers"] = []
-        session["retake_question_index"] = 0
+        # ✅ Always regenerate quiz on GET to start fresh
+        if request.method == "GET" or "retake_quiz_data" not in session:
+            quiz_data = generate_dynamic_quiz()
+            if not quiz_data:
+                return render_template("quiz/error.html", message="No quiz questions found.")
+            session["retake_quiz_data"] = quiz_data
+            session["retake_answers"] = []
+            session["retake_question_index"] = 0
 
-    quiz_data = session["retake_quiz_data"]
-    index = session["retake_question_index"]
+        quiz_data = session["retake_quiz_data"]
+        index = session["retake_question_index"]
 
-    if request.method == "POST":
-        answer = request.form.get("answer")
-        session["retake_answers"].append(answer)
-        session["retake_question_index"] = index + 1
-        if index + 1 >= len(quiz_data):
+        if request.method == "POST":
+            answer = request.form.get("answer")
+            session["retake_answers"].append(answer)
+            session["retake_question_index"] = index + 1
+            if index + 1 >= len(quiz_data):
+                return redirect(url_for("quiz.quiz_retake_results"))
+            return redirect(url_for("quiz.quiz_retake"))
+
+        # ✅ Avoid redirect loop — send to first question
+        if index >= len(quiz_data):
             return redirect(url_for("quiz.quiz_retake_results"))
-        return redirect(url_for("quiz.quiz_retake"))
 
-    # ✅ Avoid redirect loop — send to first question
-    if index >= len(quiz_data):
-        return redirect(url_for("quiz.quiz_retake_results"))
-
-    question = quiz_data[index]
-    return render_template("quiz/retake_question.html", question=question, index=index + 1, total=len(quiz_data))
+        question = quiz_data[index]
+        return render_template("quiz/retake_question.html", question=question, index=index + 1, total=len(quiz_data))
 
 
+    @quiz_bp.route("/quiz/retake-results")
+    def quiz_retake_results():
+        quiz_data = session.get("retake_quiz_data", [])
+        user_answers = session.get("retake_answers", [])
+        name = session.get("name", "Quiz Taker")
+        email = session.get("email", "")
+        correct = 0
 
-@quiz_bp.route("/quiz/retake-results")
-def quiz_retake_results():
-    quiz_data = session.get("retake_quiz_data", [])
-    user_answers = session.get("retake_answers", [])
-    name = session.get("name", "Quiz Taker")
-    email = session.get("email", "")
-    correct = 0
+        for i, user_answer in enumerate(user_answers):
+            if i < len(quiz_data):
+                actual = quiz_data[i]["is_real"]
+                if (user_answer == "real" and actual) or (user_answer == "fake" and not actual):
+                    correct += 1
 
-    for i, user_answer in enumerate(user_answers):
-        if i < len(quiz_data):
-            actual = quiz_data[i]["is_real"]
-            if (user_answer == "real" and actual) or (user_answer == "fake" and not actual):
-                correct += 1
+        if email:
+            conn = get_connection()
+            with conn.cursor() as c:
+                c.execute("""
+                    UPDATE subscribers
+                    SET retake_score = %s,
+                        retake_total = %s
+                    WHERE email = %s
+                """, (correct, len(quiz_data), email))
+                conn.commit()
 
-    if email:
-        conn = get_connection()
-        with conn.cursor() as c:
-            c.execute("""
-                UPDATE subscribers
-                SET retake_score = %s,
-                    retake_total = %s
-                WHERE email = %s
-            """, (correct, len(quiz_data), email))
-            conn.commit()
+        result_feedback = get_result_feedback(correct, len(quiz_data))
+        return render_template("quiz/retake_results.html", score=correct, total=len(quiz_data), name=name, result_feedback=result_feedback)
 
-    result_feedback = get_result_feedback(correct, len(quiz_data))
-    return render_template("quiz/retake_results.html", score=correct, total=len(quiz_data), name=name, result_feedback=result_feedback)
 
+# ✅ Active route — keep this enabled
 @quiz_bp.route("/quiz-landing")
 def quiz_landing():
     return render_template("quiz/quiz_landing.html", pixel_id=current_app.config.get('FACEBOOK_PIXEL_ID', ''))
 
 
-@quiz_bp.route("/quiz/level2", methods=["GET", "POST"])
-def quiz_level2():
-    if request.method == "GET" or "level2_quiz_data" not in session:
-        quiz_data = generate_dynamic_quiz(length=8)
+
+# ARCHIVED: Retake logic disabled as of May 2025
+if False:
+    @quiz_bp.route("/quiz/level2", methods=["GET", "POST"])
+    def quiz_level2():
+        if request.method == "GET" or "level2_quiz_data" not in session:
+            quiz_data = generate_dynamic_quiz(length=8)
+            if not quiz_data:
+                return render_template("quiz/error.html", message="No quiz questions found.")
+            session["level2_quiz_data"] = quiz_data
+            session["level2_answers"] = []
+            session["level2_question_index"] = 0
+
+        quiz_data = session["level2_quiz_data"]
+        index = session["level2_question_index"]
+
         if not quiz_data:
-            return render_template("quiz/error.html", message="No quiz questions found.")
-        session["level2_quiz_data"] = quiz_data
-        session["level2_answers"] = []
-        session["level2_question_index"] = 0
+            return render_template("quiz/error.html", message="No quiz questions available.")
 
-    quiz_data = session["level2_quiz_data"]
-    index = session["level2_question_index"]
+        if request.method == "POST":
+            answer = request.form.get("answer")
+            session["level2_answers"].append(answer)
+            session["level2_question_index"] = index + 1
 
-    if not quiz_data:
-        return render_template("quiz/error.html", message="No quiz questions available.")
+            if index + 1 >= len(quiz_data):
+                return redirect(url_for("quiz.quiz_level2_results"))
 
-    if request.method == "POST":
-        answer = request.form.get("answer")
-        session["level2_answers"].append(answer)
-        session["level2_question_index"] = index + 1
+            return redirect(url_for("quiz.quiz_level2"))
 
-        if index + 1 >= len(quiz_data):
+        if index >= len(quiz_data):
             return redirect(url_for("quiz.quiz_level2_results"))
 
-        return redirect(url_for("quiz.quiz_level2"))
+        question = quiz_data[index]
 
-    if index >= len(quiz_data):
-        return redirect(url_for("quiz.quiz_level2_results"))
-
-    question = quiz_data[index]
-
-    return render_template(
-        "quiz/level2_question.html",
-        question=question,
-        index=index + 1,
-        total=len(quiz_data)
-    )
+        return render_template(
+            "quiz/level2_question.html",
+            question=question,
+            index=index + 1,
+            total=len(quiz_data)
+        )
 
 
-@quiz_bp.route("/quiz/level2-results", methods=["GET"])
-def quiz_level2_results():
-    quiz_data = session.get("level2_quiz_data", [])
-    user_answers = session.get("level2_answers", [])
-    name = session.get("name", "Quiz Taker")
-    email = session.get("email", "")
-    correct = 0
+# ARCHIVED: Retake logic disabled as of May 2025
+if False:
+    @quiz_bp.route("/quiz/level2-results", methods=["GET"])
+    def quiz_level2_results():
+        quiz_data = session.get("level2_quiz_data", [])
+        user_answers = session.get("level2_answers", [])
+        name = session.get("name", "Quiz Taker")
+        email = session.get("email", "")
+        correct = 0
 
-    for i, user_answer in enumerate(user_answers):
-        if i < len(quiz_data):
-            actual = quiz_data[i]["is_real"]
-            if (user_answer == "real" and actual) or (user_answer == "fake" and not actual):
-                correct += 1
+        for i, user_answer in enumerate(user_answers):
+            if i < len(quiz_data):
+                actual = quiz_data[i]["is_real"]
+                if (user_answer == "real" and actual) or (user_answer == "fake" and not actual):
+                    correct += 1
 
-    if email:
-        conn = get_connection()
-        with conn.cursor() as c:
-            c.execute("""
-                UPDATE subscribers
-                SET level2_score = %s,
-                    level2_total = %s
-                WHERE email = %s
-            """, (correct, len(quiz_data), email))
-            conn.commit()
+        if email:
+            conn = get_connection()
+            with conn.cursor() as c:
+                c.execute("""
+                    UPDATE subscribers
+                    SET level2_score = %s,
+                        level2_total = %s
+                    WHERE email = %s
+                """, (correct, len(quiz_data), email))
+                conn.commit()
 
-    result_feedback = get_result_feedback(correct, len(quiz_data))
+        result_feedback = get_result_feedback(correct, len(quiz_data))
 
-    return render_template(
-        "quiz/level2_results.html",
-        score=correct,
-        total=len(quiz_data),
-        name=name,
-        result_feedback=result_feedback
-    )
+        return render_template(
+            "quiz/level2_results.html",
+            score=correct,
+            total=len(quiz_data),
+            name=name,
+            result_feedback=result_feedback
+        )
 
-@quiz_bp.route("/quiz/level3", methods=["GET", "POST"])
-def quiz_level3():
-    if request.method == "GET" or "level3_quiz_data" not in session:
-        quiz_data = generate_dynamic_quiz(length=10)
+
+# ARCHIVED: Retake logic disabled as of May 2025
+if False:
+    @quiz_bp.route("/quiz/level3", methods=["GET", "POST"])
+    def quiz_level3():
+        if request.method == "GET" or "level3_quiz_data" not in session:
+            quiz_data = generate_dynamic_quiz(length=10)
+            if not quiz_data:
+                return render_template("quiz/error.html", message="No quiz questions found.")
+            session["level3_quiz_data"] = quiz_data
+            session["level3_answers"] = []
+            session["level3_question_index"] = 0
+
+        quiz_data = session["level3_quiz_data"]
+        index = session["level3_question_index"]
+
         if not quiz_data:
-            return render_template("quiz/error.html", message="No quiz questions found.")
-        session["level3_quiz_data"] = quiz_data
-        session["level3_answers"] = []
-        session["level3_question_index"] = 0
+            return render_template("quiz/error.html", message="No quiz questions available.")
 
-    quiz_data = session["level3_quiz_data"]
-    index = session["level3_question_index"]
+        if request.method == "POST":
+            answer = request.form.get("answer")
+            session["level3_answers"].append(answer)
+            session["level3_question_index"] = index + 1
 
-    if not quiz_data:
-        return render_template("quiz/error.html", message="No quiz questions available.")
+            if index + 1 >= len(quiz_data):
+                return redirect(url_for("quiz.quiz_level3_results"))
 
-    if request.method == "POST":
-        answer = request.form.get("answer")
-        session["level3_answers"].append(answer)
-        session["level3_question_index"] = index + 1
+            return redirect(url_for("quiz.quiz_level3"))
 
-        if index + 1 >= len(quiz_data):
+        if index >= len(quiz_data):
             return redirect(url_for("quiz.quiz_level3_results"))
 
-        return redirect(url_for("quiz.quiz_level3"))
+        question = quiz_data[index]
 
-    if index >= len(quiz_data):
-        return redirect(url_for("quiz.quiz_level3_results"))
-
-    question = quiz_data[index]
-
-    return render_template(
-        "quiz/level3_question.html",
-        question=question,
-        index=index + 1,
-        total=len(quiz_data)
-    )
+        return render_template(
+            "quiz/level3_question.html",
+            question=question,
+            index=index + 1,
+            total=len(quiz_data)
+        )
 
 
-@quiz_bp.route("/quiz/level3-results", methods=["GET"])
-def quiz_level3_results():
-    quiz_data = session.get("level3_quiz_data", [])
-    user_answers = session.get("level3_answers", [])
-    name = session.get("name", "Quiz Taker")
-    email = session.get("email", "")
-    correct = 0
+        
 
-    for i, user_answer in enumerate(user_answers):
-        if i < len(quiz_data):
-            actual = quiz_data[i]["is_real"]
-            if (user_answer == "real" and actual) or (user_answer == "fake" and not actual):
-                correct += 1
+# ARCHIVED: Retake logic disabled as of May 2025
+if False:
+    @quiz_bp.route("/quiz/level3-results", methods=["GET"])
+    def quiz_level3_results():
+        quiz_data = session.get("level3_quiz_data", [])
+        user_answers = session.get("level3_answers", [])
+        name = session.get("name", "Quiz Taker")
+        email = session.get("email", "")
+        correct = 0
 
-    if email:
-        conn = get_connection()
-        with conn.cursor() as c:
-            c.execute("""
-                UPDATE subscribers
-                SET level3_score = %s,
-                    level3_total = %s
-                WHERE email = %s
-            """, (correct, len(quiz_data), email))
-            conn.commit()
+        for i, user_answer in enumerate(user_answers):
+            if i < len(quiz_data):
+                actual = quiz_data[i]["is_real"]
+                if (user_answer == "real" and actual) or (user_answer == "fake" and not actual):
+                    correct += 1
 
-    result_feedback = get_result_feedback(correct, len(quiz_data))
+        if email:
+            conn = get_connection()
+            with conn.cursor() as c:
+                c.execute("""
+                    UPDATE subscribers
+                    SET level3_score = %s,
+                        level3_total = %s
+                    WHERE email = %s
+                """, (correct, len(quiz_data), email))
+                conn.commit()
 
-    return render_template(
-        "quiz/level3_results.html",
-        score=correct,
-        total=len(quiz_data),
-        name=name,
-        result_feedback=result_feedback
-    )
+        result_feedback = get_result_feedback(correct, len(quiz_data))
+
+        return render_template(
+            "quiz/level3_results.html",
+            score=correct,
+            total=len(quiz_data),
+            name=name,
+            result_feedback=result_feedback
+        )
