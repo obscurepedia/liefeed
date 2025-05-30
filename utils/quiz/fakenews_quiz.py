@@ -90,24 +90,23 @@ def quiz_results():
     if email:
         save_subscriber(email=email, name=name, quiz_score=correct, quiz_total=len(quiz_data))
 
-        # 🛑 Disable certificate generation/email
-        if False:
-            pdf_path = generate_certificate(name, "Real or Fake News Quiz", correct)
+        # ✅ Certificate generation/email now active
+        pdf_path = generate_certificate(name, "Real or Fake News Quiz", correct)
 
-            html_body = f"""
-                <p>Agent {name},</p>
-                <p>Based on your recent performance in the field, LieFeed HQ has issued the attached Certificate of Completion.</p>
-                <p>You have demonstrated exceptional instincts in detecting satire (or were spectacularly fooled — both are impressive in their own way).</p>
-                <p><strong>Score:</strong> {correct}/{len(quiz_data)}</p>
-                <p>Open the certificate. Frame it. Print two and pretend one is a diploma.</p>
-                <p>Stay suspicious,<br>LieFeed Intelligence Division 🕵️‍♀️</p>
-            """
-            send_certificate_email_with_attachment(
-                recipient=email,
-                subject="🕵️ Your Fake News Detection Mission Debrief Is In",
-                html_body=html_body,
-                pdf_path=pdf_path
-            )
+        html_body = f"""
+            <p>Agent {name},</p>
+            <p>Based on your recent performance in the field, LieFeed HQ has issued the attached Certificate of Completion.</p>
+            <p>You have demonstrated exceptional instincts in detecting satire (or were spectacularly fooled — both are impressive in their own way).</p>
+            <p><strong>Score:</strong> {correct}/{len(quiz_data)}</p>
+            <p>Open the certificate. Frame it. Print two and pretend one is a diploma.</p>
+            <p>Stay suspicious,<br>LieFeed Intelligence Division 🕵️‍♀️</p>
+        """
+        send_certificate_email_with_attachment(
+            recipient=email,
+            subject="🕵️ Your Fake News Detection Mission Debrief Is In",
+            html_body=html_body,
+            pdf_path=pdf_path
+        )
 
     result_feedback = get_result_feedback(correct, len(quiz_data))
     return render_template(
@@ -118,6 +117,7 @@ def quiz_results():
         result_feedback=result_feedback,
         pixel_id=current_app.config.get('FACEBOOK_PIXEL_ID', '')
     )
+
 
 
 @quiz_bp.route("/quiz/email", methods=["GET", "POST"])
