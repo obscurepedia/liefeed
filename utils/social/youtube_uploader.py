@@ -1,12 +1,20 @@
 import os
+import base64
 import boto3
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from google.oauth2.credentials import Credentials
 from utils.database.db import get_connection
 
+# Recreate youtube_token.json from env var if not present
+if not os.path.exists("youtube_token.json"):
+    token_data = base64.b64decode(os.getenv("YOUTUBE_TOKEN_BASE64"))
+    with open("youtube_token.json", "wb") as f:
+        f.write(token_data)
+
 BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
 LOCAL_PATH = "temp_reel.mp4"
+
 
 def download_from_s3(bucket, s3_key, local_path):
     s3 = boto3.client("s3")
