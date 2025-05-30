@@ -35,7 +35,7 @@ def add_click_tracking(html, subscriber_id, email_id):
     
     return re.sub(r'href="([^"]+)"', replacer, html)
 
-def send_email(subscriber_id, email_id, recipient, subject, html_body, text_body=None, sender=None, required_freq=None):
+def send_email(subscriber_id=None, email_id=None, recipient=None, subject=None, html_body=None, text_body=None, sender=None, required_freq=None):
     if not text_body:
         text_body = "Your email client does not support HTML. Visit our website instead."
     sender = sender or DEFAULT_SENDER
