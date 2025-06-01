@@ -63,6 +63,24 @@ services:
     envVars:
       - fromGroup: shared-env
 
+  - type: worker
+    name: liefeed-reel-worker
+    runtime: docker
+    plan: standard
+    autoDeploy: true
+    startCommand: python worker/worker_runner.py
+    buildFilter:
+      paths:
+        - Dockerfile
+        - render.yaml
+        - requirements.txt
+        - utils/image/auto_reel.py
+        - worker/worker_runner.py
+        - utils
+        - config
+    envVars:
+      - fromGroup: shared-env
+
   - type: cron
     name: post-to-facebook
     runtime: docker
