@@ -68,7 +68,6 @@ services:
     runtime: docker
     plan: standard
     autoDeploy: true
-    startCommand: python worker/worker_runner.py
     buildFilter:
       paths:
         - Dockerfile
@@ -80,6 +79,9 @@ services:
         - config
     envVars:
       - fromGroup: shared-env
+      - key: RUN_TARGET
+        value: worker-reel
+
 
   - type: cron
     name: post-to-facebook
