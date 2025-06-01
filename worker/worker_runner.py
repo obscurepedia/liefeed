@@ -1,5 +1,16 @@
 import asyncio
+import time
 from utils.image import auto_reel
 
-if __name__ == "__main__":
-    asyncio.run(auto_reel.main())
+SLEEP_INTERVAL = 60 * 60 * 24  # 24 hours in seconds
+
+while True:
+    try:
+        print("🌀 Starting daily reel generation...")
+        asyncio.run(auto_reel.main())
+        print("✅ Reel generation complete.")
+    except Exception as e:
+        print(f"❌ Error during reel generation: {e}")
+
+    print("😴 Sleeping for 24 hours...")
+    time.sleep(SLEEP_INTERVAL)

@@ -257,7 +257,7 @@ services:
         - Dockerfile
         - render.yaml
         - requirements.txt
-        - utils/email/send_3x_newsletter.py
+        - utils/email/send_newsletter_3x.py
         - utils/email/email_sender.py
         - utils/database/db.py
     envVars:
