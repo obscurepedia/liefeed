@@ -88,7 +88,7 @@ def quiz_results():
                 correct += 1
 
     if email:
-        save_subscriber(email=email, name=name, quiz_score=correct, quiz_total=len(quiz_data))
+        save_subscriber(email=email, name=name, quiz_score=correct, quiz_total=len(quiz_data),  newsletter_freq='weekly')
 
         # ✅ Certificate generation/email now active
         pdf_path = generate_certificate(name, "Real or Fake News Quiz", correct)
@@ -160,6 +160,39 @@ def quiz_email_capture():
         return redirect(url_for("quiz.quiz_question", fb_lead="1"))
 
     return render_template("quiz/quiz_email.html")
+
+@quiz_bp.route("/quiz/bonus-reward", methods=["GET", "POST"])
+def bonus_reward():
+    email = session.get("email")
+    if not email:
+        return redirect(url_for("quiz.start"))
+
+    if request.method == "POST":
+        freq = request.form.get("newsletter_freq")
+        if freq in ["3x", "daily"]:
+            conn = get_connection()
+            with conn.cursor() as cur:
+                cur.execute("""
+                    UPDATE subscribers
+                    SET newsletter_freq = %s
+                    WHERE email = %s
+                """, (freq, email))
+                conn.commit()
+        return redirect(url_for("quiz.bonus_thank_you", frequency=freq))
+
+    return render_template("quiz/bonus_reward.html")
+
+@quiz_bp.route("/quiz/thank-you")
+def bonus_thank_you():
+    freq = request.args.get("frequency", "weekly")
+
+    frequency_readable = {
+        "weekly": "once a week",
+        "3x": "three times a week",
+        "daily": "every day"
+    }.get(freq, "once a week")
+
+    return render_template("quiz/bonus_thank_you.html", frequency_readable=frequency_readable)
 
 # ARCHIVED: Retake logic disabled as of May 2025
 if False:

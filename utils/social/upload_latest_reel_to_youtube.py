@@ -1,6 +1,8 @@
 import os
 import boto3
 import mimetypes
+import base64
+import json
 from datetime import datetime
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
@@ -44,7 +46,9 @@ def download_from_s3(bucket, s3_key, local_path):
     print(f"✅ Downloaded: {s3_key} → {local_path}")
 
 def upload_to_youtube(video_path, title, description, tags=None):
-    creds = Credentials.from_authorized_user_file("youtube_token.json")
+    token_json = base64.b64decode(os.getenv("YOUTUBE_TOKEN_BASE64")).decode("utf-8")
+    token_data = json.loads(token_json)
+    creds = Credentials.from_authorized_user_info(info=token_data)
     youtube = build("youtube", "v3", credentials=creds)
 
     request_body = {

@@ -84,7 +84,7 @@ def generate_image_from_prompt(prompt, output_filename, category="General", mode
                 response.raise_for_status()
             except requests.exceptions.HTTPError as err:
                 print("❌ Leonardo API Error Response:", response.text)
-                raise
+                return None
             job = response.json()
             print("🧪 Leonardo raw response:", job)
             generation_id = job["sdGenerationJob"]["generationId"]

@@ -81,7 +81,7 @@ def increment_reel_counter():
         cur.execute("""
             UPDATE site_settings AS s
             SET setting_value = (s.setting_value::int + 1)::text
-            WHERE s.setting_key = 'reel_cta_counter'
+            WHERE s.setting_key = 'reel_counter'
         """)
         conn.commit()
     conn.close()
@@ -356,11 +356,12 @@ async def main():
         slide2_path.parent.mkdir(exist_ok=True)
         slide2_path.unlink(missing_ok=True)
 
-        generate_image_from_prompt(
-            prompt,
-            str(slide2_path),
-            mode="reel"
-        )
+        result = generate_image_from_prompt(prompt, str(slide2_path), mode="reel")
+
+        if result is None or not slide2_path.exists():
+            print("⚠️ Skipping post due to image generation failure.")
+            return  # or continue to next post in loop if part of a batch
+            
         time.sleep(1)
         ensure_exact_1080x1920(slide2_path)
 

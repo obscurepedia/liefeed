@@ -52,13 +52,15 @@ envVarGroups:
       - key: LEONARDO_API_KEY
         sync: false
       - key: REOON_API_KEY
+        sync: false- 
+      - key: YOUTUBE_TOKEN_BASE64
         sync: false
 
 services:
   - type: web
     name: liefeed
     runtime: docker
-    plan: standard
+    plan: starter
     autoDeploy: true
     envVars:
       - fromGroup: shared-env

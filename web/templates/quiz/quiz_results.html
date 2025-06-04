@@ -4,14 +4,17 @@
 <script>
   // Track quiz completion as a Lead
   if (typeof fbq === 'function') {
-    fbq('track', 'Lead');               // Standard conversion for Facebook optimization + reporting
-    fbq('trackCustom', 'CompleteQuiz'); // Custom event for precise tracking, audiences, and funnel clarity
+    fbq('track', 'Lead');
+    fbq('trackCustom', 'CompleteQuiz');
   }
+
+  // Redirect to Bonus Reward page after 5 seconds
+  setTimeout(function() {
+    window.location.href = "{{ url_for('quiz.bonus_reward') }}";
+  }, 5000);
 </script>
 
 <div class="result-box">
-
-  <!-- Score Section -->
   <div class="result-frame">
     <h1 class="result-heading">Your Results</h1>
     <p class="result-score">You scored <strong>{{ score }}</strong> out of <strong>{{ total }}</strong>.</p>
@@ -20,50 +23,25 @@
     </div>
   </div>
 
-  <!-- Certificate / Feedback Section -->
   <div class="result-frame">
-    <div class="certificate-msg">
-      🎓 Your certificate is being emailed as we speak.<br>
-      Check your inbox (and maybe your spam folder).<br>
-      Brag responsibly.
-    </div>  
-  </div>
-
-  <!-- Bonus Reward Section -->
-  <div class="result-frame">
-    <h3>🎁 Your Bonus Reward</h3>
-    <p>
-      You’ve earned <strong>free access</strong> to LieFeed’s secret satirical feed — a handpicked dispatch of the weirdest “truths” we couldn’t make up (but probably did).
+    <p class="certificate-msg">
+      🎓 Hold tight, Agent {{ name }}.<br>
+      Your certificate is being encrypted, sealed, and emailed.<br>
+      Prepare for your next briefing...
     </p>
-    <p>
-      It’s your reward for completing the quiz, and yes… it’s 100% free. Just tell us how often to deliver it:
-    </p>
-    <a href="{{ url_for('newsletter.preferences') }}" class="quiz-button green">
-      Claim Your Free Bonus Feed →
-    </a>
-  </div>
 
-  <!-- Share Section -->
-  <div class="result-frame">
-    <h3>📣 Share Your Score</h3>
-    <p>Think your friends can beat you? (They probably can’t.)</p>
-    <a class="quiz-button blue" target="_blank"
-       href="https://twitter.com/intent/tweet?text=I+just+scored+{{ score }}+out+of+{{ total }}+on+the+%23LieFeed+Fake+News+Quiz.+Can+you+beat+me%3F+Take+it+here+👉+https%3A%2F%2Fliefeed.com%2Fquiz%2Fstart">
-      Share on X (Twitter)
-    </a>
-    <a class="quiz-button blue" target="_blank"
-       href="https://www.facebook.com/sharer/sharer.php?u=https://liefeed.com/quiz/start">
-      Share on Facebook
-    </a>
+    <div style="margin-top: 30px;">
+      <div style="height: 10px; background: #eee; border-radius: 5px; overflow: hidden;">
+        <div style="width: 0%; height: 100%; background: #0077cc; animation: progressAnim 5s linear forwards;"></div>
+      </div>
+    </div>
   </div>
-
-  <!-- Forward Section -->
-  <div class="result-frame">
-    <h3>✉️ Forward to a Friend</h3>
-    <p>Know someone who thinks they’re a human lie detector?</p>
-    <a href="mailto:?subject=Try%20the%20LieFeed%20Fake%20News%20Quiz&body=Hey!%20Try%20this+quiz:+https://liefeed.com/quiz/start"
-       class="quiz-button green">Send via Email</a>
-  </div>
-
 </div>
+
+<style>
+@keyframes progressAnim {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+</style>
 {% endblock %}
