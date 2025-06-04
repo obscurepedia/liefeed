@@ -52,7 +52,7 @@ envVarGroups:
       - key: LEONARDO_API_KEY
         sync: false
       - key: REOON_API_KEY
-        sync: false- 
+        sync: false
       - key: YOUTUBE_TOKEN_BASE64
         sync: false
 
