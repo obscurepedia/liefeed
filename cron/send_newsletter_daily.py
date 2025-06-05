@@ -26,14 +26,19 @@ def create_subject_line(posts):
     ]
     return random.choice(templates)
 
-def send_weekly_newsletter(dry_run=False):
+
+def send_daily_newsletter(dry_run=False):
     conn = get_connection()
-    with conn.cursor() as c:
-        c.execute("""
-            SELECT id, email, newsletter_freq FROM subscribers
-            WHERE newsletter_freq = 'weekly' AND unsubscribed_at IS NULL
-        """)
-        subscribers = c.fetchall()
+    try:
+        with conn.cursor() as c:
+            c.execute("""
+                SELECT id, email, newsletter_freq FROM subscribers
+                WHERE newsletter_freq = 'daily' AND unsubscribed_at IS NULL
+            """
+            )
+            subscribers = c.fetchall()
+    finally:
+        conn.close()
 
     posts = fetch_top_posts(limit=5)
     satirical_spin = get_satirical_spin()
@@ -41,7 +46,7 @@ def send_weekly_newsletter(dry_run=False):
 
     for sub in subscribers:
         subscriber_id, email, freq = sub
-        email_id = f"weekly_newsletter_{uuid.uuid4()}"
+        email_id = f"daily_newsletter_{uuid.uuid4()}"
         html_body = generate_newsletter_html(posts, subscriber_id, email, satirical_spin, email_id, current_freq=freq)
 
         if dry_run:
@@ -53,8 +58,8 @@ def send_weekly_newsletter(dry_run=False):
                 recipient=email,
                 subject=subject,
                 html_body=html_body,
-                required_freq="weekly"
+                required_freq="daily"
             )
 
 if __name__ == "__main__":
-    send_weekly_newsletter()
+    send_daily_newsletter()

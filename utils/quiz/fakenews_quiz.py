@@ -165,22 +165,26 @@ def quiz_email_capture():
 def bonus_reward():
     email = session.get("email")
     if not email:
-        return redirect(url_for("quiz.start"))
+        return redirect(url_for("quiz.quiz.start"))
 
     if request.method == "POST":
         freq = request.form.get("newsletter_freq")
         if freq in ["3x", "daily"]:
             conn = get_connection()
-            with conn.cursor() as cur:
-                cur.execute("""
-                    UPDATE subscribers
-                    SET newsletter_freq = %s
-                    WHERE email = %s
-                """, (freq, email))
-                conn.commit()
+            try:
+                with conn.cursor() as cur:
+                    cur.execute("""
+                        UPDATE subscribers
+                        SET newsletter_freq = %s
+                        WHERE email = %s
+                    """, (freq, email))
+                    conn.commit()
+            finally:
+                conn.close()
         return redirect(url_for("quiz.bonus_thank_you", frequency=freq))
 
     return render_template("quiz/bonus_reward.html")
+
 
 @quiz_bp.route("/quiz/thank-you")
 def bonus_thank_you():
@@ -236,22 +240,23 @@ if False:
         return render_template("quiz/retake_question.html", question=question, index=index + 1, total=len(quiz_data))
 
 
-    @quiz_bp.route("/quiz/retake-results")
-    def quiz_retake_results():
-        quiz_data = session.get("retake_quiz_data", [])
-        user_answers = session.get("retake_answers", [])
-        name = session.get("name", "Quiz Taker")
-        email = session.get("email", "")
-        correct = 0
+   @quiz_bp.route("/quiz/retake-results")
+def quiz_retake_results():
+    quiz_data = session.get("retake_quiz_data", [])
+    user_answers = session.get("retake_answers", [])
+    name = session.get("name", "Quiz Taker")
+    email = session.get("email", "")
+    correct = 0
 
-        for i, user_answer in enumerate(user_answers):
-            if i < len(quiz_data):
-                actual = quiz_data[i]["is_real"]
-                if (user_answer == "real" and actual) or (user_answer == "fake" and not actual):
-                    correct += 1
+    for i, user_answer in enumerate(user_answers):
+        if i < len(quiz_data):
+            actual = quiz_data[i]["is_real"]
+            if (user_answer == "real" and actual) or (user_answer == "fake" and not actual):
+                correct += 1
 
-        if email:
-            conn = get_connection()
+    if email:
+        conn = get_connection()
+        try:
             with conn.cursor() as c:
                 c.execute("""
                     UPDATE subscribers
@@ -260,9 +265,11 @@ if False:
                     WHERE email = %s
                 """, (correct, len(quiz_data), email))
                 conn.commit()
+        finally:
+            conn.close()
 
-        result_feedback = get_result_feedback(correct, len(quiz_data))
-        return render_template("quiz/retake_results.html", score=correct, total=len(quiz_data), name=name, result_feedback=result_feedback)
+    result_feedback = get_result_feedback(correct, len(quiz_data))
+    return render_template("quiz/retake_results.html", score=correct, total=len(quiz_data), name=name, result_feedback=result_feedback)
 
 
 # ✅ Active route — keep this enabled
@@ -329,14 +336,17 @@ def quiz_level2_results():
 
     if email:
         conn = get_connection()
-        with conn.cursor() as c:
-            c.execute("""
-                UPDATE subscribers
-                SET level2_score = %s,
-                    level2_total = %s
-                WHERE email = %s
-            """, (score, total_questions, email))
-            conn.commit()
+        try:
+            with conn.cursor() as c:
+                c.execute("""
+                    UPDATE subscribers
+                    SET level2_score = %s,
+                        level2_total = %s
+                    WHERE email = %s
+                """, (score, total_questions, email))
+                conn.commit()
+        finally:
+            conn.close()
 
     feedback = get_result_feedback(score, total_questions)
 
@@ -347,6 +357,7 @@ def quiz_level2_results():
         name=name,
         result_feedback=feedback
     )
+
 
 
 # ARCHIVED: Retake logic disabled as of May 2025
@@ -410,14 +421,17 @@ if False:
 
         if email:
             conn = get_connection()
-            with conn.cursor() as c:
-                c.execute("""
-                    UPDATE subscribers
-                    SET level3_score = %s,
-                        level3_total = %s
-                    WHERE email = %s
-                """, (correct, len(quiz_data), email))
-                conn.commit()
+            try:
+                with conn.cursor() as c:
+                    c.execute("""
+                        UPDATE subscribers
+                        SET level3_score = %s,
+                            level3_total = %s
+                        WHERE email = %s
+                    """, (correct, len(quiz_data), email))
+                    conn.commit()
+            finally:
+                conn.close()
 
         result_feedback = get_result_feedback(correct, len(quiz_data))
 
@@ -428,3 +442,4 @@ if False:
             name=name,
             result_feedback=result_feedback
         )
+

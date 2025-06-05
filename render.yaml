@@ -267,4 +267,24 @@ services:
       - key: RUN_TARGET
         value: send-3x-newsletter
 
-#this is added to give the git push
+  - type: cron
+    name: send-daily-newsletter
+    runtime: docker
+    plan: starter
+    autoDeploy: true
+    schedule: "0 10 * * *"  # Every day at 10 AM UTC
+    buildCommand: pip install -r requirements.txt
+    buildFilter:
+      paths:
+        - Dockerfile
+        - render.yaml
+        - requirements.txt
+        - cron/send_newsletter_daily.py
+        - utils/email/email_sender.py
+        - utils/database/db.py
+    envVars:
+      - fromGroup: shared-env
+      - key: RUN_TARGET
+        value: send-daily-newsletter
+
+

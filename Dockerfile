@@ -66,6 +66,7 @@ CMD ["sh", "-c", "echo '🔥 Cron job container started'; \
   elif [ \"$RUN_TARGET\" = 'send-weekly-newsletter' ]; then python cron/send_newsletter_weekly.py; \
   elif [ \"$RUN_TARGET\" = 'send-3x-newsletter' ]; then python cron/send_newsletter_3x.py; \
   elif [ \"$RUN_TARGET\" = 'worker-reel' ]; then python worker/worker_runner.py; \
+  elif [ \"$RUN_TARGET\" = 'send-daily-newsletter' ]; then python cron/send_newsletter_daily.py; \
   else gunicorn --bind 0.0.0.0:10000 web.app:app; \
   fi"]
 
