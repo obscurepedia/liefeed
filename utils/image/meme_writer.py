@@ -10,11 +10,9 @@ from openai import OpenAI
 
 openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-# Topics to exclude (NSFW, political, violent, tragic)
+# Topics to exclude (NSFW, violent, tragic)
 EXCLUDED_TOPICS = [
-    # Political
-    "politics", "election", "biden", "trump", "parliament", "congress", "senate", "minister", "vote", "government",
-    
+     
     # NSFW
     "nude", "sex", "porn", "erotic", "onlyfans", "fetish", "stripper", "adult", "xxx", "naked",
 
@@ -74,7 +72,7 @@ def insert_meme(caption, image_url):
 
 def generate_and_post_meme():
     # Randomly select from safe, fun categories
-    categories = ["weird", "science", "tech", "entertainment", "lifestyle"]
+    categories = ["politics", "weird", "science", "tech", "entertainment", "lifestyle"]
     selected_category = random.choice(categories)
     print(f"🗞️ Fetching memes from category: {selected_category}")
 

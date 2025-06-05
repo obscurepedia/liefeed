@@ -240,7 +240,7 @@ if False:
         return render_template("quiz/retake_question.html", question=question, index=index + 1, total=len(quiz_data))
 
 
-   @quiz_bp.route("/quiz/retake-results")
+@quiz_bp.route("/quiz/retake-results")
 def quiz_retake_results():
     quiz_data = session.get("retake_quiz_data", [])
     user_answers = session.get("retake_answers", [])

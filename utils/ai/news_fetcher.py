@@ -42,6 +42,7 @@ def fetch_google_news(category="politics", max_items=5):
         "lifestyle": ["huffpost.com", "mindbodygreen.com", "wellandgood.com"],
         "sports": ["espn.com", "bleacherreport.com"],
         "business": ["marketwatch.com", "forbes.com", "businessinsider.com"],
+        "politics": ["politico.com", "cnn.com", "bbc.com", "theguardian.com/politics", "nytimes.com/section/politics"],
         # Default fallback if category is unrecognized
         "default": ["bbc.com", "cnn.com", "nytimes.com"]
     }
