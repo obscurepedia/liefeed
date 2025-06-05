@@ -47,7 +47,10 @@ def quiz_start():
     session["quiz_data"] = generate_dynamic_quiz()
     session["answers"] = []
     session["current_question_index"] = 0
+
     return redirect(url_for("quiz.quiz_question"))
+
+
 
 @quiz_bp.route("/quiz/question", methods=["GET", "POST"])
 def quiz_question():
@@ -88,9 +91,26 @@ def quiz_results():
                 correct += 1
 
     if email:
-        save_subscriber(email=email, name=name, quiz_score=correct, quiz_total=len(quiz_data),  newsletter_freq='weekly')
+        # ✅ Pull UTM values from session (not request.args)
+        utm_source = session.get("utm_source")
+        utm_medium = session.get("utm_medium")
+        utm_campaign = session.get("utm_campaign")
+        utm_content = session.get("utm_content")
 
-        # ✅ Certificate generation/email now active
+        # ✅ Save subscriber with UTM data
+        save_subscriber(
+            email=email,
+            name=name,
+            quiz_score=correct,
+            quiz_total=len(quiz_data),
+            newsletter_freq='weekly',
+            utm_source=utm_source,
+            utm_medium=utm_medium,
+            utm_campaign=utm_campaign,
+            utm_content=utm_content
+        )
+
+        # ✅ Certificate generation/email
         pdf_path = generate_certificate(name, "Real or Fake News Quiz", correct)
 
         html_body = f"""
@@ -117,6 +137,8 @@ def quiz_results():
         result_feedback=result_feedback,
         pixel_id=current_app.config.get('FACEBOOK_PIXEL_ID', '')
     )
+
+
 
 
 
@@ -165,7 +187,7 @@ def quiz_email_capture():
 def bonus_reward():
     email = session.get("email")
     if not email:
-        return redirect(url_for("quiz.quiz.start"))
+        return redirect(url_for("quiz.quiz_start"))
 
     if request.method == "POST":
         freq = request.form.get("newsletter_freq")
@@ -231,10 +253,19 @@ def quiz_retake_results():
     return render_template("quiz/retake_results.html", score=correct, total=len(quiz_data), name=name, result_feedback=result_feedback)
 
 
-# ✅ Active route — keep this enabled
 @quiz_bp.route("/quiz-landing")
 def quiz_landing():
-    return render_template("quiz/quiz_landing.html", pixel_id=current_app.config.get('FACEBOOK_PIXEL_ID', ''))
+    # Capture UTM parameters from URL and store in session
+    session["utm_source"] = request.args.get("utm_source")
+    session["utm_medium"] = request.args.get("utm_medium")
+    session["utm_campaign"] = request.args.get("utm_campaign")
+    session["utm_content"] = request.args.get("utm_content")
+
+    return render_template(
+        "quiz/quiz_landing.html",
+        pixel_id=current_app.config.get('FACEBOOK_PIXEL_ID', '')
+    )
+
 
 
 

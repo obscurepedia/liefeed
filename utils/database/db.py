@@ -110,24 +110,36 @@ def fetch_all_subscriber_emails():
     conn.close()
     return [row[0] for row in rows]  # return just the list of emails
 
-def save_subscriber(email, name="", quiz_score=None, quiz_total=None, newsletter_freq="weekly"):
+def save_subscriber(email, name="", quiz_score=None, quiz_total=None, newsletter_freq="weekly",
+                    utm_source=None, utm_medium=None, utm_campaign=None, utm_content=None):
     conn = get_connection()
     c = conn.cursor()
     try:
         c.execute("""
-            INSERT INTO subscribers (email, name, quiz_score, quiz_total, newsletter_freq)
-            VALUES (%s, %s, %s, %s, %s)
+            INSERT INTO subscribers (
+                email, name, quiz_score, quiz_total, newsletter_freq,
+                utm_source, utm_medium, utm_campaign, utm_content
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (email) DO UPDATE
             SET name = EXCLUDED.name,
                 quiz_score = EXCLUDED.quiz_score,
                 quiz_total = EXCLUDED.quiz_total,
-                newsletter_freq = EXCLUDED.newsletter_freq
-        """, (email, name, quiz_score, quiz_total, newsletter_freq))
+                newsletter_freq = EXCLUDED.newsletter_freq,
+                utm_source = EXCLUDED.utm_source,
+                utm_medium = EXCLUDED.utm_medium,
+                utm_campaign = EXCLUDED.utm_campaign,
+                utm_content = EXCLUDED.utm_content
+        """, (
+            email, name, quiz_score, quiz_total, newsletter_freq,
+            utm_source, utm_medium, utm_campaign, utm_content
+        ))
         conn.commit()
     except Exception as e:
         print("Subscriber insert error:", e)
     finally:
         conn.close()
+
 
 
 

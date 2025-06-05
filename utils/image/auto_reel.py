@@ -422,9 +422,195 @@ async def main():
         increment_failed_attempt(post["id"])
 
 
+async def generate_quiz_ad_reel():
+    try:
+        # === Static Headlines for Spot-the-Fake ===
+        real_headline = "Florida Man Rescues Iguana with CPR"
+        fake_headline = "NASA Discovers Moon Made of Cheese Dust"
+        teaser = "Only 3% Guess Correctly — Can You Spot the Fake?"
+        quiz_url = "https://liefeed.com/quiz/start"
+
+        bg_color = random.choice(REEL_COLORS)
+
+        # === Slide 1: Headline Challenge ===
+        challenge_text = f"One of these is real\nOne is fake\n\n- {real_headline}\n- {fake_headline}"
+        write_slide(challenge_text, "slide1_headlines.html", fontsize=75, layout="headline", background_color=bg_color)
+
+        # === Slide 2: AI Meme Image ===
+        prompt = f"A surreal scene showing someone confused, holding two newspapers, one absurd, one real"
+        slide2_path = SLIDE_DIR / "slide2_image.png"
+        slide2_path.parent.mkdir(exist_ok=True)
+        slide2_path.unlink(missing_ok=True)
+
+        result = generate_image_from_prompt(prompt, str(slide2_path), mode="reel")
+
+        if result is None or not slide2_path.exists():
+            raise FileNotFoundError("slide2_image.png was not created")
+
+        time.sleep(1)
+        ensure_exact_1080x1920(slide2_path)
+
+        # === Slide 3: Teaser ===
+        write_slide(teaser, "slide3_teaser.html", fontsize=90, layout="teaser", slide_number="3/4", background_color=bg_color)
+
+        # === Slide 4: CTA ===
+        cta_text = "Tap to Start the Quiz"
+        write_slide(cta_text, "slide4_cta.html", fontsize=90, layout="cta", slide_number="4/4", background_color=bg_color)
+
+        # === Render Slides ===
+        await render_html_to_png("slide1_headlines.html", "slide1_headlines.png")
+        await render_html_to_png("slide3_teaser.html", "slide3_teaser.png")
+        await render_html_to_png("slide4_cta.html", "slide4_cta.png")
+
+        print(f"🎵 Selected music file: {MUSIC_FILE}")
+        print(f"🎧 Exists? {MUSIC_FILE.exists()}")
+
+
+        # === Stitch Video ===
+        stitch_slides(
+            ["slide1_headlines.png", "slide2_image.png", "slide3_teaser.png", "slide4_cta.png"],
+            MUSIC_FILE,
+            OUTPUT_VIDEO
+        )
+
+        # === Upload to S3 + Save to DB ===
+        date_str = datetime.now(timezone.utc).strftime("%Y/%m/%d")
+        S3_REEL_KEY = f"quiz_ads/spot_the_fake/{date_str}_{int(time.time())}_quiz_ad.mp4"
+
+        s3_client.upload_file(
+            OUTPUT_VIDEO,
+            "liefeed-images",
+            S3_REEL_KEY,
+            ExtraArgs={'ContentType': mimetypes.guess_type(OUTPUT_VIDEO)[0] or 'video/mp4'}
+        )
+
+        reel_url = f"https://liefeed-images.s3.us-east-1.amazonaws.com/{S3_REEL_KEY}"
+        caption_with_link = f"{teaser}\n\nTake the quiz 👉 {quiz_url}"
+        save_reel_to_database(caption_with_link, S3_REEL_KEY)
+
+        print("✅ Quiz ad reel generated successfully.")
+
+    except Exception as e:
+        print(f"❌ Failed to generate quiz ad reel: {e}")
+
+async def generate_quiz_confusion_reel():
+    try:
+        # === Headlines for Real vs Fake Confusion ===
+        headlines = [
+            "Scientists teach parrots to video call each other",
+            "Texas town elects goat as honorary mayor",
+            "AI bot wins international poetry contest",
+        ]
+        teaser = "Take the quiz. Stop at Q3 if you dare."
+        quiz_url = "https://liefeed.com/quiz/start"
+
+        bg_color = random.choice(REEL_COLORS)
+
+        # === Slide 1: Challenge Prompt ===
+        write_slide("Can you tell which of these\nheadlines is real?", "confusion_slide1.html",
+                    fontsize=80, layout="headline", background_color=bg_color)
+
+        # === Slide 2: Flash 2–3 headlines in rapid succession ===
+        rapid_headlines = "\n".join(f"• {h}" for h in headlines)
+        write_slide(rapid_headlines, "confusion_slide2.html",
+                    fontsize=60, layout="teaser", slide_number="2/3", background_color=bg_color)
+
+        # === Slide 3: Teaser / CTA ===
+        write_slide(teaser, "confusion_slide3.html",
+                    fontsize=85, layout="cta", slide_number="3/3", background_color=bg_color)
+
+        # === Render Slides to PNG ===
+        await render_html_to_png("confusion_slide1.html", "confusion_slide1.png")
+        await render_html_to_png("confusion_slide2.html", "confusion_slide2.png")
+        await render_html_to_png("confusion_slide3.html", "confusion_slide3.png")
+
+        # === Stitch into Reel ===
+        stitch_slides(
+            ["confusion_slide1.png", "confusion_slide2.png", "confusion_slide3.png"],
+            MUSIC_FILE,
+            OUTPUT_VIDEO
+        )
+
+        # === Upload to S3 and Save ===
+        date_str = datetime.now(timezone.utc).strftime("%Y/%m/%d")
+        S3_REEL_KEY = f"quiz_ads/confusion_reel/{date_str}_{int(time.time())}_confusion_ad.mp4"
+
+        s3_client.upload_file(
+            OUTPUT_VIDEO,
+            "liefeed-images",
+            S3_REEL_KEY,
+            ExtraArgs={'ContentType': mimetypes.guess_type(OUTPUT_VIDEO)[0] or 'video/mp4'}
+        )
+
+        reel_url = f"https://liefeed-images.s3.us-east-1.amazonaws.com/{S3_REEL_KEY}"
+        caption = f"Can you still tell what’s real?\n\nTake the quiz 👉 {quiz_url}"
+        save_reel_to_database(caption, S3_REEL_KEY)
+
+        print("✅ Confusion quiz ad reel generated successfully.")
+
+    except Exception as e:
+        print(f"❌ Failed to generate confusion quiz reel: {e}")
+
+async def generate_quiz_spy_reel():
+    try:
+        # === Spy Theme Setup ===
+        teaser = "Simulation Active. Classify these headlines."
+        quiz_url = "https://liefeed.com/quiz/start"
+        bg_color = "#dddddd"  # Dark, classified-style background
+
+        # === Slide 1: Agent Briefing ===
+        intro_text = "🕵️ Agent Briefing\n\nYour mission:\nClassify real vs fake headlines"
+        write_slide(intro_text, "spy_slide1.html",
+                    fontsize=75, layout="headline", background_color=bg_color)
+
+        # === Slide 2: Redacted / Glitched Headlines ===
+        redacted_headlines = [
+            "••• DISCOVERS INVISIBLE COWS",
+            "NASA ••• MOON LANDING IN QUESTION",
+            "FLORIDA MAN ••• IGUANA CPR HEROICS"
+        ]
+        glitch_text = "\n".join(redacted_headlines)
+        write_slide(glitch_text, "spy_slide2.html",
+                    fontsize=60, layout="teaser", slide_number="2/3", background_color=bg_color)
+
+        # === Slide 3: Simulation Activation ===
+        final_slide = "🔴 SIMULATION ACTIVE\nBegin your mission now"
+        write_slide(final_slide, "spy_slide3.html",
+                    fontsize=85, layout="cta", slide_number="3/3", background_color=bg_color)
+
+        # === Render Slides ===
+        await render_html_to_png("spy_slide1.html", "spy_slide1.png")
+        await render_html_to_png("spy_slide2.html", "spy_slide2.png")
+        await render_html_to_png("spy_slide3.html", "spy_slide3.png")
+
+        # === Stitch Together ===
+        stitch_slides(
+            ["spy_slide1.png", "spy_slide2.png", "spy_slide3.png"],
+            MUSIC_FILE,
+            OUTPUT_VIDEO
+        )
+
+        # === Upload to S3 and Save ===
+        date_str = datetime.now(timezone.utc).strftime("%Y/%m/%d")
+        S3_REEL_KEY = f"quiz_ads/spy_reel/{date_str}_{int(time.time())}_spy_ad.mp4"
+
+        s3_client.upload_file(
+            OUTPUT_VIDEO,
+            "liefeed-images",
+            S3_REEL_KEY,
+            ExtraArgs={'ContentType': mimetypes.guess_type(OUTPUT_VIDEO)[0] or 'video/mp4'}
+        )
+
+        reel_url = f"https://liefeed-images.s3.us-east-1.amazonaws.com/{S3_REEL_KEY}"
+        caption = f"🕵️‍♂️ Your mission: Classify these headlines\n\nBegin the quiz 👉 {quiz_url}"
+        save_reel_to_database(caption, S3_REEL_KEY)
+
+        print("✅ Spy-themed quiz ad reel generated successfully.")
+
+    except Exception as e:
+        print(f"❌ Failed to generate spy quiz reel: {e}")
 
 
 if __name__ == "__main__":
     asyncio.run(main())
-
 
