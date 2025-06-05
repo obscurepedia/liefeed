@@ -198,47 +198,6 @@ def bonus_thank_you():
 
     return render_template("quiz/bonus_thank_you.html", frequency_readable=frequency_readable)
 
-# ARCHIVED: Retake logic disabled as of May 2025
-if False:
-    @quiz_bp.route("/quiz/retake", methods=["GET", "POST"])
-    def quiz_retake():
-        if "email" not in session:
-            token = request.args.get("token")
-            if token:
-                try:
-                    s = URLSafeSerializer(current_app.config["SECRET_KEY"])
-                    email = s.loads(token)
-                    session["email"] = email
-                except BadSignature:
-                    return "Invalid or expired link", 400
-
-        # ✅ Always regenerate quiz on GET to start fresh
-        if request.method == "GET" or "retake_quiz_data" not in session:
-            quiz_data = generate_dynamic_quiz()
-            if not quiz_data:
-                return render_template("quiz/error.html", message="No quiz questions found.")
-            session["retake_quiz_data"] = quiz_data
-            session["retake_answers"] = []
-            session["retake_question_index"] = 0
-
-        quiz_data = session["retake_quiz_data"]
-        index = session["retake_question_index"]
-
-        if request.method == "POST":
-            answer = request.form.get("answer")
-            session["retake_answers"].append(answer)
-            session["retake_question_index"] = index + 1
-            if index + 1 >= len(quiz_data):
-                return redirect(url_for("quiz.quiz_retake_results"))
-            return redirect(url_for("quiz.quiz_retake"))
-
-        # ✅ Avoid redirect loop — send to first question
-        if index >= len(quiz_data):
-            return redirect(url_for("quiz.quiz_retake_results"))
-
-        question = quiz_data[index]
-        return render_template("quiz/retake_question.html", question=question, index=index + 1, total=len(quiz_data))
-
 
 @quiz_bp.route("/quiz/retake-results")
 def quiz_retake_results():
@@ -443,3 +402,43 @@ if False:
             result_feedback=result_feedback
         )
 
+# ARCHIVED: Retake logic disabled as of May 2025
+if False:
+    @quiz_bp.route("/quiz/retake", methods=["GET", "POST"])
+    def quiz_retake():
+        if "email" not in session:
+            token = request.args.get("token")
+            if token:
+                try:
+                    s = URLSafeSerializer(current_app.config["SECRET_KEY"])
+                    email = s.loads(token)
+                    session["email"] = email
+                except BadSignature:
+                    return "Invalid or expired link", 400
+
+        # ✅ Always regenerate quiz on GET to start fresh
+        if request.method == "GET" or "retake_quiz_data" not in session:
+            quiz_data = generate_dynamic_quiz()
+            if not quiz_data:
+                return render_template("quiz/error.html", message="No quiz questions found.")
+            session["retake_quiz_data"] = quiz_data
+            session["retake_answers"] = []
+            session["retake_question_index"] = 0
+
+        quiz_data = session["retake_quiz_data"]
+        index = session["retake_question_index"]
+
+        if request.method == "POST":
+            answer = request.form.get("answer")
+            session["retake_answers"].append(answer)
+            session["retake_question_index"] = index + 1
+            if index + 1 >= len(quiz_data):
+                return redirect(url_for("quiz.quiz_retake_results"))
+            return redirect(url_for("quiz.quiz_retake"))
+
+        # ✅ Avoid redirect loop — send to first question
+        if index >= len(quiz_data):
+            return redirect(url_for("quiz.quiz_retake_results"))
+
+        question = quiz_data[index]
+        return render_template("quiz/retake_question.html", question=question, index=index + 1, total=len(quiz_data))
