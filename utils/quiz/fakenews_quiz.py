@@ -47,6 +47,8 @@ def quiz_start():
     session["quiz_data"] = generate_dynamic_quiz()
     session["answers"] = []
     session["current_question_index"] = 0
+    # Reset certificate flag for a fresh run
+    session["certificate_sent"] = False
 
     return redirect(url_for("quiz.quiz_question"))
 
@@ -90,7 +92,7 @@ def quiz_results():
             if (user_answer == "real" and actual) or (user_answer == "fake" and not actual):
                 correct += 1
 
-    if email:
+    if email and not session.get("certificate_sent"):
         # ✅ Pull UTM values from session (not request.args)
         utm_source = session.get("utm_source")
         utm_medium = session.get("utm_medium")
@@ -127,6 +129,7 @@ def quiz_results():
             html_body=html_body,
             pdf_path=pdf_path
         )
+        session["certificate_sent"] = True
 
     result_feedback = get_result_feedback(correct, len(quiz_data))
     return render_template(
