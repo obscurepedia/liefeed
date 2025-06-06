@@ -2,16 +2,15 @@
 
 {% block content %}
 <script>
-  // Track quiz completion as a Lead
+  // Track quiz completion (non-lead) for analysis
   if (typeof fbq === 'function') {
-    fbq('track', 'Lead');
     fbq('trackCustom', 'CompleteQuiz');
   }
 
-  // Redirect to Bonus Reward page after 5 seconds
+  // Redirect to Bonus Reward page after 12 seconds
   setTimeout(function() {
     window.location.href = "{{ url_for('quiz.bonus_reward') }}";
-  }, 5000);
+  }, 12000);
 </script>
 
 <div class="result-box">
