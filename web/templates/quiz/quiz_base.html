@@ -23,6 +23,20 @@
     <img height="1" width="1"
          src="https://www.facebook.com/tr?id={{ pixel_id }}&ev=PageView&noscript=1"/>
   </noscript>
+
+  <!-- ✅ Capture _fbp and _fbc cookies for Lead event -->
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      document.cookie.split(';').forEach(cookie => {
+        if (cookie.trim().startsWith('_fbp=')) {
+          window._fbp = cookie.trim().split('=')[1];
+        }
+        if (cookie.trim().startsWith('_fbc=')) {
+          window._fbc = cookie.trim().split('=')[1];
+        }
+      });
+    });
+  </script>
   {% endif %}
 
   <!-- Google tag (gtag.js) - Google Analytics -->

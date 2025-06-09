@@ -12,16 +12,29 @@
 
 {% if request.args.get('fb_lead') and session.fb_event_id %}
 <script>
+  // Optional: extract _fbp and _fbc cookies
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+  }
+
+  const fbp = getCookie('_fbp');
+  const fbc = getCookie('_fbc');
+
   if (typeof fbq === 'function') {
     fbq('track', 'Lead', {
-      eventID: '{{ session.fb_event_id }}'
+      eventID: '{{ session.fb_event_id }}',
+      em: '{{ session.hashed_email }}',
+      fn: '{{ session.hashed_name }}',
+      fbp: fbp || '',
+      fbc: fbc || ''
     });
     fbq('trackCustom', 'QuizEmailSubmitted');
     console.log("📡 Pixel Lead event sent with eventID: {{ session.fb_event_id }}");
   }
 </script>
 {% endif %}
-
 
 <div class="quiz-wrapper">
   <div class="quiz-container">

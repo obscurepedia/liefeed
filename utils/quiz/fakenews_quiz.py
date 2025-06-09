@@ -167,13 +167,21 @@ def quiz_email_capture():
             flash("We had trouble verifying your email. Please try again.")
             return redirect(url_for("quiz.quiz_email_capture"))
 
+        # ✅ Normalize and save email + name to session
+        clean_email = email.strip().lower()
+        clean_name = name.strip().lower()
+
         session["email"] = email
         session["name"] = name
         session["email_submitted"] = True
 
+        # ✅ Generate hashed versions for FB match quality
+        session["hashed_email"] = hashlib.sha256(clean_email.encode()).hexdigest()
+        session["hashed_name"] = hashlib.sha256(clean_name.encode()).hexdigest()
+
         # ✅ Generate event_id using hashed email + timestamp
-        raw_id = f"{email.lower().strip()}-{int(time.time())}"
-        event_id = hashlib.sha256(raw_id.encode()).hexdigest()[:16]  # Shorten for readability
+        raw_id = f"{clean_email}-{int(time.time())}"
+        event_id = hashlib.sha256(raw_id.encode()).hexdigest()[:16]
 
         # Save to session so Pixel can access it in template
         session["fb_event_id"] = event_id
@@ -184,6 +192,7 @@ def quiz_email_capture():
         return redirect(url_for("quiz.quiz_question", fb_lead="1"))
 
     return render_template("quiz/quiz_email.html")
+
 
 @quiz_bp.route("/quiz/bonus-reward", methods=["GET", "POST"])
 def bonus_reward():
