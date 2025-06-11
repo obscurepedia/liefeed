@@ -187,7 +187,16 @@ def quiz_email_capture():
         session["fb_event_id"] = event_id
 
         # Send to Facebook CAPI with event_id
-        send_fb_lead_event(email, event_id=event_id)
+        send_fb_lead_event(
+            email=email,
+            event_id=event_id,
+            name=name,
+            ip_address=request.remote_addr,
+            user_agent=request.headers.get("User-Agent"),
+            fbc=request.cookies.get("_fbc"),
+            fbp=request.cookies.get("_fbp")
+        )
+
 
         return redirect(url_for("quiz.quiz_question", fb_lead="1"))
 
