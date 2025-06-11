@@ -39,7 +39,9 @@ def mark_reel_as_posted(reel_id):
         with conn.cursor() as cursor:
             cursor.execute("""
                 UPDATE pending_reels 
-                SET posted = TRUE, posted_at = %s 
+                SET posted = TRUE,
+                    youtube_posted = TRUE,
+                    posted_at = %s 
                 WHERE id = %s
             """, (datetime.now(), reel_id))
             conn.commit()
@@ -48,6 +50,7 @@ def mark_reel_as_posted(reel_id):
                 print("⚠️ No rows were marked as posted. Check reel_id and DB state.")
     finally:
         conn.close()
+
 
 
 def main():

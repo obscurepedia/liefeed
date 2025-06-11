@@ -8,6 +8,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 # === Third-Party Libraries ===
 
 from flask import Flask
+from flask import send_from_directory
 from markupsafe import Markup
 from dotenv import load_dotenv
 import markdown
@@ -28,6 +29,7 @@ from routes.inbox import inbox_bp
 from routes.jobs import jobs_bp
 from routes.newsletter_preferences import newsletter_bp
 
+
 # === Environment ===
 load_dotenv()
 openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -42,6 +44,12 @@ app.config['FACEBOOK_PIXEL_ID'] = os.getenv('FACEBOOK_PIXEL_ID')
 @app.template_filter('markdown')
 def markdown_filter(text):
     return Markup(markdown.markdown(text))
+
+
+@app.route('/ads.txt')
+def ads_txt():
+    return send_from_directory(os.getcwd(), 'ads.txt')
+
 
 # === Context Processors ===
 @app.context_processor
