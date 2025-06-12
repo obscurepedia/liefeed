@@ -149,7 +149,7 @@ def quiz_results():
                     recipient=email,
                     subject="🕵️ Your Fake News Detection Mission Debrief Is In",
                     html_body=html_body,
-                    attachment_path=pdf_path
+                    pdf_path_path=pdf_path
                 )
 
                 # 4) Mark as sent in the DB
