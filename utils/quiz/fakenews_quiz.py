@@ -1,20 +1,39 @@
 # quiz/routes/fakenews_quiz.py
-from flask import render_template, session, redirect, url_for, request, current_app
-from flask import flash
+
+from flask import (
+    render_template, session, redirect, url_for,
+    request, current_app, flash
+)
 from .blueprint import quiz_bp
-from utils.database.db import fetch_all_posts, save_subscriber, get_connection
+
+# Database
+from utils.database.db import (
+    fetch_all_posts,
+    save_subscriber,
+    get_connection
+)
+
+# Certificate generation & sending
 from utils.email.certificate import generate_certificate
-from utils.email.email_sender import send_certificate_email_with_attachment
+from utils.email.email_sender import send_email_with_attachment
+
+# Facebook CAPI
 from utils.facebook.conversions import send_fb_lead_event
+
+# Quiz utilities
+from utils.quiz.fakenews_quiz import get_result_feedback
+
+# Misc
 from itsdangerous import URLSafeSerializer, BadSignature
-import hashlib, time, random
+import hashlib
+import time
+import random
 import os
 import requests
-
 from dotenv import load_dotenv
-
 load_dotenv()
 REOON_API_KEY = os.getenv("REOON_API_KEY")
+
 
 
 def generate_dynamic_quiz(length=5):
@@ -77,59 +96,76 @@ def quiz_question():
     question = quiz_data[index]
     return render_template("quiz/quiz_question.html", index=index + 1, question=question, total=len(quiz_data), pixel_id=current_app.config.get('FACEBOOK_PIXEL_ID', ''))
 
+
+
 @quiz_bp.route("/quiz/results")
 def quiz_results():
-    quiz_data = session.get("quiz_data", [])
+    quiz_data    = session.get("quiz_data", [])
     user_answers = session.get("answers", [])
-    name = session.get("name", "Quiz Taker")
-    email = session.get("email", "")
-    correct = 0
+    name         = session.get("name", "Quiz Taker")
+    email        = session.get("email", "")
+    correct      = 0
 
+    # compute score
     for i, user_answer in enumerate(user_answers):
         if i < len(quiz_data):
             actual = quiz_data[i]["is_real"]
             if (user_answer == "real" and actual) or (user_answer == "fake" and not actual):
                 correct += 1
 
-    if email and not session.get("certificate_sent"):
-        # ✅ Pull UTM values from session (not request.args)
-        utm_source = session.get("utm_source")
-        utm_medium = session.get("utm_medium")
-        utm_campaign = session.get("utm_campaign")
-        utm_content = session.get("utm_content")
-
-        # ✅ Save subscriber with UTM data
+    if email:
+        # 1) Save or update subscriber as before
         save_subscriber(
             email=email,
             name=name,
             quiz_score=correct,
             quiz_total=len(quiz_data),
             newsletter_freq='weekly',
-            utm_source=utm_source,
-            utm_medium=utm_medium,
-            utm_campaign=utm_campaign,
-            utm_content=utm_content
+            utm_source=session.get("utm_source"),
+            utm_medium=session.get("utm_medium"),
+            utm_campaign=session.get("utm_campaign"),
+            utm_content=session.get("utm_content")
         )
 
-        # ✅ Certificate generation/email
-        pdf_path = generate_certificate(name, "Real or Fake News Quiz", correct)
-
-        html_body = f"""
-            <p>Agent {name},</p>
-            <p>Based on your recent performance in the field, LieFeed HQ has issued the attached Certificate of Completion.</p>
-            <p>You have demonstrated exceptional instincts in detecting satire (or were spectacularly fooled — both are impressive in their own way).</p>
-            <p><strong>Score:</strong> {correct}/{len(quiz_data)}</p>
-            <p>Open the certificate. Frame it. Print two and pretend one is a diploma.</p>
-            <p>Stay suspicious,<br>LieFeed Intelligence Division 🕵️‍♀️</p>
-        """
-        send_certificate_email_with_attachment(
-            recipient=email,
-            subject="🕵️ Your Fake News Detection Mission Debrief Is In",
-            html_body=html_body,
-            pdf_path=pdf_path
+        # 2) Check certificate_sent_at
+        conn = get_connection()
+        cur  = conn.cursor()
+        cur.execute(
+            "SELECT id, certificate_sent_at FROM subscribers WHERE email = %s",
+            (email,)
         )
-        session["certificate_sent"] = True
+        row = cur.fetchone()
+        conn.close()
 
+        if row:
+            subscriber_id, sent_at = row
+            if sent_at is None:
+                # 3) Generate & send certificate
+                pdf_path = generate_certificate(name, "Real or Fake News Quiz", correct)
+                html_body = f"""
+                    <p>Agent {name},</p>
+                    <p>Based on your recent performance in the field, LieFeed HQ has issued the attached Certificate of Completion.</p>
+                    <p><strong>Score:</strong> {correct}/{len(quiz_data)}</p>
+                    <p>Stay suspicious,<br>LieFeed Intelligence Division 🕵️‍♀️</p>
+                """
+                send_email_with_attachment(
+                    recipient=email,
+                    subject="🕵️ Your Fake News Detection Mission Debrief Is In",
+                    html_body=html_body,
+                    attachment_path=pdf_path
+                )
+
+                # 4) Mark as sent in the DB
+                conn = get_connection()
+                cur  = conn.cursor()
+                cur.execute(
+                    "UPDATE subscribers SET certificate_sent_at = NOW() WHERE id = %s",
+                    (subscriber_id,)
+                )
+                conn.commit()
+                conn.close()
+
+    # render results
     result_feedback = get_result_feedback(correct, len(quiz_data))
     return render_template(
         "quiz/quiz_results.html",
@@ -139,8 +175,6 @@ def quiz_results():
         result_feedback=result_feedback,
         pixel_id=current_app.config.get('FACEBOOK_PIXEL_ID', '')
     )
-
-
 
 
 

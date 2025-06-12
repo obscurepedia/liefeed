@@ -63,7 +63,7 @@ CMD ["sh", "-c", "echo '🔥 Cron job container started'; \
   elif [ \"$RUN_TARGET\" = 'validate-new-signups' ]; then python cron/validate_new_signups.py; \
   elif [ \"$RUN_TARGET\" = 'trigger-daily-reel' ]; then python cron/trigger_reel.py; \
   elif [ \"$RUN_TARGET\" = 'subscriber-summary' ]; then python cron/send_subscriber_summary_runner.py; \
-  elif [ \"$RUN_TARGET\" = 'send-weekly-newsletter' ]; then python cron/send_newsletter_weekly.py; \
+  elif [ \"$RUN_TARGET\" = 'send-weekly-newsletter' ]; then python cron/send_weekly_newsletter.py; \
   elif [ \"$RUN_TARGET\" = 'send-3x-newsletter' ]; then python cron/send_newsletter_3x.py; \
   elif [ \"$RUN_TARGET\" = 'worker-reel' ]; then python worker/worker_runner.py; \
   elif [ \"$RUN_TARGET\" = 'send-daily-newsletter' ]; then python cron/send_newsletter_daily.py; \

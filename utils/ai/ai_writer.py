@@ -1,7 +1,8 @@
+# utils/ai/ai_writer.py
+
 import os
 import re
 import requests
-import json
 from config.config import PERPLEXITY_API_KEY
 from openai import OpenAI
 from dotenv import load_dotenv
@@ -17,43 +18,56 @@ HEADERS = {
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 openai_client = OpenAI(api_key=OPENAI_API_KEY)
 
+# ——— Domain filters per category ———
+SEARCH_DOMAIN_FILTERS = {
+    "tech":          ["theverge.com", "techcrunch.com", "wired.com"],
+    "weird":         ["mirror.co.uk", "nypost.com", "odditycentral.com", "ladbible.com", "dailystar.co.uk"],
+    "science":       ["livescience.com", "newscientist.com", "phys.org"],
+    "food":          ["eater.com", "delish.com", "foodandwine.com"],
+    "travel":        ["cntraveler.com", "lonelyplanet.com"],
+    "entertainment": ["buzzfeed.com", "vulture.com", "avclub.com"],
+    "lifestyle":     ["huffpost.com", "mindbodygreen.com", "wellandgood.com"],
+    "sports":        ["espn.com", "bleacherreport.com"],
+    "business":      ["marketwatch.com", "forbes.com", "businessinsider.com"],
+    "politics":      ["politico.com", "cnn.com", "bbc.com", "theguardian.com", "nytimes.com"],
+    "default":       ["bbc.com", "cnn.com", "nytimes.com"]
+}
+# ————————————————————————————————
 
-def rewrite_as_satire(headline, summary):
+def rewrite_as_satire(headline, summary, category="default"):
     prompt = f"""
-You are a sarcastic parody news editor for a fictional site called LieFeed.
-Your job is to rewrite real headlines and summaries into completely absurd, witty, and clearly fictional news articles.
-Base the article on the provided headline and summary, but exaggerate it humorously.
+You are a sarcastic parody news editor for a satirical site called LieFeed.
 
-❌ DO NOT include:
-- "Breaking News" or any news intro phrases
-- Markdown formatting like ### or **bold**
-- Lists or bullet points
-
-✅ DO:
-- Write as a coherent short article
-- Make it entertaining, clever, and under 200 words
+Before writing, briefly check the latest real-world facts and developments related to this news item (using a web search on trusted sources).
 
 Headline: {headline}
 Summary: {summary}
+
+Then write a concise (under 200 words), witty, absurd short article satirizing this topic.
+Do NOT contradict well-known recent facts (e.g. major outcomes, title winners, business deals, etc.).
 """
+    domain_filter = SEARCH_DOMAIN_FILTERS.get(category.lower(), SEARCH_DOMAIN_FILTERS["default"])
 
     payload = {
         "model": "sonar",
         "messages": [
             {"role": "system", "content": "You are a sarcastic parody news editor."},
-            {"role": "user", "content": prompt}
-        ]
+            {"role": "user",   "content": prompt}
+        ],
+        "tools":            [{"type": "web-search"}],
+        "tool_choice":      "auto",
+        "search_domain_filter": domain_filter,
+        "web_search_options":   {"search_context_size": "medium"}
     }
 
     try:
-        response = requests.post(API_URL, headers=HEADERS, json=payload)
-        response.raise_for_status()
-        raw = response.json()['choices'][0]['message']['content'].strip()
-        cleaned = re.sub(r'\[\d+(?:\]\[\d+)*\]', '', raw)
-        return cleaned.strip()
-    except Exception as e:
-        print(f"Error calling Perplexity API: {e}")
+        resp = requests.post(API_URL, headers=HEADERS, json=payload)
+        resp.raise_for_status()
+        raw = resp.json()["choices"][0]["message"]["content"].strip()
+        return re.sub(r"\[\d+(?:\]\[\d+)*\]", "", raw).strip()
+    except Exception:
         return None
+
 
 
 def clean_headline(raw):

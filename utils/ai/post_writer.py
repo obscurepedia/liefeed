@@ -90,7 +90,7 @@ def generate_and_save_post(max_fetch_attempts=5):
                         if prefix.strip().lower() == category.lower():
                             cleaned_title = remainder.strip()
 
-                    satire = rewrite_as_satire(cleaned_title, article["summary"])
+                    satire = rewrite_as_satire(cleaned_title, article["summary"], category)
                     if not satire:
                         print("💥 AI generation failed.")
                         continue
