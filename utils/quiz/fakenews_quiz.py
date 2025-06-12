@@ -15,7 +15,7 @@ from utils.database.db import (
 
 # Certificate generation & sending
 from utils.email.certificate import generate_certificate
-from utils.email.email_sender import send_email
+from utils.email.email_sender import send_certificate_email_with_attachment
 
 # Facebook CAPI
 from utils.facebook.conversions import send_fb_lead_event
@@ -148,7 +148,7 @@ def quiz_results():
                     <p><strong>Score:</strong> {correct}/{len(quiz_data)}</p>
                     <p>Stay suspicious,<br>LieFeed Intelligence Division 🕵️‍♀️</p>
                 """
-                send_email(
+                send_certificate_email_with_attachment(
                     recipient=email,
                     subject="🕵️ Your Fake News Detection Mission Debrief Is In",
                     html_body=html_body,
