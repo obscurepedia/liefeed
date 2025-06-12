@@ -20,9 +20,6 @@ from utils.email.email_sender import send_certificate_email_with_attachment
 # Facebook CAPI
 from utils.facebook.conversions import send_fb_lead_event
 
-# Quiz utilities
-from utils.quiz.fakenews_quiz import get_result_feedback
-
 # Misc
 from itsdangerous import URLSafeSerializer, BadSignature
 import hashlib
