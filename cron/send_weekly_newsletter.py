@@ -35,7 +35,8 @@ def send_weekly_newsletter(dry_run=False):
         """)
         subscribers = c.fetchall()
 
-    posts = fetch_top_posts(limit=5)
+    # ✅ Filter only unused posts for weekly newsletters
+    posts = fetch_top_posts(limit=5, newsletter_type="weekly")
     satirical_spin = get_satirical_spin()
     subject = create_subject_line(posts)
 
@@ -55,6 +56,17 @@ def send_weekly_newsletter(dry_run=False):
                 html_body=html_body,
                 required_freq="weekly"
             )
+
+    # ✅ Mark posts as used in weekly newsletter
+    conn = get_connection()
+    try:
+        with conn.cursor() as c:
+            for post in posts:
+                c.execute("UPDATE posts SET used_in_weekly_newsletter = TRUE WHERE id = %s", (post["id"],))
+            conn.commit()
+    finally:
+        conn.close()
+
 
 if __name__ == "__main__":
     send_weekly_newsletter()

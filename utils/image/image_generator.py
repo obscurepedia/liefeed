@@ -11,7 +11,7 @@ load_dotenv()
 LEONARDO_API_KEY = os.getenv("LEONARDO_API_KEY")
 LEONARDO_MODEL_ID = "aa77f04e-3eec-4034-9c07-d0f619684628"  # Leonardo Kino XL
 HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACE_API_KEY")
-HUGGINGFACE_MODEL = "stabilityai/stable-diffusion-xl-base-1.0"
+HUGGINGFACE_MODEL = "black-forest-labs/FLUX.1-dev"
 
 AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
@@ -37,7 +37,7 @@ CATEGORY_COLORS = {
 }
 
 def get_client():
-    return InferenceClient(model=HUGGINGFACE_MODEL, token=HUGGINGFACE_API_KEY)
+    return InferenceClient(model=HUGGINGFACE_MODEL, token=HUGGINGFACE_API_KEY, provider="fal-ai")
 
 def generate_image_from_prompt(prompt, output_filename, category="General", mode="default"):
     try:
@@ -161,8 +161,9 @@ def generate_image_from_prompt(prompt, output_filename, category="General", mode
         return public_url
 
     except Exception as e:
-        print(f"❌ Image generation failed: {e}")
-        return None
+        print(f"❌ Hugging Face image generation failed: {e}")
+        print("🔁 Falling back to Leonardo image generation...")
+        return generate_image_from_prompt(prompt, output_filename, category, mode="reel")
 
 def apply_watermark(image_path, watermark_path="static/watermark.png", position="bottom-right"):
     try:

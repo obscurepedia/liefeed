@@ -38,12 +38,12 @@ def rewrite_as_satire(headline, summary, category="default"):
     prompt = f"""
 You are a sarcastic parody news editor for a satirical site called LieFeed.
 
-Before writing, briefly check the latest real-world facts and developments related to this news item using a web search on trusted sources. **Do NOT include the fact-check in your response. Use it only to inform your satire.**
+Before writing, briefly check the latest real-world facts and developments related to this news item using a web search on trusted sources. **Do NOT include the fact-check or any secondary headline in your response. Use your knowledge only to inform your satire.**
 
 Headline: {headline}
 Summary: {summary}
 
-Then write a concise (under 200 words), witty, absurd short article satirizing this topic.
+Now write a concise (under 200 words), witty, absurd short article satirizing this topic. **Do NOT repeat the headline or generate a new one. Return only the article body.**
 Do NOT contradict well-known recent facts (e.g. major outcomes, title winners, business deals, etc.).
 Do NOT include real names or organizations unless they are public agencies or general institutions.
 """

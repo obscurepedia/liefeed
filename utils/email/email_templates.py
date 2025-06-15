@@ -7,7 +7,15 @@ def generate_newsletter_html(posts, subscriber_id, recipient_email, satirical_sp
     featured_post = posts[0]
     more_posts = posts[1:5]
 
-    # Create the table-based rows for the additional posts
+    # Determine satirical spin heading based on frequency
+    if current_freq == "weekly":
+        spin_heading = "This Week’s Satirical Spin"
+    elif current_freq == "3x":
+        spin_heading = "Your Midweek Satirical Moment"
+    else:
+        spin_heading = "Today’s Satirical Spin"
+
+    # Build rows for secondary posts
     more_posts_rows = ""
     for post in more_posts:
         if post.get("image"):
@@ -47,7 +55,7 @@ def generate_newsletter_html(posts, subscriber_id, recipient_email, satirical_sp
 
     if featured_post.get('image'):
         html += f"""
-            <img src="{featured_post['image']}" alt="{featured_post['title']}" width="540" height="300" style="display: block; border-radius: 5px; margin: 15px 0;">
+            <img src="{featured_post['image']}" alt="{featured_post['title']}" style="display: block; width: 100%; max-width: 540px; height: auto; border-radius: 5px; margin: 15px 0;">
         """
 
     html += f"""
@@ -67,13 +75,12 @@ def generate_newsletter_html(posts, subscriber_id, recipient_email, satirical_sp
 
             <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
 
-            <h3 style="margin-bottom: 10px;">🤡 This Week’s Satirical Spin</h3>
+            <h3 style="margin-bottom: 10px;">🤡 {spin_heading}</h3>
             <blockquote style="font-style: italic; font-size: 15px; color: #555; border-left: 4px solid #ccc; padding-left: 10px; margin: 10px 0;">
               {satirical_spin}
             </blockquote>
     """
 
-    # 🆙 Add upgrade prompt for weekly users
     if current_freq == "weekly":
         html += f"""
             <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">

@@ -109,8 +109,8 @@ def generate_and_save_post(max_fetch_attempts=5):
 
                     image_url = generate_image_from_prompt(prompt, image_filename, category)
                     if not image_url:
-                        print("❌ Image generation failed. Trying next article...")
-                        continue
+                        print("❌ Image generation returned None. Skipping this article.")
+                        continue  # Move to the next article
 
                     writer = get_random_writer()
 

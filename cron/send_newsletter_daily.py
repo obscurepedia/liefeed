@@ -34,13 +34,13 @@ def send_daily_newsletter(dry_run=False):
             c.execute("""
                 SELECT id, email, newsletter_freq FROM subscribers
                 WHERE newsletter_freq = 'daily' AND unsubscribed_at IS NULL
-            """
-            )
+            """)
             subscribers = c.fetchall()
     finally:
         conn.close()
 
-    posts = fetch_top_posts(limit=5)
+    # ✅ Fetch only posts not used in daily newsletter
+    posts = fetch_top_posts(limit=5, newsletter_type="daily")
     satirical_spin = get_satirical_spin()
     subject = create_subject_line(posts)
 
@@ -60,6 +60,17 @@ def send_daily_newsletter(dry_run=False):
                 html_body=html_body,
                 required_freq="daily"
             )
+
+    # ✅ Mark posts as used in daily newsletter
+    conn = get_connection()
+    try:
+        with conn.cursor() as c:
+            for post in posts:
+                c.execute("UPDATE posts SET used_in_daily_newsletter = TRUE WHERE id = %s", (post["id"],))
+            conn.commit()
+    finally:
+        conn.close()
+
 
 if __name__ == "__main__":
     send_daily_newsletter()

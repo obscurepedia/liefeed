@@ -153,26 +153,42 @@ def unsubscribe_email(email):
     return success
 
 
-def fetch_top_posts(limit=5):
+def fetch_top_posts(limit=5, newsletter_type=None):
     conn = get_connection()
     c = conn.cursor()
-    c.execute("""
-        SELECT title, slug, content, image
+
+    # Determine the correct filter based on newsletter type
+    if newsletter_type == "daily":
+        filter_clause = "WHERE used_in_daily_newsletter = FALSE"
+    elif newsletter_type == "3x":
+        filter_clause = "WHERE used_in_3x_newsletter = FALSE"
+    elif newsletter_type == "weekly":
+        filter_clause = "WHERE used_in_weekly_newsletter = FALSE"
+    else:
+        filter_clause = ""  # No filtering applied
+
+    query = f"""
+        SELECT title, slug, content, image, id
         FROM posts
+        {filter_clause}
         ORDER BY created_at DESC
         LIMIT %s
-    """, (limit,))
+    """
+    c.execute(query, (limit,))
     rows = c.fetchall()
     conn.close()
+
     return [
         {
             "title": row[0],
             "slug": row[1],
             "content": row[2],
-            "image": row[3]
+            "image": row[3],
+            "id": row[4]
         }
         for row in rows
     ]
+
 
 
 
