@@ -1,7 +1,6 @@
 # Use an official Python image
 FROM python:3.12-slim
 
-
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
@@ -9,7 +8,7 @@ ENV PYTHONUNBUFFERED=1
 # Set work directory
 WORKDIR /app
 
-# Install system dependencies (WeasyPrint, PostgreSQL, FFmpeg, Playwright)
+# Install system dependencies
 RUN apt-get update && \
     apt-get install -y \
         build-essential \
@@ -38,8 +37,12 @@ RUN apt-get update && \
         libasound2 \
         libxshmfence1 \
         libgtk-3-0 \
-        libxss1 && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+        libxss1 \
+        # ✅ Additional for librosa + numpy + scipy
+        libsndfile1 \
+        libatlas-base-dev \
+        gfortran \
+        && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Copy project files
 COPY . .
@@ -54,7 +57,7 @@ RUN python -m playwright install --with-deps
 # Expose port (Render uses port 10000 internally)
 EXPOSE 10000
 
-# Dynamically run different tasks based on RUN_TARGET
+# Entrypoint logic
 CMD ["sh", "-c", "echo '🔥 Cron job container started'; \
   if [ \"$RUN_TARGET\" = 'post-to-facebook' ]; then python cron/scheduled_job.py; \
   elif [ \"$RUN_TARGET\" = 'send-newsletter' ]; then python cron/newsletter_sender.py; \
@@ -69,4 +72,3 @@ CMD ["sh", "-c", "echo '🔥 Cron job container started'; \
   elif [ \"$RUN_TARGET\" = 'send-daily-newsletter' ]; then python cron/send_newsletter_daily.py; \
   else gunicorn --bind 0.0.0.0:10000 web.app:app; \
   fi"]
-
