@@ -1,5 +1,6 @@
 # utils/ai/ai_writer.py
 
+import json
 import os
 import re
 import requests
