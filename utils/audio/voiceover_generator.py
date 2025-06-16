@@ -3,7 +3,7 @@ from elevenlabs.client import ElevenLabs
 
 client = ElevenLabs(api_key=os.getenv("ELEVENLABS_API_KEY"))
 
-def generate_voiceover(text: str, output_path: str, voice_id="TX3LPaxmHKxFdv7VOQHJ"):
+def generate_voiceover(text: str, output_path: str, voice_id="BAdH0bMfq6VleQGLXj38"):
     try:
         stream = client.text_to_speech.convert(
             voice_id=voice_id,
