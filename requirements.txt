@@ -23,6 +23,7 @@ python-dotenv==1.1.0
 requests==2.32.4
 requests-oauthlib==2.0.0
 weasyprint==65.1
-numpy==1.23.5      # last 1.x LTS, works on 3.10 and satisfies librosa
-numba==0.54.1      # highest version that still supports py10 & satisfies librosa
 librosa==0.11.0
+numba>=0.55.0
+numpy>=1.22.3,<2.0
+
