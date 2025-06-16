@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+/* Your existing CSS code here, which you embedded */
+/* Ensure you have the full CSS from the previous step here */
+
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 1080px;
+    height: 1920px;
+    {% if background_image %}
+    background: linear-gradient(rgba(255,255,255,0.4), rgba(255,255,255,0.4)), url('{{ background_image }}') no-repeat center center;
+    background-size: cover;
+    {% elif background_color %}
+    background: {{ background_color }};
+    {% else %}
+    background: #f7f4b2; /* Default background if none provided */
+    {% endif %}
+    font-family: 'Patrick Hand', cursive;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+.safe-zone {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    padding: 250px 40px 400px; /* top / sides / bottom */
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.text-box {
+    background-color: rgba(255,255,255,0.85);
+    padding: 40px 60px;
+    border-radius: 40px;
+    max-width: 900px;
+    text-align: center;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+}
+.meme {
+    font-size: {{ fontsize }}px; /* Jinja2 placeholder */
+    line-height: 1.4;
+    color: #111;
+    font-weight: bold;
+    white-space: pre-wrap;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+.highlight {
+    font-weight: 900;
+    font-size: 110%;
+    color: #d10000;
+}
+.slide-number {
+    position: absolute;
+    bottom: 40px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 36px;
+    color: #555;
+    font-family: sans-serif;
+}
+.sticker {
+    position: absolute;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%) rotate(-5deg);
+    background: #fff;
+    border: 3px dashed #222;
+    padding: 15px 25px;
+    font-size: 50px;
+    font-weight: bold;
+    color: #d10000;
+    box-shadow: 3px 3px 0 #00000033;
+    border-radius: 20px;
+    font-family: sans-serif;
+}
+.short-link {
+    position: absolute;
+    bottom: 160px; /* Moved up into safe zone */
+    right: 40px;
+    font-size: 36px;
+    color: #333;
+    background: rgba(255,255,255,0.85);
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-family: sans-serif;
+    font-weight: bold;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.15);
+}
+
+/* Reverting .link_only .text-box to match other slides */
+.link_only .text-box {
+    /* Reverting these to default .text-box values */
+    background-color: rgba(255,255,255,0.85); /* Make text box opaque */
+    box-shadow: 0 0 20px rgba(0,0,0,0.1); /* Restore shadow */
+    padding: 40px 60px; /* Restore padding */
+    max-width: 900px; /* Restore max-width */
+}
+.link_only .meme {
+    font-size: 120px; /* Larger font for the link - keep this for visual prominence */
+    color: #111; /* Changed to dark to be visible on white background */
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3); /* Restore shadow */
+}
+.link_only .short-link {
+    display: none; /* Hide the separate short-link div if text handles it */
+}
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="safe-zone">
+    <div class="text-box">
+      <div class="meme">{{ text | safe }}</div>
+    </div>
+  </div>
+  {% if sticker_text %}
+  <div class="sticker">{{ sticker_text }}</div>
+  {% endif %}
+  {% if slide_number %}
+  <div class="slide-number">{{ slide_number }}</div>
+  {% endif %}
+</body>
+</html>

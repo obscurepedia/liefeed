@@ -1,13 +1,11 @@
+# Assuming these imports are at the top of auto_reel.py
 import os, sys, subprocess, asyncio
 import time
 import mimetypes
 import random
 import librosa
 import numpy as np
-
 from pathlib import Path
-sys.path.append(str(Path(__file__).resolve().parent.parent))
-
 from playwright.async_api import async_playwright
 from utils.image.image_prompt_generator import generate_image_prompt
 from utils.image.image_generator import generate_image_from_prompt, s3_client
@@ -17,6 +15,8 @@ from datetime import datetime, timezone
 from utils.database.db import get_connection
 from PIL import Image
 from jinja2 import Environment, FileSystemLoader
+from mutagen.mp3 import MP3 # NEW: Import for MP3 duration
+import tempfile # NEW: Import for temporary files
 
 # ── CONFIG ─────────────────────────────────────────────────────────
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -32,7 +32,9 @@ MUSIC_FILE = Path(__file__).resolve().parents[2] / "static" / selected_track
 
 REEL_COLORS = [
     "#f7f4b2", "#fbd5e0", "#d0f0fd",
-    "#e1ffd5", "#fff3b0", "#ffe0b3"
+    "#e1ffd5", "#fff3b0", # Example colors, ensure you have enough
+    "#ffccdd", "#ccffdd", "#ddccff", "#ffeecc", "#ccddee",
+    "#aaddff", "#ffccff", "#ccffee", "#eeccff", "#ddffcc"
 ]
 
 null_device = "NUL" if os.name == "nt" else "/dev/null"
@@ -260,142 +262,54 @@ def emphasize_keywords(text):
 
     return " ".join(words)
 
+# ── SLIDE WRITER ───────────────────────────────────────────────────
+CURRENT_DIR = Path(__file__).resolve().parent
+env = Environment(loader=FileSystemLoader(CURRENT_DIR / "templates"))
+template = env.get_template("slide_template.html")
 
-# ── HTML SLIDE WRITER ──────────────────────────────────────────────
-def write_slide(text: str, filename: str, *, fontsize: int = 80, layout: str = "headline", slide_number: str = "", background: str = "#f7f4b2", short_slug: str = None):
-    # Engagement prompt CTA (rotating)
-    engagement_ctas = ["👇 In the Caption", "🔥 Tap to Read", "❓ Can You Guess?"]
-    cta_text = random.choice(engagement_ctas)
+# In your auto_reel.py file, locate the write_slide function and update it as follows:
 
-    styled_text = emphasize_keywords(text)
+def write_slide(text: str, filename: str, fontsize: int, layout: str, slide_number: str, background: str = None, background_color: str = None, short_slug: str = None):
+    """
+    Writes HTML content for a slide based on a template.
+    """
+    # Initialize variables that will be passed to the template
+    template_text = text # This will be the main content of the slide
+    template_sticker_text = None
+    template_emoji_prefix = "" # This will be used to prepend emoji if needed
 
-    if layout == "teaser":
-        emoji = "👀"
-    elif layout == "cta":
-        emoji = "👉"
-    else:
-        emoji = "📰"
+    if layout == "cta":
+        # For the CTA slide, the user wants ONLY the main CTA text.
+        # So, no sticker and no emoji prefix from the template.
+        template_sticker_text = None
+        template_emoji_prefix = ""
 
-    # Set background
-    if background.endswith(".png") or background.endswith(".jpg"):
-        background_style = f"""
-            background: linear-gradient(rgba(255,255,255,0.4), rgba(255,255,255,0.4)), url('{background}') no-repeat center center;
-            background-size: cover;
-        """
-    else:
-        background_style = f"background: {background};"
+    elif layout == "link_only":
+        # For the link_only slide, the 'text' argument already contains the emoji and the link.
+        # So, no separate sticker or emoji prefix is needed from the template.
+        template_sticker_text = None
+        template_emoji_prefix = ""
+        # The template_text will be "👇 liefeed.com/go/" + short_slug, as passed in the call.
 
-    # Add sticker and shortlink (only on CTA slide)
-    sticker_html = f'<div class="sticker">{cta_text}</div>' if layout == "cta" else ""
-    shortlink_html = f'<div class="short-link">liefeed.com/go/{short_slug}</div>' if layout == "cta" and short_slug else ""
-
-    html = f"""
-<!DOCTYPE html><html><head><meta charset="UTF-8">
-<style>
-  html, body {{
-    margin: 0;
-    padding: 0;
-    width: 1080px;
-    height: 1920px;
-    {background_style}
-    font-family: 'Patrick Hand', cursive;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-  }}
-  .safe-zone {{
-    position: relative;
-    width: 100%;
-    height: 100%;
-    padding: 250px 40px 400px; /* top / sides / bottom */
-    box-sizing: border-box;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }}
-  .text-box {{
-    background-color: rgba(255,255,255,0.85);
-    padding: 40px 60px;
-    border-radius: 40px;
-    max-width: 900px;
-    text-align: center;
-    box-shadow: 0 0 20px rgba(0,0,0,0.1);
-  }}
-  .meme {{
-    font-size: {fontsize}px;
-    line-height: 1.4;
-    color: #111;
-    font-weight: bold;
-    white-space: pre-wrap;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-  }}
-  .highlight {{
-    font-weight: 900;
-    font-size: 110%;
-    color: #d10000;
-  }}
-  .slide-number {{
-    position: absolute;
-    bottom: 40px;
-    left: 0;
-    right: 0;
-    text-align: center;
-    font-size: 36px;
-    color: #555;
-    font-family: sans-serif;
-  }}
-  .sticker {{
-    position: absolute;
-    bottom: 100px;
-    left: 50%;
-    transform: translateX(-50%) rotate(-5deg);
-    background: #fff;
-    border: 3px dashed #222;
-    padding: 15px 25px;
-    font-size: 50px;
-    font-weight: bold;
-    color: #d10000;
-    box-shadow: 3px 3px 0 #00000033;
-    border-radius: 20px;
-    font-family: sans-serif;
-  }}
-  .short-link {{
-    position: absolute;
-    bottom: 160px;  /* Moved up into safe zone */
-    right: 40px;
-    font-size: 36px;
-    color: #333;
-    background: rgba(255,255,255,0.85);
-    padding: 12px 24px;
-    border-radius: 12px;
-    font-family: sans-serif;
-    font-weight: bold;
-    box-shadow: 2px 2px 5px rgba(0,0,0,0.15);
-  }}
-</style>
-<link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
-</head><body>
-  <div class="safe-zone">
-    <div class="text-box">
-      <div class="meme">{emoji} {styled_text}</div>
-    </div>
-  </div>
-  {sticker_html}
-  {shortlink_html}
-  {f'<div class="slide-number">{slide_number}</div>' if slide_number else ''}
-</body></html>
-"""
-
-    (SLIDE_DIR / filename).write_text(html, encoding="utf-8")
-
-
+    html_content = template.render(
+        text=template_text, # This carries the actual content (including emoji for slide 4)
+        fontsize=fontsize,
+        layout=layout,
+        slide_number=slide_number,
+        background_image=background,
+        background_color=background_color,
+        sticker_text=template_sticker_text, # Will be None for both relevant layouts
+        emoji=template_emoji_prefix, # Will be "" for both relevant layouts
+        short_slug=short_slug # Still passed, but template won't use it directly for rendering content
+    )
+    (SLIDE_DIR / filename).write_text(html_content, encoding="utf-8")
 
 
 # ── HTML→PNG ───────────────────────────────────────────────────────
 
 def render_html_slide(template_name: str, context: dict, output_path: str):
-    env = Environment(loader=FileSystemLoader("templates"))
+    global CURRENT_DIR # If CURRENT_DIR is defined globally, ensure it's accessible.
+    env = Environment(loader=FileSystemLoader(CURRENT_DIR / "templates"))
     template = env.get_template(template_name)
     rendered_html = template.render(context)
 
@@ -416,81 +330,132 @@ async def render_html_to_png(html_file: str, png_file: str):
         await browser.close()
 
 
-from mutagen.mp3 import MP3
-
+# ── FFmpeg Stitcher ────────────────────────────────────────────────
 def stitch_slides(slides: list[str], music: Path, voiceover: Path, output: str):
-    import tempfile
+    """
+    Stitches generated slide images, music, and voiceover into a final video reel.
 
-    # Get MP3 duration using mutagen
+    Args:
+        slides (list[str]): List of PNG filenames for each slide.
+        music (Path): Path to the background music file.
+        voiceover (Path): Path to the voiceover audio file.
+        output (str): Output filename for the final MP4 video.
+    """
+    print("🎬 Stitching slides...")
     voice_audio = MP3(str(voiceover))
     voiceover_duration = voice_audio.info.length
 
+    input_count = len(slides) # This will now be 4
+    transition = 1 # duration of transition between slides (seconds)
+
+    # Define durations for each slide
+    # First 3 slides share the voiceover duration, last slide gets extra time
+    narrated_slide_count = 3 # HOOK, TWIST, CTA text slides are narrated
+    
+    # Avoid division by zero if voiceover_duration is extremely short or 0
+    if voiceover_duration > 0 and narrated_slide_count > 0:
+        duration_per_narrated_slide = voiceover_duration / narrated_slide_count
+    else:
+        duration_per_narrated_slide = 2.0 # Default short duration if no voiceover or narrated slides
+
+    link_slide_extra_duration = 4.0 # Seconds for the link slide to stay on screen
+
+    individual_slide_durations = [duration_per_narrated_slide] * narrated_slide_count
+    individual_slide_durations.append(link_slide_extra_duration) # Add duration for the 4th slide
+
+    # Calculate total video duration by summing all individual slide durations
+    total_visual_duration = sum(individual_slide_durations)
+
+    # Ensure total video duration is at least as long as the voiceover
+    total_visual_duration = max(total_visual_duration, voiceover_duration)
+
     args = []
     filter_parts = []
-    input_count = len(slides)
-
-    transition = 1
-    slide_duration = voiceover_duration / input_count
-    total_duration = voiceover_duration
-
-    for slide in slides:
+    
+    # Add input arguments for each slide image
+    for i, slide in enumerate(slides):
         slide_path = str(SLIDE_DIR / slide)
-        args += ["-loop", "1", "-t", str(slide_duration), "-i", slide_path]
+        current_slide_duration = individual_slide_durations[i]
+        args += ["-loop", "1", "-t", str(current_slide_duration), "-i", slide_path]
 
+        # Apply zoompan or other motion effect
+        motion = "zoompan=z='min(zoom+0.001,1.1)':d=125:s=1080x1920"
+        filter_parts.append(f"[{i}:v]scale=1080:1920,format=rgba,setpts=PTS-STARTPTS,{motion}[v{i}]")
+
+    # Add music and voiceover inputs (indices input_count and input_count + 1)
     args += ["-i", str(music)]
     args += ["-i", str(voiceover)]
 
-    for idx in range(input_count):
-        motion = "zoompan=z='min(zoom+0.001,1.1)':d=125:s=1080x1920"
-        filter_parts.append(f"[{idx}:v]scale=1080:1920,format=rgba,setpts=PTS-STARTPTS,{motion}[v{idx}]")
-
+    # X-fade transitions for 4 slides (3 transitions)
     xfade_parts = []
-    for i in range(input_count - 1):
+    accumulated_offset = 0.0 # Use float for precise accumulation
+    for i in range(input_count - 1): # This loop will run for i=0, 1, 2 (for 4 slides)
         input_a = f"[v{i}]" if i == 0 else f"[xf{i-1}]"
         input_b = f"[v{i+1}]"
         tag = f"[xf{i}]"
-        offset = (i + 1) * slide_duration
-        xfade_parts.append(f"{input_a}{input_b}xfade=transition=slideleft:duration={transition}:offset={offset}{tag}")
+        
+        # Calculate offset for each transition based on individual slide durations
+        accumulated_offset += individual_slide_durations[i]
+        xfade_parts.append(f"{input_a}{input_b}xfade=transition=slideleft:duration={transition}:offset={accumulated_offset}{tag}")
 
     filter_complex = "; ".join(filter_parts + xfade_parts)
+
+    # Determine the final video stream from the last xfade output (for 4 slides, it's xf2)
+    final_video_stream = f"[xf{input_count - 2}]"
+
+    # Audio mixing: music and voiceover
+    # Ensure background music lasts for the total visual duration
     filter_complex += (
-        f"; [{input_count}:a]atrim=duration={total_duration},volume=0.2[a1];"
-        f"[{input_count + 1}:a]adelay=0|0,volume=1.0[a2];"
+        f"; [{input_count}:a]atrim=duration={total_visual_duration},volume=0.2[a1];" # Music input is at index `input_count`
+        f"[{input_count + 1}:a]adelay=0|0,volume=1.0[a2];" # Voiceover input is at index `input_count + 1`
         f"[a1][a2]amix=inputs=2:duration=first[aout]"
     )
 
-    final_video = f"[xf{input_count - 2}]" if input_count >= 2 else "[v0]"
+    # Use null_device for the first pass output to discard video but log pass data
+    if sys.platform == "win32":
+        null_device = "NUL"
+    else:
+        null_device = "/dev/null"
 
-    with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as temp_passlog:
+    with tempfile.NamedTemporaryFile(suffix=".log", delete=False) as temp_passlog:
         passlog_file = temp_passlog.name
 
     first_pass = [
         "ffmpeg", "-y", *args,
         "-filter_complex", filter_complex,
-        "-map", final_video,
+        "-map", final_video_stream,
         "-map", "[aout]",
         "-c:v", "libx264", "-b:v", "12M", "-preset", "veryfast",
         "-r", "30", "-pass", "1", "-passlogfile", passlog_file,
-        "-an", "-t", str(total_duration), "-f", "mp4", null_device
+        "-an", "-t", str(total_visual_duration), "-f", "mp4", null_device
     ]
 
     second_pass = [
         "ffmpeg", "-y", *args,
         "-filter_complex", filter_complex,
-        "-map", final_video,
+        "-map", final_video_stream,
         "-map", "[aout]",
         "-c:v", "libx264", "-b:v", "12M", "-preset", "veryfast",
         "-pass", "2", "-passlogfile", passlog_file,
         "-pix_fmt", "yuv420p", "-r", "30", "-movflags", "+faststart",
         "-c:a", "aac", "-b:a", "128k",
-        "-t", str(total_duration),
+        "-t", str(total_visual_duration), # Set total video duration here
         "-shortest", output
     ]
 
-    subprocess.run(first_pass, check=True)
-    subprocess.run(second_pass, check=True)
-
-
+    try:
+        subprocess.run(first_pass, check=True)
+        subprocess.run(second_pass, check=True)
+        print(f"✅ Reel generated at: {output}")
+    except subprocess.CalledProcessError as e:
+        print(f"❌ FFmpeg error: {e}")
+        print(f"FFmpeg stdout: {e.stdout.decode()}")
+        print(f"FFmpeg stderr: {e.stderr.decode()}")
+        raise
+    finally:
+        # Clean up pass log file
+        if os.path.exists(passlog_file):
+            os.remove(passlog_file)
 
 
 
@@ -511,11 +476,19 @@ def save_reel_to_database(caption, s3_key):
 
 # ── MAIN PIPELINE ─────────────────────────────────────────────────
 async def main():
+    """
+    Main pipeline to generate and upload a satirical news reel.
+    """
     attempts = 0
+    post = None # Initialize post to None
     while attempts < 10:
-        post = fetch_post()
+        fetched_post = fetch_post()
+        if not fetched_post:
+            print("⚠️ No new posts available for reel generation. Exiting.")
+            return # Exit if no posts left to try
+
         try:
-            hook, twist, cta = generate_story_teaser_slides(post["content"])
+            hook, twist, cta = generate_story_teaser_slides(fetched_post["content"])
 
             # Clean extra quotes
             hook = hook.strip('"')
@@ -529,73 +502,101 @@ async def main():
 
             # If any of the teaser parts are blank, skip the post
             if not hook.strip() or not twist.strip() or not cta.strip():
-                print(f"⚠️ Teaser incomplete for post {post['id']}. Skipping...")
-                mark_post_used(post["id"])
-                increment_failed_attempt(post["id"])
+                print(f"⚠️ Teaser incomplete for post {fetched_post['id']}. Skipping...")
+                mark_post_used(fetched_post["id"])
+                increment_failed_attempt(fetched_post["id"])
                 attempts += 1
                 continue  # retry with a new post
 
+            post = fetched_post # Assign to 'post' for the rest of the try block
+            
             short_slug = generate_short_slug(post["title"])
             save_short_slug(post["id"], short_slug)
 
-
             base_prompt = generate_image_prompt(post["title"], post["content"])
 
+            # Generate 3 images: hook, twist, and one image for both CTA text and the final link slide
             slide_prompts = [
                 f"{base_prompt}, setup moment",
                 f"{base_prompt}, mid-action twist",
-                f"{base_prompt}, curiosity-building aftermath"
+                f"{base_prompt}, curiosity-building aftermath", # This image will be used for slide 3
+                f"{base_prompt}, clear focus on the call-to-action"   # ➊ NEW
             ]
-            slide_names = ["hook", "twist", "cta"]
-            slide_images = {}
+            slide_names = ["hook", "twist", "cta", "link"] # Names corresponding to the image use
+            slide_images = {} # Stores image filenames
 
             for i, (prompt, name) in enumerate(zip(slide_prompts, slide_names), start=1):
+                print(f"🎨 Generating image for slide {i} ({name})...")
                 image_path = SLIDE_DIR / f"slide{i}_{name}.png"
-                image_path.unlink(missing_ok=True)
+                image_path.unlink(missing_ok=True) # Clean up old image if exists
                 result = generate_image_from_prompt(prompt, str(image_path), mode="reel")
                 if result is None or not image_path.exists():
                     raise ValueError(f"Image generation failed for slide {name}")
                 ensure_exact_1080x1920(image_path)
-                slide_images[name] = image_path.name
+                slide_images[name] = image_path.name # Store just the filename
 
-            break  # success, exit the loop
+            break  # success, exit the loop for post fetching and image generation
 
         except Exception as e:
-            print(f"⚠️ Skipping post {post['id']} due to teaser or image issue: {e}")
-            mark_post_used(post["id"])
-            increment_failed_attempt(post["id"])
+            print(f"⚠️ Skipping post {fetched_post['id']} due to teaser or image issue: {e}")
+            mark_post_used(fetched_post["id"])
+            increment_failed_attempt(fetched_post["id"])
             attempts += 1
-            post = None
+            post = None # Reset post for next attempt
+
 
     if not post:
         print("❌ Failed to generate a valid reel after 10 attempts.")
-        return
+        return # Exit if no valid post was found after all attempts
 
     try:
-        counter = get_reel_counter()
+        # Counter management (if needed for unique naming beyond slug)
+        # counter = get_reel_counter() # Uncomment if you use this
 
-        write_slide(hook,  "slide1_hook.html",  fontsize=105, layout="headline", slide_number="1/3", background=slide_images["hook"])
-        write_slide(twist, "slide2_twist.html", fontsize=95,  layout="teaser",   slide_number="2/3", background=slide_images["twist"])
-        print(f"🧭 Using short_slug for CTA: {short_slug}")
-        write_slide(cta, "slide3_cta.html", fontsize=85, layout="cta", slide_number="3/3", background=slide_images["cta"], short_slug=short_slug)
+        # Slide 1: Hook (1/4)
+        write_slide(hook, "slide1_hook.html", fontsize=105, layout="headline", slide_number="1/4", background=slide_images["hook"])
+        
+        # Slide 2: Twist (2/4)
+        write_slide(twist, "slide2_twist.html", fontsize=95, layout="teaser", slide_number="2/4", background=slide_images["twist"])
+        
+        # Slide 3: CTA Text (3/4) - uses 'cta' image as background
+        print(f"🧭 Using short_slug for CTA on slide 3: {short_slug}")
+        write_slide(cta, "slide3_cta.html", fontsize=85, layout="cta", slide_number="3/4", background=slide_images["cta"], short_slug=short_slug)
 
+        # Slide 4: Dedicated Link (4/4) - uses the *same* 'cta' image as background
+        print(f"🧭 Using short_slug for final link slide 4: {short_slug}")
+        write_slide(
+            "👇 liefeed.com/go/" + short_slug, # Prominent emoji and the link text
+            "slide4_link.html",
+            fontsize=85, # Adjust as needed for prominence
+            layout="link_only", # New layout type for specific styling
+            slide_number="4/4",
+            background=slide_images["link"], 
+            short_slug=short_slug # Pass short_slug for link rendering in template
+        )
+
+        # Voiceover Generation
         narration_text = generate_narration_from_teaser(hook)
         cta_line = generate_narrated_cta()
-        full_narration = f"{narration_text} {cta_line}. Visit liefeed.com/go/{short_slug}"
+        # NEW: Remove the direct link mention from the voiceover, as it's now prominently on the dedicated 4th slide
+        full_narration = f"{narration_text} {cta_line}" 
         voice_path = "voiceover_teaser.mp3"
         generate_voiceover(full_narration, voice_path)
 
+        # Render HTML to PNG for all 4 slides
         await render_html_to_png("slide1_hook.html", "slide1_hook.png")
         await render_html_to_png("slide2_twist.html", "slide2_twist.png")
-        await render_html_to_png("slide3_cta.html",   "slide3_cta.png")
+        await render_html_to_png("slide3_cta.html", "slide3_cta.png")
+        await render_html_to_png("slide4_link.html", "slide4_link.png") # Render the new 4th slide
 
+        # Stitch all 4 slides together
         stitch_slides(
-            ["slide1_hook.png", "slide2_twist.png", "slide3_cta.png"],
+            ["slide1_hook.png", "slide2_twist.png", "slide3_cta.png", "slide4_link.png"], # Updated list to include 4th slide
             MUSIC_FILE, Path(voice_path), OUTPUT_VIDEO
         )
 
         mark_post_used(post["id"])
-        increment_reel_counter()
+        increment_reel_counter() # Increment the reel counter if you use it for unique filenames/tracking
 
         date_str = datetime.now(timezone.utc).strftime("%Y/%m/%d")
         S3_REEL_KEY = f"reels/{date_str}/{int(time.time())}_reel.mp4"
@@ -605,15 +606,19 @@ async def main():
             S3_REEL_KEY,
             ExtraArgs={'ContentType': mimetypes.guess_type(OUTPUT_VIDEO)[0] or 'video/mp4'}
         )
+        print(f"✅ Uploaded to S3: {S3_REEL_KEY}")
 
         full_url = f"https://liefeed.com/post/{post['slug']}"
         caption_with_link = f"Follow LieFeed for daily absurdity\n\nRead more 👉 {full_url}"
         save_reel_to_database(caption_with_link, S3_REEL_KEY)
+        print(f"✅ Reel saved to database.")
 
     except Exception as e:
         print(f"❌ Error during reel generation: {e}")
-        increment_failed_attempt(post["id"])
-
+        if post: # Only increment failed attempt if a post was successfully fetched initially
+            increment_failed_attempt(post["id"])
+        # Optionally, mark post as failed or retry logic here
+    print("✅ Reel generation complete.")
 
 
 
@@ -806,6 +811,6 @@ async def generate_quiz_spy_reel():
         print(f"❌ Failed to generate spy quiz reel: {e}")
 
 
+# ── Entry Point ──────────────────────────────────────────────────
 if __name__ == "__main__":
     asyncio.run(main())
-
