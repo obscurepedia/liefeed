@@ -119,11 +119,48 @@ def save_short_slug(post_id, slug):
         conn.commit()
     conn.close()
 
+# In auto_reel.py, locate your sanitize_prompt function and modify it as follows:
+
 def sanitize_prompt(prompt):
-    banned_keywords = ["Trump", "Putin", "Musk", "sexual", "celebrity", "hair", "Ukraine", "Russia"]
+    banned_keywords = [
+        "Trump", "Putin", "Musk", "sexual", "celebrity", "Ukraine", "Russia",
+        "politics", "political", "election", "candidate", "government",
+        "violence", "bloody", "weapon", "gun", "knife", "bomb", "attack",
+        "hate", "racist", "sexist", "discriminatory", "nude", "porn",
+        "explicit", "gore", "drug", "alcohol", "smoking", "vaping",
+        "terrorist", "terrorism", "extremist", "propaganda", "insurrection",
+        "riot", "protest", "controversial", "disaster", "tragedy",
+        "illness", "disease", "death", "injury", "accident", "hospital",
+        "medical", "doctor", "nurse",
+        "religious", "religion", "church", "mosque", "temple", "holy",
+        "money", "financial", "bank", "stock market", "economy", "debt",
+        "legal", "court", "judge", "police", "crime", "criminal", "prison",
+        "military", "soldier", "war", "battle", "conflict",
+        "children", "kid", "baby", "teenager",
+        "animal cruelty", "abuse", "torture", "suffering",
+        "disability", "disabled", "handicap",
+        "crisis", "scandal", "controversy", "expose", "secret", "conspiracy",
+        "threat", "danger", "harm", "unethical", "immoral"
+    ]
+
+    contains_banned = False
+    lower_prompt = prompt.lower()
+
     for word in banned_keywords:
-        prompt = prompt.replace(word, "[REDACTED]")
-    return prompt
+        if word.lower() in lower_prompt:
+            contains_banned = True
+            # Replace the matched part in the original prompt
+            start = 0
+            while True:
+                idx = lower_prompt.find(word.lower(), start)
+                if idx == -1:
+                    break
+                prompt = prompt[:idx] + "[REDACTED]" + prompt[idx + len(word):]
+                # Adjust lower_prompt as well to avoid re-matching the redacted part
+                lower_prompt = lower_prompt[:idx] + "[REDACTED]" + lower_prompt[idx + len(word):]
+                start = idx + len("[REDACTED]")
+
+    return prompt, contains_banned
 
 def try_leonardo_then_hf(prompt, output_path):
     from utils.image.image_generator import generate_image_from_prompt
@@ -542,12 +579,25 @@ async def main():
 
             base_prompt = generate_image_prompt(post["title"], post["content"])
 
+            # === NEW LOGIC START: Check base prompt for banned words ===
+            # Sanitize the base prompt and get the flag
+            base_prompt, contains_banned_words_in_base = sanitize_prompt(base_prompt)
+
+            if contains_banned_words_in_base:
+                print(f"⚠️ Base prompt for post {fetched_post['id']} contains banned words. Skipping this post to avoid API rejections.")
+                mark_post_used(fetched_post["id"])
+                increment_failed_attempt(fetched_post["id"])
+                attempts += 1
+                post = None # Reset post for next attempt
+                continue # Skip to the next iteration of the while loop (fetch a new post)
+            # === NEW LOGIC END ===
+
             # Generate 3 images: hook, twist, and one image for both CTA text and the final link slide
             slide_prompts = [
-                f"{base_prompt}, setup moment",
+                f"{base_prompt}, setup moment", # base_prompt is now the cleaned version
                 f"{base_prompt}, mid-action twist",
                 f"{base_prompt}, curiosity-building aftermath", # This image will be used for slide 3
-                f"{base_prompt}, clear focus on the call-to-action"   # ➊ NEW
+                f"{base_prompt}, clear focus on the call-to-action"
             ]
             slide_names = ["hook", "twist", "cta", "link"] # Names corresponding to the image use
             slide_images = {} # Stores image filenames
@@ -557,7 +607,8 @@ async def main():
                 image_path = SLIDE_DIR / f"slide{i}_{name}.png"
                 image_path.unlink(missing_ok=True)  # Clean up old image if exists
 
-                clean_prompt = sanitize_prompt(prompt)
+                # Sanitize each individual slide prompt (will redact words, but decision to skip was already made)
+                clean_prompt, _ = sanitize_prompt(prompt) # Use clean_prompt, ignore the flag here
                 print(f"🧪 Prompt sent to image generator: {clean_prompt}")
 
                 result = try_leonardo_then_hf(clean_prompt, str(image_path))
