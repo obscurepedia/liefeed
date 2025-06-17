@@ -119,6 +119,33 @@ def save_short_slug(post_id, slug):
         conn.commit()
     conn.close()
 
+def sanitize_prompt(prompt):
+    banned_keywords = ["Trump", "Putin", "Musk", "sexual", "celebrity", "hair", "Ukraine", "Russia"]
+    for word in banned_keywords:
+        prompt = prompt.replace(word, "[REDACTED]")
+    return prompt
+
+def try_leonardo_then_hf(prompt, output_path):
+    from utils.image.image_generator import generate_image_from_prompt
+
+    # Force Leonardo first
+    try:
+        print("🎨 Trying Leonardo first...")
+        result = generate_image_from_prompt(prompt, output_path, mode="reel")
+        if result is not None and os.path.exists(output_path):
+            return result
+        raise Exception("Leonardo returned no image.")
+    except Exception as e:
+        print(f"⚠️ Leonardo failed: {e}")
+        print("🔁 Falling back to Hugging Face...")
+        # Now use generate_image_from_prompt again, but this time trigger HF logic by passing mode other than 'reel'
+        try:
+            return generate_image_from_prompt(prompt, output_path, mode="fallback")
+        except Exception as hf_error:
+            print(f"❌ Hugging Face also failed: {hf_error}")
+            return None
+
+
 # ── TEXT BREAKDOWN ────────────────────────────────────────────────
 
 def generate_story_teaser_slides(post_text: str):
@@ -528,14 +555,19 @@ async def main():
             for i, (prompt, name) in enumerate(zip(slide_prompts, slide_names), start=1):
                 print(f"🎨 Generating image for slide {i} ({name})...")
                 image_path = SLIDE_DIR / f"slide{i}_{name}.png"
-                image_path.unlink(missing_ok=True) # Clean up old image if exists
-                result = generate_image_from_prompt(prompt, str(image_path), mode="reel")
-                if result is None or not image_path.exists():
-                    raise ValueError(f"Image generation failed for slide {name}")
-                ensure_exact_1080x1920(image_path)
-                slide_images[name] = image_path.name # Store just the filename
+                image_path.unlink(missing_ok=True)  # Clean up old image if exists
 
-            break  # success, exit the loop for post fetching and image generation
+                clean_prompt = sanitize_prompt(prompt)
+                print(f"🧪 Prompt sent to image generator: {clean_prompt}")
+
+                result = try_leonardo_then_hf(clean_prompt, str(image_path))
+
+                if result is None or not image_path.exists():
+                    raise ValueError(f"Image generation failed for slide {name} (Leonardo & HF)")
+
+                ensure_exact_1080x1920(image_path)
+                slide_images[name] = image_path.name  # Store just the filename
+
 
         except Exception as e:
             print(f"⚠️ Skipping post {fetched_post['id']} due to teaser or image issue: {e}")
