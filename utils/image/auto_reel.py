@@ -165,22 +165,24 @@ def sanitize_prompt(prompt):
 def try_leonardo_then_hf(prompt, output_path):
     from utils.image.image_generator import generate_image_from_prompt
 
-    # Force Leonardo first
+    # Try Leonardo first
     try:
         print("🎨 Trying Leonardo first...")
         result = generate_image_from_prompt(prompt, output_path, mode="reel")
         if result is not None and os.path.exists(output_path):
             return result
-        raise Exception("Leonardo returned no image.")
+        print("⚠️ Leonardo returned no image or file not saved.")
     except Exception as e:
         print(f"⚠️ Leonardo failed: {e}")
-        print("🔁 Falling back to Hugging Face...")
-        # Now use generate_image_from_prompt again, but this time trigger HF logic by passing mode other than 'reel'
-        try:
-            return generate_image_from_prompt(prompt, output_path, mode="fallback")
-        except Exception as hf_error:
-            print(f"❌ Hugging Face also failed: {hf_error}")
-            return None
+    
+    # If we get here, Leonardo failed - try Hugging Face
+    print("🔁 Falling back to Hugging Face...")
+    try:
+        return generate_image_from_prompt(prompt, output_path, mode="fallback")
+    except Exception as hf_error:
+        print(f"❌ Hugging Face also failed: {hf_error}")
+        return None
+
 
 
 # ── TEXT BREAKDOWN ────────────────────────────────────────────────
@@ -618,6 +620,9 @@ async def main():
 
                 ensure_exact_1080x1920(image_path)
                 slide_images[name] = image_path.name  # Store just the filename
+            
+            print("✅ All images generated successfully! Breaking out of retry loop.")
+            break  # Exit the while loop after successful image generation
 
 
         except Exception as e:
