@@ -9,6 +9,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from flask import Flask
 from flask import send_from_directory
+from flask import Response
+from datetime import datetime
 from markupsafe import Markup
 from dotenv import load_dotenv
 import markdown
@@ -16,7 +18,7 @@ from openai import OpenAI
 
 
 # === Local Modules ===
-from utils.database.db import fetch_all_posts
+from utils.database.db import fetch_all_posts, get_connection
 from utils.quiz import quiz_bp
 from utils.routes.generate_ad import generate_ad_bp
 from routes.home import home_bp
@@ -50,8 +52,7 @@ def markdown_filter(text):
 def ads_txt():
     return send_from_directory(os.getcwd(), 'ads.txt')
 
-from flask import Response
-from datetime import datetime
+
 
 @app.route("/sitemap.xml")
 def sitemap():
