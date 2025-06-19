@@ -85,6 +85,34 @@ def sitemap():
 
     return Response("\n".join(sitemap_xml), mimetype="application/xml")
 
+@app.route("/admin/manual-posts")
+def manual_posts():
+    conn = get_connection()
+    cur = conn.cursor()
+
+    # Get recent memes
+    cur.execute("""
+        SELECT caption, image_url, created_at
+        FROM memes
+        ORDER BY created_at DESC
+        LIMIT 20
+    """)
+    memes = cur.fetchall()
+
+    # Get recent article posts
+    cur.execute("""
+        SELECT title, slug, quote, image, created_at
+        FROM posts
+        ORDER BY created_at DESC
+        LIMIT 20
+    """)
+    posts = cur.fetchall()
+
+    cur.close()
+    conn.close()
+
+    return render_template("manual_combined.html", memes=memes, posts=posts)
+
 
 # === Context Processors ===
 @app.context_processor

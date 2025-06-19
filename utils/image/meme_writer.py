@@ -100,8 +100,8 @@ def generate_and_post_meme():
         image_path = generate_image_from_prompt(prompt, image_filename, mode="meme")
 
         if image_path:
-            post_image_to_facebook(caption=meme_caption, image_url_or_path=image_path)
-            print(f"✅ Meme posted: {meme_caption}")
+            # post_image_to_facebook(caption=meme_caption, image_url_or_path=image_path)
+            print(f"🛑 Skipping Facebook post for meme: {meme_caption}")
             insert_meme(meme_caption, image_filename)
             print("✅ Meme saved to database.")
         else:

@@ -152,12 +152,14 @@ def generate_and_save_post(max_fetch_attempts=5):
                     print("📄 Facebook caption preview:\n", caption_for_post)
                     print("📄 Twitter headline/teaser preview:\n", satirical_headline, teaser_line)
 
-                    post_image_and_comment(
-                        image_url=image_url,
-                        caption=caption_for_post,
-                        first_comment=comment_for_link
-                    )
+                    # post_image_and_comment(
+                    #    image_url=image_url,
+                    #    caption=caption_for_post,
+                    #    first_comment=comment_for_link
+                    #)
 
+                    print("🛑 Skipping Facebook post for now (auto-posting paused).")
+                    
                     print(f"✅ Article saved: {satirical_headline} (by {writer['name']})")
 
                     updated_index = (current_index + i + 1) % len(CATEGORIES)
