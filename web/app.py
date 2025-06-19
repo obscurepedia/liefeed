@@ -65,7 +65,6 @@ def sitemap():
     pages.append(["/contact", datetime.now()])
 
     # Dynamic posts
-    from db import get_connection  # or your existing DB function
     conn = get_connection()
     with conn.cursor() as cursor:
         cursor.execute("SELECT slug, created_at FROM posts ORDER BY created_at DESC")
