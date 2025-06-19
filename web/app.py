@@ -7,7 +7,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # === Third-Party Libraries ===
 
-from flask import Flask
+from flask import Flask, render_template
 from flask import send_from_directory
 from flask import Response
 from datetime import datetime
