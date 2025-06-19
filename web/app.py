@@ -50,6 +50,41 @@ def markdown_filter(text):
 def ads_txt():
     return send_from_directory(os.getcwd(), 'ads.txt')
 
+from flask import Response
+from datetime import datetime
+
+@app.route("/sitemap.xml")
+def sitemap():
+    pages = []
+
+    # Static routes
+    pages.append(["/", datetime.now()])
+    pages.append(["/quiz", datetime.now()])
+    pages.append(["/about", datetime.now()])
+    pages.append(["/contact", datetime.now()])
+
+    # Dynamic posts
+    from db import get_connection  # or your existing DB function
+    conn = get_connection()
+    with conn.cursor() as cursor:
+        cursor.execute("SELECT slug, created_at FROM posts ORDER BY created_at DESC")
+        for slug, created_at in cursor.fetchall():
+            url = f"/post/{slug}"
+            pages.append([url, created_at])
+
+    sitemap_xml = ['<?xml version="1.0" encoding="UTF-8"?>']
+    sitemap_xml.append('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">')
+
+    for page, date in pages:
+        sitemap_xml.append("  <url>")
+        sitemap_xml.append(f"    <loc>https://liefeed.com{page}</loc>")
+        sitemap_xml.append(f"    <lastmod>{date.strftime('%Y-%m-%d')}</lastmod>")
+        sitemap_xml.append("  </url>")
+
+    sitemap_xml.append("</urlset>")
+
+    return Response("\n".join(sitemap_xml), mimetype="application/xml")
+
 
 # === Context Processors ===
 @app.context_processor
