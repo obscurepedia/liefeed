@@ -11,8 +11,8 @@
     <textarea style="width:100%; height:80px;">{{ title }}\n\n{{ quote }}</textarea>
 
     <p><strong>🖼️ Image:</strong></p>
-    <img src="{{ url_for(filename='images/' ~ image) }}" width="300">
-    <p><a href="{{ url_for(filename='images/' ~ image) }}" download>⬇️ Download Image</a></p>
+    <img src="{{ image }}" width="300">
+    <p><a href="{{ image }}" download>⬇️ Download Image</a></p>
 
     <p><strong>🔗 Link Comment:</strong></p>
     <textarea style="width:100%;">https://liefeed.com/post/{{ slug }}</textarea>
@@ -21,6 +21,7 @@
   </div>
 {% endfor %}
 
+
 <h3>🎭 Meme Posts</h3>
 {% for caption, image_url, created_at in memes %}
   <div style="border:1px solid #ccc; padding:10px; margin-bottom:20px;">
@@ -28,8 +29,8 @@
     <textarea style="width:100%; height:80px;">{{ caption }}</textarea>
 
     <p><strong>🖼️ Image:</strong></p>
-    <img src="{{ url_for('static', filename='images/' ~ image_url) }}" width="300">
-    <p><a href="{{ url_for('static', filename='images/' ~ image_url) }}" download>⬇️ Download Image</a></p>
+    <img src="{{ image }}" width="300">
+    <p><a href="{{ image }}" download>⬇️ Download Image</a></p>
 
     <p><em>Generated: {{ created_at }}</em></p>
   </div>
